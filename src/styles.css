@@ -1,0 +1,727 @@
+/*
+ * ============================================================================
+ *  styles.css — Apparence de l'interface (sobre, rétro, néon)
+ * ============================================================================
+ *
+ * Les couleurs sont des VARIABLES CSS (--bg, --accent…) définies pour chaque
+ * thème. <body data-theme="night"> ou "day" choisit le jeu de variables : tout
+ * le reste du fichier n'utilise que les variables, il n'y a donc rien à dupliquer.
+ * Les couleurs des cellules (--cell-*) sont posées par src/ui/theme.ts à partir
+ * de src/render/theme.ts : une seule source de vérité.
+ */
+
+:root {
+  --font: ui-monospace, 'SFMono-Regular', 'JetBrains Mono', Menlo, Consolas, 'Liberation Mono', monospace;
+  --radius: 6px;
+  --gap: 12px;
+}
+
+body[data-theme='night'] {
+  --bg: #05050b;
+  --fg: #d9dcff;
+  --muted: #8a8db5;
+  --panel: rgba(9, 9, 20, 0.86);
+  --panel-border: rgba(120, 130, 255, 0.24);
+  --hover: rgba(120, 130, 255, 0.12);
+  --accent: #3cf2ff;
+  --accent-soft: rgba(60, 242, 255, 0.12);
+  --danger: #ff4d8d;
+  --glow: 0 0 12px rgba(60, 242, 255, 0.35);
+  --shadow: 0 8px 24px rgba(0, 0, 0, 0.45);
+  color-scheme: dark;
+}
+
+body[data-theme='day'] {
+  --bg: #f3f0e8;
+  --fg: #1e1b30;
+  --muted: #6b6783;
+  --panel: rgba(255, 253, 248, 0.92);
+  --panel-border: rgba(60, 40, 130, 0.22);
+  --hover: rgba(60, 40, 130, 0.07);
+  --accent: #008ca6;
+  --accent-soft: rgba(0, 140, 166, 0.1);
+  --danger: #d6336c;
+  --glow: none;
+  --shadow: 0 6px 20px rgba(40, 30, 80, 0.12);
+  color-scheme: light;
+}
+
+/* ── Bases ─────────────────────────────────────────────────────────────── */
+
+* {
+  box-sizing: border-box;
+}
+
+[hidden] {
+  display: none !important;
+}
+
+html,
+body {
+  margin: 0;
+  height: 100%;
+  overflow: hidden;
+}
+
+body {
+  background: var(--bg);
+  color: var(--fg);
+  font-family: var(--font);
+  font-size: 13px;
+  -webkit-font-smoothing: antialiased;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+button {
+  font: inherit;
+  color: inherit;
+}
+
+svg {
+  width: 20px;
+  height: 20px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  flex-shrink: 0;
+}
+
+svg .solid {
+  fill: currentColor;
+  stroke: none;
+}
+
+/* La grille occupe tout l'écran ; `touch-action: none` = le navigateur ne fait
+   pas défiler la page quand on dessine au doigt. */
+#world {
+  position: fixed;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  display: block;
+  touch-action: none;
+}
+
+/* ── Panneaux flottants ────────────────────────────────────────────────── */
+
+.panel {
+  background: var(--panel);
+  border: 1px solid var(--panel-border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+}
+
+/* Masquer le menu : les panneaux s'effacent et ne captent plus la souris. */
+#ui > * {
+  transition: opacity 0.18s ease;
+}
+
+#ui.is-hidden > * {
+  opacity: 0;
+  pointer-events: none;
+}
+
+/* ── Boutons ───────────────────────────────────────────────────────────── */
+
+.icon-btn {
+  width: 40px;
+  height: 40px;
+  display: inline-grid;
+  place-items: center;
+  padding: 0;
+  border: 1px solid transparent;
+  border-radius: 4px;
+  background: transparent;
+  cursor: pointer;
+}
+
+.icon-btn.small {
+  width: 32px;
+  height: 32px;
+}
+
+.icon-btn:hover {
+  background: var(--hover);
+  border-color: var(--panel-border);
+}
+
+/* Bouton « enfoncé » (outil actif, lecture en cours…) : couleur néon. */
+.icon-btn[aria-pressed='true'] {
+  color: var(--accent);
+  border-color: var(--accent);
+  background: var(--accent-soft);
+  box-shadow: var(--glow);
+}
+
+.icon-btn:disabled {
+  opacity: 0.32;
+  cursor: default;
+  background: transparent;
+  border-color: transparent;
+}
+
+.text-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 34px;
+  padding: 0 12px;
+  border: 1px solid var(--panel-border);
+  border-radius: 4px;
+  background: transparent;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.text-btn:hover {
+  background: var(--hover);
+  border-color: var(--accent);
+}
+
+.text-btn svg {
+  width: 16px;
+  height: 16px;
+}
+
+.text-btn.danger {
+  color: var(--danger);
+  border-color: color-mix(in srgb, var(--danger) 45%, transparent);
+}
+
+.text-btn.danger[data-armed='true'] {
+  background: var(--danger);
+  color: var(--bg);
+}
+
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+/* ── Curseurs (sliders) ────────────────────────────────────────────────── */
+
+input[type='range'] {
+  -webkit-appearance: none;
+  appearance: none;
+  height: 24px;
+  margin: 0;
+  background: transparent;
+  cursor: pointer;
+}
+
+input[type='range']::-webkit-slider-runnable-track {
+  height: 4px;
+  border-radius: 2px;
+  background: var(--panel-border);
+}
+
+input[type='range']::-moz-range-track {
+  height: 4px;
+  border-radius: 2px;
+  background: var(--panel-border);
+}
+
+input[type='range']::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 14px;
+  height: 14px;
+  margin-top: -5px;
+  border: none;
+  border-radius: 3px;
+  background: var(--accent);
+  box-shadow: var(--glow);
+}
+
+input[type='range']::-moz-range-thumb {
+  width: 14px;
+  height: 14px;
+  border: none;
+  border-radius: 3px;
+  background: var(--accent);
+  box-shadow: var(--glow);
+}
+
+/* ── En haut : bouton menu, titre + légende, jour/nuit ─────────────────── */
+
+.floating {
+  position: fixed;
+  top: var(--gap);
+  z-index: 10;
+}
+
+#menu-toggle {
+  left: var(--gap);
+  background: var(--panel);
+  border: 1px solid var(--panel-border);
+  box-shadow: var(--shadow);
+}
+
+#menu-toggle[aria-pressed='true'] {
+  color: var(--fg);
+  box-shadow: var(--shadow);
+}
+
+#menu-toggle[aria-pressed='false'] {
+  color: var(--accent);
+}
+
+#theme-toggle {
+  right: var(--gap);
+  width: 42px;
+  height: 42px;
+}
+
+body[data-theme='night'] .icon-moon,
+body[data-theme='day'] .icon-sun {
+  display: none;
+}
+
+.title-bar {
+  position: fixed;
+  top: var(--gap);
+  left: calc(var(--gap) + 52px);
+  height: 42px;
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  padding: 0 14px;
+}
+
+.title-bar h1 {
+  margin: 0;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  color: var(--accent);
+  text-shadow: var(--glow);
+}
+
+.legend {
+  display: flex;
+  gap: 14px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.legend li {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  white-space: nowrap;
+}
+
+.swatch {
+  display: inline-block;
+  width: 11px;
+  height: 11px;
+  border-radius: 2.5px;
+}
+
+.swatch-newborn {
+  background: var(--cell-newborn);
+}
+
+.swatch-alive {
+  background: var(--cell-alive);
+}
+
+.swatch-trace {
+  background: var(--cell-trace);
+}
+
+.swatch-dead {
+  background: var(--cell-dead);
+  border: 1px solid var(--panel-border);
+}
+
+/* ── À gauche : barre d'outils ─────────────────────────────────────────── */
+
+.toolbar {
+  position: fixed;
+  left: var(--gap);
+  top: 50%;
+  transform: translateY(-50%);
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 6px;
+}
+
+/* ── En bas : zoom + lecture ───────────────────────────────────────────── */
+
+.dock {
+  position: fixed;
+  left: var(--gap);
+  right: var(--gap);
+  bottom: var(--gap);
+  display: flex;
+  flex-wrap: wrap-reverse;
+  align-items: flex-end;
+  justify-content: center;
+  gap: var(--gap);
+  pointer-events: none; /* le vide entre les panneaux laisse passer les clics vers la grille */
+}
+
+.dock > .panel {
+  pointer-events: auto;
+}
+
+.zoom-panel {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 6px;
+}
+
+.zoom-panel input {
+  width: 110px;
+}
+
+.transport {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 8px 18px;
+  padding: 6px 12px 6px 6px;
+}
+
+.transport-buttons {
+  display: flex;
+  gap: 4px;
+}
+
+.transport-btn {
+  width: 54px;
+  height: 50px;
+  grid-template-rows: 1fr auto;
+  padding: 6px 0 5px;
+}
+
+.transport-btn span {
+  font-size: 10px;
+  line-height: 1;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.transport-btn[aria-pressed='true'] span {
+  color: var(--accent);
+}
+
+.speed {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.speed .label,
+.action-bar .label {
+  font-size: 11px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--muted);
+  white-space: nowrap;
+}
+
+.speed input {
+  width: 110px;
+}
+
+.speed output {
+  min-width: 76px;
+  font-variant-numeric: tabular-nums;
+}
+
+.counters {
+  display: flex;
+  gap: 16px;
+  margin: 0;
+}
+
+.counters div {
+  display: flex;
+  flex-direction: column;
+}
+
+.counters dt {
+  font-size: 10px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.counters dd {
+  min-width: 7ch;
+  margin: 0;
+  font-size: 15px;
+  font-variant-numeric: tabular-nums;
+}
+
+/* ── À droite : bibliothèque ───────────────────────────────────────────── */
+
+.library {
+  position: fixed;
+  top: calc(var(--gap) + 54px);
+  right: var(--gap);
+  width: 256px;
+  max-height: calc(100% - 54px - 110px - 2 * var(--gap));
+  display: flex;
+  flex-direction: column;
+}
+
+.library-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 6px 6px 6px 14px;
+  border-bottom: 1px solid var(--panel-border);
+}
+
+.library h2 {
+  margin: 0;
+  font-size: 12px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--accent);
+}
+
+#library-toggle svg {
+  transform: rotate(180deg);
+  transition: transform 0.15s ease;
+}
+
+.library.is-collapsed #library-toggle svg {
+  transform: none;
+}
+
+.library.is-collapsed .library-header {
+  border-bottom: none;
+}
+
+.library.is-collapsed .library-body {
+  display: none;
+}
+
+.library-body {
+  overflow-y: auto;
+  padding: 10px 12px 14px;
+}
+
+.hint {
+  margin: 0 0 8px;
+  font-size: 11.5px;
+  line-height: 1.45;
+  color: var(--muted);
+}
+
+kbd {
+  padding: 0 4px;
+  border: 1px solid var(--panel-border);
+  border-radius: 3px;
+  font-family: inherit;
+  font-size: 11px;
+}
+
+#pattern-list h3 {
+  margin: 14px 0 6px;
+  font-size: 10.5px;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.pattern-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 6px;
+}
+
+.pattern-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 6px 4px 6px;
+  border: 1px solid var(--panel-border);
+  border-radius: 4px;
+  background: transparent;
+  cursor: grab;
+  touch-action: pan-y; /* au doigt : glisser vers le haut/bas fait défiler, vers la grille fait glisser */
+}
+
+.pattern-card:hover {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+}
+
+.pattern-thumb {
+  display: block;
+  width: 56px;
+  height: 56px;
+}
+
+.pattern-name {
+  font-size: 11px;
+  line-height: 1.2;
+  text-align: center;
+}
+
+.images-title {
+  margin-top: 20px !important;
+  margin-bottom: 6px !important;
+}
+
+.image-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 10px;
+}
+
+.image-chip {
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  padding: 3px;
+  border: 1px solid var(--panel-border);
+  border-radius: 6px;
+  background: transparent;
+  cursor: pointer;
+}
+
+.image-chip[aria-pressed='true'] {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+  box-shadow: var(--glow);
+}
+
+.image-chip img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 5px;
+}
+
+.neon-swatch {
+  width: 26px;
+  height: 26px;
+  border-radius: 5px;
+  background: linear-gradient(135deg, var(--cell-newborn) 50%, var(--cell-alive) 50%);
+}
+
+/* ── Barres contextuelles et messages ──────────────────────────────────── */
+
+.action-bar {
+  position: fixed;
+  top: calc(var(--gap) + 54px);
+  left: 50%;
+  transform: translateX(-50%);
+  max-width: calc(100% - 2 * var(--gap));
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 6px 6px 6px 12px;
+}
+
+.action-bar .label {
+  margin-right: 4px;
+  color: var(--accent);
+}
+
+.toast {
+  position: fixed;
+  left: 50%;
+  bottom: 100px;
+  z-index: 20;
+  padding: 8px 14px;
+  border: 1px solid var(--accent);
+  border-radius: 4px;
+  background: var(--panel);
+  box-shadow: var(--glow);
+  opacity: 0;
+  pointer-events: none;
+  transform: translate(-50%, 8px);
+  transition: opacity 0.2s ease, transform 0.2s ease;
+}
+
+.toast.is-visible {
+  opacity: 1;
+  transform: translate(-50%, 0);
+}
+
+body.is-dragging,
+body.is-dragging * {
+  cursor: grabbing !important;
+}
+
+body.is-file-over #world {
+  outline: 3px dashed var(--accent);
+  outline-offset: -14px;
+}
+
+/* ── Petits écrans (tablettes, téléphones) ─────────────────────────────── */
+
+@media (max-width: 1180px) {
+  .legend li:last-child {
+    display: none;
+  }
+}
+
+@media (max-width: 960px) {
+  .legend {
+    display: none;
+  }
+
+  .transport-btn {
+    width: 42px;
+    height: 42px;
+    padding: 0;
+  }
+
+  .transport-btn span,
+  .speed .label {
+    display: none;
+  }
+
+  .speed input,
+  .zoom-panel input {
+    width: 84px;
+  }
+
+  /* La barre du bas peut passer sur deux lignes : on laisse plus de place en bas. */
+  .library {
+    width: 220px;
+    max-height: calc(100% - 54px - 190px - 2 * var(--gap));
+  }
+}
+
+@media (max-width: 560px) {
+  :root {
+    --gap: 8px;
+  }
+
+  .counters dd {
+    font-size: 13px;
+  }
+
+  .library {
+    max-height: calc(100% - 54px - 230px - 2 * var(--gap));
+  }
+}

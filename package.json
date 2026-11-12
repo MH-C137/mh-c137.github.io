@@ -1,0 +1,22 @@
+{
+  "name": "jeu-de-la-vie",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Jeu de la vie de Conway, interactif, dans le navigateur (monde quasi infini, structures, images).",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc --noEmit && vite build",
+    "build:single": "tsc --noEmit && vite build --mode single",
+    "preview": "vite preview",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "typecheck": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "typescript": "^7.0.2",
+    "vite": "^8.3.7",
+    "vite-plugin-singlefile": "^2.3.4",
+    "vitest": "^5.1.0"
+  }
+}
