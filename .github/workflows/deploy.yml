@@ -1,0 +1,51 @@
+# Mise en ligne automatique sur GitHub Pages.
+#
+# Pourquoi ce fichier ? Le navigateur ne sait pas lire le TypeScript (src/*.ts).
+# Il faut d'abord « construire » le site avec `npm run build`, qui produit du
+# HTML + JS + CSS classiques dans dist/. Ce workflow le fait à chaque push sur
+# main : il installe, vérifie (types + tests), construit, puis publie dist/.
+#
+# Réglage à faire UNE FOIS sur GitHub : Settings → Pages → Source : « GitHub Actions ».
+name: Mise en ligne (GitHub Pages)
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch: # bouton « Run workflow » dans l'onglet Actions
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# Un seul déploiement à la fois ; un nouveau push annule celui en attente.
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm run typecheck
+      - run: npm test
+      - run: npm run build
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: dist
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4
