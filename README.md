@@ -32,6 +32,8 @@ Ouvre ensuite l'adresse affichée dans le terminal (en général http://localhos
 
 Le site est **statique** : pas de serveur, pas de base de données. Plusieurs façons de le publier :
 
+- **GitHub Pages (automatique)** : le fichier `.github/workflows/deploy.yml` construit le site et publie `dist/` à chaque push sur `main`. Réglage à faire une seule fois : *Settings → Pages → Build and deployment → Source : « GitHub Actions »*. Attention : publier directement la branche (« Deploy from a branch ») donne une page cassée, car le navigateur ne sait pas lire les fichiers `.ts` de `src/`.
+
 - **Dossier `dist/`** : à déposer tel quel sur n'importe quel hébergement (GitHub Pages, Netlify, serveur de l'école…). Tous les chemins sont relatifs, donc ça marche aussi dans un sous-dossier, par exemple `ecole.fr/projets/jeu-de-la-vie/`.
 - **Fichier unique `dist-single/index.html`** : tout est dedans (code, style, icônes). Pratique à envoyer par mail ou à déposer sur un portail.
 - **Dans une iframe** : ça marche. Attention seulement : les futures sauvegardes dans le navigateur (localStorage, IndexedDB) seront cloisonnées par site dans une iframe d'un autre domaine. C'est pour ça que la sauvegarde principale prévue est l'export de fichiers.
