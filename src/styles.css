@@ -475,7 +475,8 @@ body[data-theme='day'] .icon-sun {
   position: fixed;
   left: var(--gap);
   right: var(--gap);
-  bottom: calc(var(--gap) + var(--px) * 3);
+  /* env(safe-area-inset-bottom) : place réservée par Safari sur iPhone (barre du bas). */
+  bottom: calc(var(--gap) + var(--px) * 3 + env(safe-area-inset-bottom, 0px));
   display: flex;
   flex-wrap: wrap-reverse;
   align-items: flex-end;
