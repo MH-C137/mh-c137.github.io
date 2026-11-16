@@ -357,6 +357,62 @@ body[data-theme='day'] .icon-sun {
   padding: 6px;
 }
 
+/* Réglage de taille de la gomme : invisible au repos, il sort à droite du bouton
+   quand on le survole ou qu'on y arrive au clavier. Le panneau touche le bouton
+   (pas de trou entre les deux) : la souris peut passer de l'un à l'autre sans qu'il se referme. */
+.tool-slot {
+  position: relative;
+}
+
+.eraser-size {
+  position: absolute;
+  left: 100%;
+  top: 0;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-left: 6px; /* zone « pont » : voir ::before */
+  padding: 0 10px;
+  border: 1px solid var(--panel-border);
+  border-radius: 4px;
+  background: var(--panel);
+  box-shadow: var(--shadow);
+  opacity: 0;
+  visibility: hidden;
+  transform: translateX(-4px);
+  transition: opacity 0.14s ease, transform 0.14s ease, visibility 0s 0.14s;
+}
+
+/* Le « pont » invisible qui comble les 6 px entre le bouton et le panneau. */
+.eraser-size::before {
+  content: '';
+  position: absolute;
+  right: 100%;
+  top: 0;
+  width: 8px;
+  height: 100%;
+}
+
+.tool-slot:hover .eraser-size,
+.tool-slot:focus-within .eraser-size {
+  opacity: 1;
+  visibility: visible;
+  transform: none;
+  transition-delay: 0s;
+}
+
+.eraser-size input {
+  width: 96px;
+}
+
+.eraser-size output {
+  min-width: 2ch;
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+  color: var(--muted);
+}
+
 /* ── En bas : zoom + lecture ───────────────────────────────────────────── */
 
 .dock {

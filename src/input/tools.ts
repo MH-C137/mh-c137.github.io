@@ -13,7 +13,7 @@
  * l'enregistrer dans l'éditeur (editor.ts). Rien d'autre à modifier.
  */
 
-import { rectFromCorners } from '../core/coords';
+import { rectFromCorners, squareAround } from '../core/coords';
 import type { Editor } from './editor';
 import { cellsOnLine } from './line';
 
@@ -107,6 +107,7 @@ export class PaintTool implements Tool {
       x: pointer.cellX,
       y: pointer.cellY,
       mode: this.id === 'eraser' ? 'erase' : 'draw',
+      size: this.brushSize,
     });
     if (!pressed || !this.lastCell) return;
     // Relie la case précédente à la case actuelle : le trait reste continu.
@@ -126,11 +127,27 @@ export class PaintTool implements Tool {
     this.editor.setHover(null);
   }
 
+  /** Côté du carré touché : réglable pour la gomme, toujours 1 pour le pinceau. */
+  private get brushSize(): number {
+    return this.id === 'eraser' ? this.editor.eraserSize : 1;
+  }
+
+  /**
+   * Change l'état de la case (x, y) ; pour une grosse gomme, de toutes les cases
+   * du carré centré sur (x, y). Le trait relie déjà les positions successives
+   * (Bresenham) : en appliquant le carré à chaque case du trait, on obtient
+   * une bande continue de la largeur de la gomme.
+   */
   private paint(x: number, y: number): void {
     const skin = this.drawing ? this.editor.images.current : 0;
-    if (this.editor.world.setCell(x, y, this.drawing, skin)) {
-      this.changed = true;
-      this.editor.invalidate();
+    const area = squareAround(x, y, this.brushSize);
+    for (let cy = area.y0; cy <= area.y1; cy++) {
+      for (let cx = area.x0; cx <= area.x1; cx++) {
+        if (this.editor.world.setCell(cx, cy, this.drawing, skin)) {
+          this.changed = true;
+          this.editor.invalidate();
+        }
+      }
     }
   }
 }

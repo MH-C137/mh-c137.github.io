@@ -41,7 +41,8 @@ Le site est **statique** : pas de serveur, pas de base de données. Plusieurs fa
 ## Ce qu'on peut faire
 
 - **Monde quasi infini** (67 millions de cases de côté) avec zoom (molette, curseur, deux doigts) et déplacement.
-- **Outils** : sélection, main (déplacer la vue), pinceau, gomme (ou clic droit).
+- **Outils** : sélection, main (déplacer la vue), pinceau, gomme (ou clic droit). La **taille de la gomme** (1 à 15 cases) se règle avec un petit slider qui apparaît quand on survole l'icône de gomme.
+- **Clignotement** : une cellule qui reste en vie clignote (violet clair) toutes les 3 générations, pour qu'une scène stable ne ressemble pas à un bug.
 - **Lecture** : `<<` lecture arrière · `<` une génération en arrière · `||` pause · `>` une génération en avant · `>>` lecture.
 - **Vitesse** réglable de 1 à 120 générations par seconde.
 - **Modifier pendant la pause** : on ajoute des cellules ou des structures sans tout recommencer.

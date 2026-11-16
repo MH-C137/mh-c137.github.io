@@ -207,6 +207,14 @@ Le test `view.test.ts` vérifie ces deux propriétés : les bonnes extrémités,
 
 ---
 
+## 10 bis. La gomme à taille réglable — `squareAround()` dans `src/core/coords.ts`, `PaintTool.paint()` dans `src/input/tools.ts`
+
+La gomme efface un **carré** de `n × n` cases (n de 1 à 15, réglé par le slider qui apparaît au survol de l'icône). `squareAround(x, y, n)` donne ce carré : il part de `x - floor((n-1)/2)` et s'étend sur `n` cases. Pour `n` impair, il est centré sur la case du curseur ; pour `n` pair, il n'y a pas de case au milieu, donc il dépasse d'une case vers la droite et vers le bas. Le trait reste continu grâce à Bresenham (section 10) : on applique le carré à **chaque** case de la ligne, ce qui donne une bande de la largeur de la gomme. Coût d'un coup de gomme : `n²` cases. Le pinceau garde `n = 1`.
+
+## 4 bis. Le clignotement — `isPulseAge()` dans `src/core/world.ts`
+
+Une cellule qui reste en vie clignote (violet clair) quand son âge vaut 3, 6, 9… (`age > 0 && age % 3 === 0`). Les 4 états ne changent pas : c'est un simple effet de dessin, calculé à partir de l'âge déjà mémorisé, donc il marche aussi en lecture arrière. Test : un bloc 2×2 (stable) clignote aux âges 3 et 6.
+
 ## 11. Le format RLE — `src/core/rle.ts`
 
 RLE (*Run Length Encoding*, codage par plages) est le format standard de la communauté (Golly, LifeWiki) :

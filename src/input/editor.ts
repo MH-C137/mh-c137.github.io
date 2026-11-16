@@ -27,6 +27,10 @@ import type { Overlay } from '../render/renderer';
 import type { Simulation } from '../simulation/simulation';
 import { HandTool, PaintTool, SelectTool, StampTool, type Tool, type ToolId } from './tools';
 
+/** Bornes de la taille de la gomme, en cases de côté. */
+export const MIN_ERASER_SIZE = 1;
+export const MAX_ERASER_SIZE = 15;
+
 export interface EditorEvents extends Record<string, unknown> {
   /** L'outil actif a changé. */
   tool: ToolId;
@@ -34,6 +38,8 @@ export interface EditorEvents extends Record<string, unknown> {
   selection: CellRect | null;
   /** La structure tenue en main a changé (null = plus rien en main). */
   held: Pattern | null;
+  /** La taille de la gomme a changé (côté du carré, en cases). */
+  eraserSize: number;
 }
 
 /** Tout ce dont l'éditeur a besoin, fourni par main.ts. */
@@ -62,6 +68,8 @@ export class Editor extends Emitter<EditorEvents> {
   private activeTool: Tool;
   /** Outil à retrouver quand on range une structure (Échap). */
   private toolBeforeStamp: ToolId = 'brush';
+  /** Côté du carré effacé par la gomme, en cases (1 = une seule case). */
+  private _eraserSize = MIN_ERASER_SIZE;
   /** Structure tenue en main (tampon ou glisser-déposer). */
   private held: Pattern | null = null;
   /** Dernière copie faite avec Copier / Couper. */
@@ -115,9 +123,30 @@ export class Editor extends Emitter<EditorEvents> {
     else if (this.overlay.selection) this.setSelection(null);
   }
 
+  get eraserSize(): number {
+    return this._eraserSize;
+  }
+
+  /** Règle la taille de la gomme (entier entre MIN_ERASER_SIZE et MAX_ERASER_SIZE) et prévient l'interface. */
+  setEraserSize(size: number): void {
+    const clamped = Math.min(MAX_ERASER_SIZE, Math.max(MIN_ERASER_SIZE, Math.round(size)));
+    if (clamped === this._eraserSize) return;
+    this._eraserSize = clamped;
+    // Le contour rose sous le curseur doit suivre la nouvelle taille.
+    if (this.overlay.hover?.mode === 'erase') this.overlay.hover = { ...this.overlay.hover, size: clamped };
+    this.emit('eraserSize', clamped);
+    this.invalidate();
+  }
+
   setHover(hover: Overlay['hover']): void {
     const before = this.overlay.hover;
-    if (before?.x === hover?.x && before?.y === hover?.y && before?.mode === hover?.mode) return;
+    if (
+      before?.x === hover?.x &&
+      before?.y === hover?.y &&
+      before?.mode === hover?.mode &&
+      before?.size === hover?.size
+    )
+      return;
     this.overlay.hover = hover;
     this.invalidate();
   }

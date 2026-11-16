@@ -11,6 +11,7 @@
  */
 
 import type { App } from '../app';
+import { MAX_ERASER_SIZE, MIN_ERASER_SIZE } from '../input/editor';
 import type { ToolId } from '../input/tools';
 import { byId } from './dom';
 
@@ -26,6 +27,27 @@ export function setupToolbar(app: App): void {
   };
   app.editor.on('tool', render);
   render(app.editor.tool.id);
+}
+
+/**
+ * Petit slider de taille de la gomme (il apparaît au survol de l'icône, voir
+ * .eraser-size dans styles.css). Comme partout : le slider APPELLE
+ * editor.setEraserSize, et l'affichage se met à jour en ÉCOUTANT l'événement
+ * « eraserSize » (la valeur reste juste quelle que soit l'origine du changement).
+ */
+export function setupEraserSize(app: App): void {
+  const slider = byId<HTMLInputElement>('eraser-size');
+  const value = byId<HTMLOutputElement>('eraser-size-value');
+  slider.min = String(MIN_ERASER_SIZE);
+  slider.max = String(MAX_ERASER_SIZE);
+  slider.addEventListener('input', () => app.editor.setEraserSize(Number(slider.value)));
+  const render = (size: number) => {
+    slider.value = String(size);
+    value.textContent = String(size);
+    slider.setAttribute('aria-valuetext', size === 1 ? '1 case' : `${size} cases`);
+  };
+  app.editor.on('eraserSize', render);
+  render(app.editor.eraserSize);
 }
 
 /** Bouton « afficher / masquer le menu » et bouton jour / nuit. Renvoie de quoi basculer le menu au clavier. */

@@ -59,9 +59,16 @@
         <button class="icon-btn" type="button" data-tool="brush" aria-label="Pinceau" title="Pinceau : fait naître des cellules (P)">
           <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20l1-4.5L15.5 5a2.1 2.1 0 0 1 3 3L8 18.5 4 20zM13.5 7l3 3" /></svg>
         </button>
-        <button class="icon-btn" type="button" data-tool="eraser" aria-label="Gomme" title="Gomme : efface des cellules (G) — clic droit aussi">
-          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 20H9l-4.5-4.5a1.6 1.6 0 0 1 0-2.2L13.8 4a1.6 1.6 0 0 1 2.2 0l4 4a1.6 1.6 0 0 1 0 2.2L11 19.2M17 13.5L10.5 7" /></svg>
-        </button>
+        <!-- La gomme a un petit réglage de taille qui n'apparaît qu'au survol (voir .eraser-size dans styles.css) -->
+        <div class="tool-slot">
+          <button class="icon-btn" type="button" data-tool="eraser" aria-label="Gomme" title="Gomme : efface des cellules (G) — clic droit aussi">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 20H9l-4.5-4.5a1.6 1.6 0 0 1 0-2.2L13.8 4a1.6 1.6 0 0 1 2.2 0l4 4a1.6 1.6 0 0 1 0 2.2L11 19.2M17 13.5L10.5 7" /></svg>
+          </button>
+          <label class="eraser-size" title="Taille de la gomme">
+            <input id="eraser-size" type="range" min="1" max="15" step="1" value="1" aria-label="Taille de la gomme" />
+            <output id="eraser-size-value">1</output>
+          </label>
+        </div>
       </nav>
 
       <!-- En bas : zoom + lecture (regroupés pour ne jamais se chevaucher) -->

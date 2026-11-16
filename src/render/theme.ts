@@ -9,6 +9,7 @@
  *
  * Les 4 états d'une case :
  *   née (cyan vif) → vivante (violet) → vient de mourir (violet sombre) → morte (fond).
+ * En plus, une cellule vivante clignote (violet clair) toutes les 3 générations.
  * Le dégradé suit le « cycle de vie » : l'énergie de la naissance, la maturité,
  * puis une trace qui s'éteint.
  */
@@ -25,6 +26,8 @@ export interface Palette {
   readonly newborn: string;
   /** Cellule vivante depuis au moins une génération. */
   readonly alive: string;
+  /** Cellule vivante qui « clignote » (toutes les 3 générations passées en vie). */
+  readonly pulse: string;
   /** Cellule qui vient de mourir (la trace). */
   readonly trace: string;
   /** Sélection rectangulaire. */
@@ -41,6 +44,7 @@ export const PALETTES: Record<ThemeName, Palette> = {
     gridMajor: 'rgba(120, 130, 255, 0.16)',
     newborn: '#3cf2ff',
     alive: '#a45cff',
+    pulse: '#dcc2ff',
     trace: '#2d1b4e',
     selectionStroke: '#3cf2ff',
     selectionFill: 'rgba(60, 242, 255, 0.08)',
@@ -52,6 +56,7 @@ export const PALETTES: Record<ThemeName, Palette> = {
     gridMajor: 'rgba(40, 30, 90, 0.15)',
     newborn: '#008ca6',
     alive: '#6a2bd4',
+    pulse: '#3a0f8f',
     trace: '#dccdf2',
     selectionStroke: '#008ca6',
     selectionFill: 'rgba(0, 140, 166, 0.08)',

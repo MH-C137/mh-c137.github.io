@@ -22,9 +22,9 @@
  *     sans coins arrondis ni espacement (invisibles à cette taille de toute façon).
  */
 
-import type { CellRect } from '../core/coords';
+import { squareAround, type CellRect } from '../core/coords';
 import type { Pattern } from '../core/pattern';
-import type { World } from '../core/world';
+import { isPulseAge, type World } from '../core/world';
 import type { Camera } from './camera';
 import { CORNER_RATIO, roundedRectPath, type ImageLibrary } from './images';
 import { PALETTES, type Palette } from './theme';
@@ -35,8 +35,8 @@ export interface Overlay {
   selection: CellRect | null;
   /** Aperçu d'une structure avant de la poser : coin haut-gauche en (x, y). */
   ghost: { pattern: Pattern; x: number; y: number } | null;
-  /** Case sous le pointeur (pinceau = dessiner, gomme = effacer). */
-  hover: { x: number; y: number; mode: 'draw' | 'erase' } | null;
+  /** Case sous le pointeur (pinceau = dessiner, gomme = effacer). `size` = côté du carré, en cases. */
+  hover: { x: number; y: number; mode: 'draw' | 'erase'; size: number } | null;
 }
 
 /** En dessous de cette taille de case (en px), on dessine des carrés simples. */
@@ -163,11 +163,12 @@ export class Renderer {
 
     const tracePath = new Path2D();
     const alivePath = new Path2D();
+    const pulsePath = new Path2D();
     const newbornPath = new Path2D();
     /** Cellules à image vues de loin : un chemin par couleur moyenne. */
     const averagePaths = new Map<string, Path2D>();
     /** Cellules à image vues de près : dessinées une par une ensuite. */
-    const tiles: Array<{ sx: number; sy: number; tile: HTMLCanvasElement; newborn: boolean }> = [];
+    const tiles: Array<{ sx: number; sy: number; tile: HTMLCanvasElement; newborn: boolean; pulse: boolean }> = [];
 
     const isVisible = (x: number, y: number) =>
       x >= view.x0 && x <= view.x1 && y >= view.y0 && y <= view.y1;
@@ -185,10 +186,11 @@ export class Renderer {
       const image = skin !== 0 ? images.get(skin) : undefined;
       if (image) {
         if (showImages) {
-          tiles.push({ sx, sy, tile: image.tile, newborn: age === 0 });
+          tiles.push({ sx, sy, tile: image.tile, newborn: age === 0, pulse: isPulseAge(age) });
           return;
         }
         if (age > 0) {
+          // (le clignotement des cellules à image se voit surtout de près, par le liseré)
           let path = averagePaths.get(image.averageColor);
           if (!path) {
             path = new Path2D();
@@ -198,13 +200,15 @@ export class Renderer {
           return;
         }
       }
-      addCellShape(age === 0 ? newbornPath : alivePath, sx, sy, geometry);
+      addCellShape(age === 0 ? newbornPath : isPulseAge(age) ? pulsePath : alivePath, sx, sy, geometry);
     });
 
     context.fillStyle = palette.trace;
     context.fill(tracePath);
     context.fillStyle = palette.alive;
     context.fill(alivePath);
+    context.fillStyle = palette.pulse;
+    context.fill(pulsePath);
     for (const [color, path] of averagePaths) {
       context.fillStyle = color;
       context.fill(path);
@@ -216,29 +220,35 @@ export class Renderer {
     // reconnaissables (on voit toujours les 4 états, même avec des images).
     const { inset, size, radius } = geometry;
     const outline = new Path2D();
-    for (const { sx, sy, tile, newborn } of tiles) {
+    const pulseOutline = new Path2D();
+    for (const { sx, sy, tile, newborn, pulse } of tiles) {
       context.drawImage(tile, sx + inset, sy + inset, size, size);
       if (newborn) roundedRectPath(outline, sx + inset, sy + inset, size, size, radius);
+      else if (pulse) roundedRectPath(pulseOutline, sx + inset, sy + inset, size, size, radius);
     }
     if (tiles.length > 0) {
       context.lineWidth = Math.max(1.5, zoom * 0.07);
       context.strokeStyle = palette.newborn;
       context.stroke(outline);
+      context.strokeStyle = palette.pulse;
+      context.stroke(pulseOutline);
     }
   }
 
-  /** Contour de la case sous le pinceau (cyan) ou la gomme (rose). */
+  /** Contour de la zone sous le pinceau (une case, cyan) ou la gomme (carré de `size` cases, rose). */
   private drawHover(hover: NonNullable<Overlay['hover']>): void {
     const { camera, context, palette } = this;
     const zoom = camera.zoom;
     if (zoom < 3) return;
     context.lineWidth = 1.5;
     context.strokeStyle = hover.mode === 'erase' ? palette.erase : palette.newborn;
+    const area = squareAround(hover.x, hover.y, hover.size);
+    const side = (area.x1 - area.x0 + 1) * zoom;
     context.strokeRect(
-      camera.worldToScreenX(hover.x) + 0.75,
-      camera.worldToScreenY(hover.y) + 0.75,
-      zoom - 1.5,
-      zoom - 1.5,
+      camera.worldToScreenX(area.x0) + 0.75,
+      camera.worldToScreenY(area.y0) + 0.75,
+      side - 1.5,
+      side - 1.5,
     );
   }
 
