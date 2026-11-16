@@ -240,17 +240,16 @@ export class Renderer {
   private drawHover(hover: NonNullable<Overlay['hover']>): void {
     const { camera, context, palette } = this;
     const zoom = camera.zoom;
-    if (zoom < 3) return;
-    context.lineWidth = 1.5;
+    context.lineWidth = 2;
     context.strokeStyle = hover.mode === 'erase' ? palette.erase : palette.newborn;
     const area = squareAround(hover.x, hover.y, hover.size);
-    const side = (area.x1 - area.x0 + 1) * zoom;
-    context.strokeRect(
-      camera.worldToScreenX(area.x0) + 0.75,
-      camera.worldToScreenY(area.y0) + 0.75,
-      side - 1.5,
-      side - 1.5,
-    );
+    // Le carré doit rester visible même très dézoomé (cases de 1 px) : on impose
+    // une taille minimale à l'écran, centrée sur le vrai carré.
+    const MIN_SIDE = 8;
+    const side = Math.max((area.x1 - area.x0 + 1) * zoom, MIN_SIDE);
+    const centerX = camera.worldToScreenX(area.x0) + ((area.x1 - area.x0 + 1) * zoom) / 2;
+    const centerY = camera.worldToScreenY(area.y0) + ((area.y1 - area.y0 + 1) * zoom) / 2;
+    context.strokeRect(centerX - side / 2 + 1, centerY - side / 2 + 1, side - 2, side - 2);
   }
 
   /** Rectangle de sélection en pointillés, avec sa taille en cases. */
