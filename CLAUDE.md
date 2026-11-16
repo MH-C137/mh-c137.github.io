@@ -5,7 +5,7 @@ Tu reprends un **jeu de la vie interactif** écrit en TypeScript, sans framework
 ## Contexte
 
 - **Projet scolaire et académique.** Le code doit pouvoir être présenté et expliqué à l'oral. Chaque fonction est commentée, et la logique algorithmique est expliquée, pas seulement le « quoi ».
-- **Public : des collégiens.** L'interface reste simple, en français, au tutoiement, avec des mots concrets (« Effacer », « Tourner », pas de jargon). Style sobre, rétro, néon cyan / violet sur fond noir, plus un mode jour.
+- **Public : des collégiens.** L'interface reste simple, en français, au tutoiement, avec des mots concrets (« Effacer », « Tourner », pas de jargon). Style **arcade pixel** : cyan / violet sur fond noir, plus un mode jour. **Aucun rectangle arrondi** (ni dans l'interface, ni sur les cellules : `CORNER_RATIO = 0`), pas de flou ni de lueur. Voir `DESIGN.md` et `PRODUCT.md` (utilisés par le skill Impeccable installé dans `.claude/`).
 - **Le propriétaire du projet n'est pas développeur web** (il vient de l'IA). Explique tes changements simplement, en français, à la fin de chaque tâche.
 - **Projet perso à venir** : un « labo génétique ». Les simulations massives tourneront en Python et exporteront du RLE / JSON, que le site affichera. Le moteur doit donc rester réutilisable.
 
@@ -53,6 +53,7 @@ Patrons en place (garde-les cohérents) :
   - une **section dans `docs/ALGORITHMES.md`** ;
   - un **test sur un résultat connu** (une valeur documentée sur LifeWiki par exemple).
 - Couleurs : uniquement dans `render/theme.ts` (canvas) et dans les variables CSS de `styles.css`. Ne jamais coder une couleur en dur ailleurs.
+- Interface : pas de `border-radius`. Les cadres utilisent les variables `--notch-*` et `--drop-shadow` de `styles.css`. Les icônes sont du pixel art 12 × 12 (voir `DESIGN.md`).
 - Les 4 états de cellule ont un sens fixe : née (âge 0), vivante (âge ≥ 1), vient de mourir (trace), morte. Ne change pas cette sémantique.
 - Tout accès à `localStorage` / `IndexedDB` est entouré de `try / catch` (le site peut tourner dans une iframe où le stockage est refusé).
 - Garde `base: './'` dans `vite.config.ts` (le site doit marcher dans un sous-dossier du site de l'école).

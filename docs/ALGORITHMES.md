@@ -186,12 +186,12 @@ Même raisonnement pour y. Le pincement à deux doigts utilise la même fonction
 - **Élimination des cases invisibles (« culling »).** On ne dessine que les cellules dont la position tombe dans le rectangle visible.
 - **Regroupement par couleur.** Toutes les cellules d'une même couleur sont ajoutées à un même chemin (`Path2D`), rempli en une seule fois. On fait ainsi un ordre de dessin par couleur au lieu d'un par cellule.
 - **Niveaux de détail.**
-  - Les formes arrondies et l'espacement n'apparaissent qu'à partir de 4 px par case.
+  - L'espacement entre cellules n'apparaît qu'à partir de 4 px par case. Les cellules sont des carrés nets (style pixel) : `CORNER_RATIO = 0` dans `images.ts`.
   - Les images n'apparaissent qu'à partir de 10 px par case ; en dessous, on dessine leur couleur moyenne.
   - La grille apparaît progressivement avec le zoom, avec une ligne plus visible toutes les 10 cases.
 - **Écrans haute densité.** Le canvas a `largeur × devicePixelRatio` pixels réels, et le repère de dessin est agrandi d'autant. On dessine en pixels CSS, et le résultat reste net.
 - **Invalidation.** On ne redessine que si quelque chose a changé : simulation, caméra, outil, thème. Quand tout est immobile, le programme ne dessine plus et économise la batterie.
-- **Images préparées une fois.** À l'import, chaque image est recadrée en carré, réduite en une petite tuile aux coins arrondis, et sa couleur moyenne est calculée. Pour cela, on réduit l'image à 1×1 pixel et le navigateur fait lui-même la moyenne.
+- **Images préparées une fois.** À l'import, chaque image est recadrée en carré, réduite en une petite tuile carrée, et sa couleur moyenne est calculée. Pour cela, on réduit l'image à 1×1 pixel et le navigateur fait lui-même la moyenne.
 
 ---
 

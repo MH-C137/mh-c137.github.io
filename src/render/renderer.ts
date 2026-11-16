@@ -19,7 +19,8 @@
  *   - on regroupe toutes les cases d'une même couleur dans un seul chemin (Path2D),
  *     puis on le remplit en une seule fois : un seul ordre de dessin au lieu de milliers ;
  *   - quand les cases sont minuscules (dézoom), on dessine de simples carrés,
- *     sans coins arrondis ni espacement (invisibles à cette taille de toute façon).
+ *     sans espacement (invisible à cette taille de toute façon).
+ *   - les cellules sont des carrés nets (style pixel) : voir CORNER_RATIO dans images.ts.
  */
 
 import { squareAround, type CellRect } from '../core/coords';
@@ -50,7 +51,7 @@ interface CellGeometry {
   inset: number;
   /** Côté de la forme. */
   size: number;
-  /** Rayon des coins arrondis. */
+  /** Rayon des coins (0 = carrés, voir CORNER_RATIO). */
   radius: number;
   /** Faux = carrés simples (dézoom). */
   shapes: boolean;
@@ -266,7 +267,7 @@ export class Renderer {
     context.strokeStyle = palette.selectionStroke;
     context.strokeRect(x, y, width, height);
     context.setLineDash([]);
-    context.font = '12px ui-monospace, Menlo, Consolas, monospace';
+    context.font = '14px "Pixelify Sans", ui-monospace, Menlo, Consolas, monospace';
     context.fillStyle = palette.selectionStroke;
     context.fillText(`${rect.x1 - rect.x0 + 1} × ${rect.y1 - rect.y0 + 1}`, x, y - 6);
   }
@@ -306,7 +307,7 @@ export class Renderer {
   }
 }
 
-/** Ajoute la forme d'une cellule (carré arrondi ou carré simple) à un chemin. */
+/** Ajoute la forme d'une cellule (carré, éventuellement à coins arrondis si CORNER_RATIO > 0) à un chemin. */
 function addCellShape(path: Path2D, sx: number, sy: number, geometry: CellGeometry): void {
   if (geometry.shapes) {
     roundedRectPath(path, sx + geometry.inset, sy + geometry.inset, geometry.size, geometry.size, geometry.radius);

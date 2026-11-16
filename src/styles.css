@@ -1,7 +1,14 @@
 /*
  * ============================================================================
- *  styles.css — Apparence de l'interface (sobre, rétro, néon)
+ *  styles.css — Apparence de l'interface : arcade pixel
  * ============================================================================
+ *
+ * Le style en trois règles :
+ *   1. AUCUN arrondi. Tous les coins sont carrés (pas de border-radius).
+ *   2. Les cadres sont faits de gros « pixels » : un contour épais dont les
+ *      coins sont coupés en marche d'escalier, plus une ombre dure décalée
+ *      (voir --notch-* : c'est 4 ombres qui forment le cadre, sans arrondi).
+ *   3. Une seule police, pixel (Pixelify Sans), en minuscules normales.
  *
  * Les couleurs sont des VARIABLES CSS (--bg, --accent…) définies pour chaque
  * thème. <body data-theme="night"> ou "day" choisit le jeu de variables : tout
@@ -10,40 +17,75 @@
  * de src/render/theme.ts : une seule source de vérité.
  */
 
+@font-face {
+  font-family: 'Pixelify Sans';
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+  src: url('./assets/fonts/pixelify-sans-latin-400-normal.woff2') format('woff2');
+}
+
+@font-face {
+  font-family: 'Pixelify Sans';
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+  src: url('./assets/fonts/pixelify-sans-latin-700-normal.woff2') format('woff2');
+}
+
 :root {
-  --font: ui-monospace, 'SFMono-Regular', 'JetBrains Mono', Menlo, Consolas, 'Liberation Mono', monospace;
-  --radius: 6px;
-  --gap: 12px;
+  --font: 'Pixelify Sans', ui-monospace, 'SFMono-Regular', Menlo, Consolas, monospace;
+  /* Un « gros pixel » : l'épaisseur des contours. */
+  --px: 3px;
+  --gap: 14px;
 }
 
 body[data-theme='night'] {
   --bg: #05050b;
-  --fg: #d9dcff;
-  --muted: #8a8db5;
-  --panel: rgba(9, 9, 20, 0.86);
-  --panel-border: rgba(120, 130, 255, 0.24);
-  --hover: rgba(120, 130, 255, 0.12);
+  --fg: #e8e6ff;
+  --muted: #a3a0d0;
+  --surface: #0e0d20; /* fond des panneaux (opaque : pas de flou, pas de verre) */
+  --surface-2: #181633; /* fond des boutons */
+  --hover: #26224d;
+  --line: #5b46b8; /* contour des panneaux */
+  --line-soft: #3b3282; /* contour des boutons et cartes */
+  --drop: #000000; /* ombre dure sous les panneaux */
   --accent: #3cf2ff;
-  --accent-soft: rgba(60, 242, 255, 0.12);
+  --accent-fill: #3cf2ff; /* fond d'un bouton actif */
+  --on-accent: #05050b; /* texte sur un fond d'accent */
+  --accent-soft: #123e4d;
   --danger: #ff4d8d;
-  --glow: 0 0 12px rgba(60, 242, 255, 0.35);
-  --shadow: 0 8px 24px rgba(0, 0, 0, 0.45);
   color-scheme: dark;
 }
 
 body[data-theme='day'] {
   --bg: #f3f0e8;
   --fg: #1e1b30;
-  --muted: #6b6783;
-  --panel: rgba(255, 253, 248, 0.92);
-  --panel-border: rgba(60, 40, 130, 0.22);
-  --hover: rgba(60, 40, 130, 0.07);
-  --accent: #008ca6;
-  --accent-soft: rgba(0, 140, 166, 0.1);
-  --danger: #d6336c;
-  --glow: none;
-  --shadow: 0 6px 20px rgba(40, 30, 80, 0.12);
+  --muted: #5a5580;
+  --surface: #fffdf6;
+  --surface-2: #ece7d8;
+  --hover: #ddd5ee;
+  --line: #2a1f5c;
+  --line-soft: #8f86b8;
+  --drop: #c4bbdc;
+  --accent: #006f86;
+  --accent-fill: #00788f;
+  --on-accent: #ffffff;
+  --accent-soft: #cdeaf0;
+  --danger: #c4204f;
   color-scheme: light;
+}
+
+/* Les « cadres en pixels » : 4 ombres pleines (haut, bas, gauche, droite) laissent
+   les coins vides : on obtient un contour épais aux coins en escalier. */
+body {
+  --notch-line: 0 calc(var(--px) * -1) 0 0 var(--line), 0 var(--px) 0 0 var(--line),
+    calc(var(--px) * -1) 0 0 0 var(--line), var(--px) 0 0 0 var(--line);
+  --notch-soft: 0 calc(var(--px) * -1) 0 0 var(--line-soft), 0 var(--px) 0 0 var(--line-soft),
+    calc(var(--px) * -1) 0 0 0 var(--line-soft), var(--px) 0 0 0 var(--line-soft);
+  --notch-accent: 0 calc(var(--px) * -1) 0 0 var(--accent), 0 var(--px) 0 0 var(--accent),
+    calc(var(--px) * -1) 0 0 0 var(--accent), var(--px) 0 0 0 var(--accent);
+  --drop-shadow: calc(var(--px) * 3) calc(var(--px) * 3) 0 0 var(--drop);
 }
 
 /* ── Bases ─────────────────────────────────────────────────────────────── */
@@ -67,8 +109,9 @@ body {
   background: var(--bg);
   color: var(--fg);
   font-family: var(--font);
-  font-size: 13px;
-  -webkit-font-smoothing: antialiased;
+  font-size: 16px;
+  line-height: 1.25;
+  -webkit-font-smoothing: none; /* contours nets : pas de lissage sur la police pixel */
   user-select: none;
   -webkit-user-select: none;
 }
@@ -78,20 +121,33 @@ button {
   color: inherit;
 }
 
+/* Les icônes sont dessinées sur une grille de 12 × 12 pixels (voir index.html). */
 svg {
-  width: 20px;
-  height: 20px;
-  fill: none;
-  stroke: currentColor;
-  stroke-width: 1.8;
-  stroke-linecap: round;
-  stroke-linejoin: round;
+  width: 24px;
+  height: 24px;
+  fill: currentColor;
+  stroke: none;
+  shape-rendering: crispEdges;
   flex-shrink: 0;
 }
 
-svg .solid {
-  fill: currentColor;
-  stroke: none;
+/* Le texte sélectionné et les barres de défilement portent aussi la DA. */
+::selection {
+  background: var(--accent-fill);
+  color: var(--on-accent);
+}
+
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--line) transparent;
+}
+
+::-webkit-scrollbar {
+  width: 10px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--line);
 }
 
 /* La grille occupe tout l'écran ; `touch-action: none` = le navigateur ne fait
@@ -108,17 +164,13 @@ svg .solid {
 /* ── Panneaux flottants ────────────────────────────────────────────────── */
 
 .panel {
-  background: var(--panel);
-  border: 1px solid var(--panel-border);
-  border-radius: var(--radius);
-  box-shadow: var(--shadow);
-  backdrop-filter: blur(6px);
-  -webkit-backdrop-filter: blur(6px);
+  background: var(--surface);
+  box-shadow: var(--notch-line), var(--drop-shadow);
 }
 
 /* Masquer le menu : les panneaux s'effacent et ne captent plus la souris. */
 #ui > * {
-  transition: opacity 0.18s ease;
+  transition: opacity 0.18s steps(3);
 }
 
 #ui.is-hidden > * {
@@ -129,68 +181,78 @@ svg .solid {
 /* ── Boutons ───────────────────────────────────────────────────────────── */
 
 .icon-btn {
-  width: 40px;
-  height: 40px;
+  width: 44px;
+  height: 44px;
   display: inline-grid;
   place-items: center;
   padding: 0;
-  border: 1px solid transparent;
-  border-radius: 4px;
-  background: transparent;
+  border: 0;
+  border-radius: 0;
+  background: var(--surface-2);
+  box-shadow: var(--notch-soft);
   cursor: pointer;
 }
 
 .icon-btn.small {
-  width: 32px;
-  height: 32px;
+  width: 36px;
+  height: 36px;
 }
 
 .icon-btn:hover {
   background: var(--hover);
-  border-color: var(--panel-border);
+  box-shadow: var(--notch-accent);
 }
 
-/* Bouton « enfoncé » (outil actif, lecture en cours…) : couleur néon. */
+/* Un bouton qu'on appuie s'enfonce de 2 pixels, comme sur une console. */
+.icon-btn:active,
+.text-btn:active {
+  transform: translateY(2px);
+}
+
+/* Bouton « enfoncé » (outil actif, lecture en cours…) : plein, couleur d'accent. */
 .icon-btn[aria-pressed='true'] {
-  color: var(--accent);
-  border-color: var(--accent);
-  background: var(--accent-soft);
-  box-shadow: var(--glow);
+  color: var(--on-accent);
+  background: var(--accent-fill);
+  box-shadow: var(--notch-accent);
 }
 
 .icon-btn:disabled {
-  opacity: 0.32;
+  opacity: 0.4;
   cursor: default;
-  background: transparent;
-  border-color: transparent;
+  box-shadow: none;
 }
 
 .text-btn {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
-  height: 34px;
-  padding: 0 12px;
-  border: 1px solid var(--panel-border);
-  border-radius: 4px;
-  background: transparent;
+  gap: 8px;
+  height: 38px;
+  padding: 0 14px;
+  border: 0;
+  border-radius: 0;
+  background: var(--surface-2);
+  box-shadow: var(--notch-soft);
   cursor: pointer;
   white-space: nowrap;
 }
 
 .text-btn:hover {
   background: var(--hover);
-  border-color: var(--accent);
+  box-shadow: var(--notch-accent);
 }
 
 .text-btn svg {
-  width: 16px;
-  height: 16px;
+  width: 18px;
+  height: 18px;
 }
 
 .text-btn.danger {
   color: var(--danger);
-  border-color: color-mix(in srgb, var(--danger) 45%, transparent);
+}
+
+.text-btn.danger:hover {
+  box-shadow: 0 calc(var(--px) * -1) 0 0 var(--danger), 0 var(--px) 0 0 var(--danger),
+    calc(var(--px) * -1) 0 0 0 var(--danger), var(--px) 0 0 0 var(--danger);
 }
 
 .text-btn.danger[data-armed='true'] {
@@ -199,8 +261,8 @@ svg .solid {
 }
 
 :focus-visible {
-  outline: 2px solid var(--accent);
-  outline-offset: 2px;
+  outline: var(--px) solid var(--accent);
+  outline-offset: var(--px);
 }
 
 /* ── Curseurs (sliders) ────────────────────────────────────────────────── */
@@ -208,42 +270,42 @@ svg .solid {
 input[type='range'] {
   -webkit-appearance: none;
   appearance: none;
-  height: 24px;
+  height: 28px;
   margin: 0;
   background: transparent;
   cursor: pointer;
 }
 
 input[type='range']::-webkit-slider-runnable-track {
-  height: 4px;
-  border-radius: 2px;
-  background: var(--panel-border);
+  height: 6px;
+  border-radius: 0;
+  background: var(--line);
 }
 
 input[type='range']::-moz-range-track {
-  height: 4px;
-  border-radius: 2px;
-  background: var(--panel-border);
+  height: 6px;
+  border-radius: 0;
+  background: var(--line);
 }
 
 input[type='range']::-webkit-slider-thumb {
   -webkit-appearance: none;
-  width: 14px;
-  height: 14px;
-  margin-top: -5px;
+  width: 12px;
+  height: 20px;
+  margin-top: -7px;
   border: none;
-  border-radius: 3px;
-  background: var(--accent);
-  box-shadow: var(--glow);
+  border-radius: 0;
+  background: var(--accent-fill);
+  box-shadow: 0 0 0 2px var(--surface);
 }
 
 input[type='range']::-moz-range-thumb {
-  width: 14px;
-  height: 14px;
+  width: 12px;
+  height: 20px;
   border: none;
-  border-radius: 3px;
-  background: var(--accent);
-  box-shadow: var(--glow);
+  border-radius: 0;
+  background: var(--accent-fill);
+  box-shadow: 0 0 0 2px var(--surface);
 }
 
 /* ── En haut : bouton menu, titre + légende, jour/nuit ─────────────────── */
@@ -256,14 +318,14 @@ input[type='range']::-moz-range-thumb {
 
 #menu-toggle {
   left: var(--gap);
-  background: var(--panel);
-  border: 1px solid var(--panel-border);
-  box-shadow: var(--shadow);
+  background: var(--surface);
+  box-shadow: var(--notch-line), var(--drop-shadow);
 }
 
 #menu-toggle[aria-pressed='true'] {
   color: var(--fg);
-  box-shadow: var(--shadow);
+  background: var(--surface);
+  box-shadow: var(--notch-line), var(--drop-shadow);
 }
 
 #menu-toggle[aria-pressed='false'] {
@@ -272,8 +334,8 @@ input[type='range']::-moz-range-thumb {
 
 #theme-toggle {
   right: var(--gap);
-  width: 42px;
-  height: 42px;
+  width: 46px;
+  height: 46px;
 }
 
 body[data-theme='night'] .icon-moon,
@@ -284,47 +346,42 @@ body[data-theme='day'] .icon-sun {
 .title-bar {
   position: fixed;
   top: var(--gap);
-  left: calc(var(--gap) + 52px);
-  height: 42px;
+  left: calc(var(--gap) + 62px);
+  height: 46px;
   display: flex;
   align-items: center;
-  gap: 20px;
-  padding: 0 14px;
+  gap: 24px;
+  padding: 0 16px;
 }
 
 .title-bar h1 {
   margin: 0;
-  font-size: 13px;
+  font-size: 24px;
   font-weight: 700;
-  letter-spacing: 0.18em;
-  text-transform: uppercase;
   white-space: nowrap;
   color: var(--accent);
-  text-shadow: var(--glow);
 }
 
 .legend {
   display: flex;
-  gap: 14px;
+  gap: 16px;
   margin: 0;
   padding: 0;
   list-style: none;
   color: var(--muted);
-  font-size: 12px;
 }
 
 .legend li {
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 8px;
   white-space: nowrap;
 }
 
 .swatch {
   display: inline-block;
-  width: 11px;
-  height: 11px;
-  border-radius: 2.5px;
+  width: 12px;
+  height: 12px;
 }
 
 .swatch-newborn {
@@ -337,29 +394,33 @@ body[data-theme='day'] .icon-sun {
 
 .swatch-trace {
   background: var(--cell-trace);
+  outline: 2px solid var(--line-soft);
+  outline-offset: -2px;
 }
 
 .swatch-dead {
   background: var(--cell-dead);
-  border: 1px solid var(--panel-border);
+  outline: 2px solid var(--line-soft);
+  outline-offset: -2px;
 }
 
 /* ── À gauche : barre d'outils ─────────────────────────────────────────── */
 
 .toolbar {
   position: fixed;
-  left: var(--gap);
+  left: calc(var(--gap) + var(--px));
   top: 50%;
   transform: translateY(-50%);
   display: flex;
   flex-direction: column;
-  gap: 6px;
-  padding: 6px;
+  gap: 8px;
+  padding: 8px;
 }
 
 /* Réglage de taille de la gomme : invisible au repos, il sort à droite du bouton
-   quand on le survole ou qu'on y arrive au clavier. Le panneau touche le bouton
-   (pas de trou entre les deux) : la souris peut passer de l'un à l'autre sans qu'il se referme. */
+   quand on le survole ou qu'on y arrive au clavier. Un « pont » invisible comble
+   l'espace entre le bouton et le panneau : la souris peut passer de l'un à l'autre
+   sans qu'il se referme. */
 .tool-slot {
   position: relative;
 }
@@ -371,26 +432,22 @@ body[data-theme='day'] .icon-sun {
   height: 100%;
   display: flex;
   align-items: center;
-  gap: 8px;
-  margin-left: 6px; /* zone « pont » : voir ::before */
-  padding: 0 10px;
-  border: 1px solid var(--panel-border);
-  border-radius: 4px;
-  background: var(--panel);
-  box-shadow: var(--shadow);
+  gap: 10px;
+  margin-left: 16px;
+  padding: 0 12px;
+  background: var(--surface);
+  box-shadow: var(--notch-line), var(--drop-shadow);
   opacity: 0;
   visibility: hidden;
-  transform: translateX(-4px);
-  transition: opacity 0.14s ease, transform 0.14s ease, visibility 0s 0.14s;
+  transition: opacity 0.12s steps(2), visibility 0s 0.12s;
 }
 
-/* Le « pont » invisible qui comble les 6 px entre le bouton et le panneau. */
 .eraser-size::before {
   content: '';
   position: absolute;
   right: 100%;
   top: 0;
-  width: 8px;
+  width: 18px;
   height: 100%;
 }
 
@@ -398,7 +455,6 @@ body[data-theme='day'] .icon-sun {
 .tool-slot:focus-within .eraser-size {
   opacity: 1;
   visibility: visible;
-  transform: none;
   transition-delay: 0s;
 }
 
@@ -419,12 +475,12 @@ body[data-theme='day'] .icon-sun {
   position: fixed;
   left: var(--gap);
   right: var(--gap);
-  bottom: var(--gap);
+  bottom: calc(var(--gap) + var(--px) * 3);
   display: flex;
   flex-wrap: wrap-reverse;
   align-items: flex-end;
   justify-content: center;
-  gap: var(--gap);
+  gap: calc(var(--gap) + var(--px) * 2);
   pointer-events: none; /* le vide entre les panneaux laisse passer les clics vers la grille */
 }
 
@@ -435,12 +491,12 @@ body[data-theme='day'] .icon-sun {
 .zoom-panel {
   display: flex;
   align-items: center;
-  gap: 4px;
-  padding: 6px;
+  gap: 6px;
+  padding: 8px;
 }
 
 .zoom-panel input {
-  width: 110px;
+  width: 90px;
 }
 
 .transport {
@@ -448,61 +504,56 @@ body[data-theme='day'] .icon-sun {
   flex-wrap: wrap;
   align-items: center;
   justify-content: center;
-  gap: 8px 18px;
-  padding: 6px 12px 6px 6px;
+  gap: 8px 16px;
+  padding: 8px 12px 8px 8px;
 }
 
 .transport-buttons {
   display: flex;
-  gap: 4px;
+  gap: 6px;
 }
 
 .transport-btn {
-  width: 54px;
-  height: 50px;
+  width: 56px;
+  height: 56px;
   grid-template-rows: 1fr auto;
   padding: 6px 0 5px;
 }
 
 .transport-btn span {
-  font-size: 10px;
+  font-size: 13px;
   line-height: 1;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
   color: var(--muted);
 }
 
 .transport-btn[aria-pressed='true'] span {
-  color: var(--accent);
+  color: var(--on-accent);
 }
 
 .speed {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 10px;
 }
 
 .speed .label,
 .action-bar .label {
-  font-size: 11px;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
   color: var(--muted);
   white-space: nowrap;
 }
 
 .speed input {
-  width: 110px;
+  width: 88px;
 }
 
 .speed output {
-  min-width: 76px;
+  min-width: 78px;
   font-variant-numeric: tabular-nums;
 }
 
 .counters {
   display: flex;
-  gap: 16px;
+  gap: 14px;
   margin: 0;
 }
 
@@ -512,16 +563,15 @@ body[data-theme='day'] .icon-sun {
 }
 
 .counters dt {
-  font-size: 10px;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
+  font-size: 13px;
   color: var(--muted);
 }
 
 .counters dd {
-  min-width: 7ch;
+  min-width: 5ch;
   margin: 0;
-  font-size: 15px;
+  font-size: 22px;
+  font-weight: 700;
   font-variant-numeric: tabular-nums;
 }
 
@@ -529,10 +579,10 @@ body[data-theme='day'] .icon-sun {
 
 .library {
   position: fixed;
-  top: calc(var(--gap) + 54px);
-  right: var(--gap);
-  width: 256px;
-  max-height: calc(100% - 54px - 110px - 2 * var(--gap));
+  top: calc(var(--gap) + 62px);
+  right: calc(var(--gap) + var(--px));
+  width: 272px;
+  max-height: calc(100% - 62px - 130px - 2 * var(--gap));
   display: flex;
   flex-direction: column;
 }
@@ -542,20 +592,18 @@ body[data-theme='day'] .icon-sun {
   align-items: center;
   justify-content: space-between;
   padding: 6px 6px 6px 14px;
-  border-bottom: 1px solid var(--panel-border);
+  border-bottom: var(--px) solid var(--line);
 }
 
 .library h2 {
   margin: 0;
-  font-size: 12px;
-  letter-spacing: 0.16em;
-  text-transform: uppercase;
+  font-size: 18px;
+  font-weight: 700;
   color: var(--accent);
 }
 
 #library-toggle svg {
   transform: rotate(180deg);
-  transition: transform 0.15s ease;
 }
 
 .library.is-collapsed #library-toggle svg {
@@ -572,37 +620,36 @@ body[data-theme='day'] .icon-sun {
 
 .library-body {
   overflow-y: auto;
-  padding: 10px 12px 14px;
+  padding: 12px 14px 16px;
 }
 
 .hint {
-  margin: 0 0 8px;
-  font-size: 11.5px;
-  line-height: 1.45;
+  margin: 0 0 10px;
+  font-size: 14px;
+  line-height: 1.4;
   color: var(--muted);
 }
 
 kbd {
-  padding: 0 4px;
-  border: 1px solid var(--panel-border);
-  border-radius: 3px;
+  padding: 0 5px;
+  background: var(--surface-2);
+  box-shadow: var(--notch-soft);
   font-family: inherit;
-  font-size: 11px;
+  font-size: 13px;
 }
 
 #pattern-list h3 {
-  margin: 14px 0 6px;
-  font-size: 10.5px;
-  font-weight: 600;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
+  margin: 16px 0 8px;
+  font-size: 14px;
+  font-weight: 700;
   color: var(--muted);
 }
 
 .pattern-grid {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
-  gap: 6px;
+  gap: 10px;
+  padding: 0 var(--px);
 }
 
 .pattern-card {
@@ -610,17 +657,18 @@ kbd {
   flex-direction: column;
   align-items: center;
   gap: 4px;
-  padding: 6px 4px 6px;
-  border: 1px solid var(--panel-border);
-  border-radius: 4px;
-  background: transparent;
+  padding: 8px 4px 6px;
+  border: 0;
+  border-radius: 0;
+  background: var(--surface-2);
+  box-shadow: var(--notch-soft);
   cursor: grab;
   touch-action: pan-y; /* au doigt : glisser vers le haut/bas fait défiler, vers la grille fait glisser */
 }
 
 .pattern-card:hover {
-  border-color: var(--accent);
-  background: var(--accent-soft);
+  background: var(--hover);
+  box-shadow: var(--notch-accent);
 }
 
 .pattern-thumb {
@@ -630,39 +678,40 @@ kbd {
 }
 
 .pattern-name {
-  font-size: 11px;
+  font-size: 14px;
   line-height: 1.2;
   text-align: center;
 }
 
 .images-title {
-  margin-top: 20px !important;
-  margin-bottom: 6px !important;
+  margin-top: 22px !important;
+  margin-bottom: 8px !important;
 }
 
 .image-list {
   display: flex;
   flex-wrap: wrap;
-  gap: 6px;
-  margin-bottom: 10px;
+  gap: 10px;
+  margin-bottom: 12px;
+  padding: 0 var(--px);
 }
 
 .image-chip {
   display: grid;
   place-items: center;
-  width: 44px;
-  height: 44px;
-  padding: 3px;
-  border: 1px solid var(--panel-border);
-  border-radius: 6px;
-  background: transparent;
+  width: 46px;
+  height: 46px;
+  padding: 4px;
+  border: 0;
+  border-radius: 0;
+  background: var(--surface-2);
+  box-shadow: var(--notch-soft);
   cursor: pointer;
 }
 
 .image-chip[aria-pressed='true'] {
-  border-color: var(--accent);
   background: var(--accent-soft);
-  box-shadow: var(--glow);
+  box-shadow: var(--notch-accent);
 }
 
 .image-chip img {
@@ -670,13 +719,12 @@ kbd {
   width: 100%;
   height: 100%;
   object-fit: cover;
-  border-radius: 5px;
+  image-rendering: pixelated;
 }
 
 .neon-swatch {
-  width: 26px;
-  height: 26px;
-  border-radius: 5px;
+  width: 28px;
+  height: 28px;
   background: linear-gradient(135deg, var(--cell-newborn) 50%, var(--cell-alive) 50%);
 }
 
@@ -684,16 +732,17 @@ kbd {
 
 .action-bar {
   position: fixed;
-  top: calc(var(--gap) + 54px);
+  top: calc(var(--gap) + 70px);
   left: 50%;
   transform: translateX(-50%);
-  max-width: calc(100% - 2 * var(--gap));
+  width: max-content; /* sans ça, la barre est limitée à la moitié de l'écran à cause de left: 50% */
+  max-width: calc(100% - 2 * var(--gap) - 2 * var(--px));
   display: flex;
   flex-wrap: wrap;
   align-items: center;
   justify-content: center;
-  gap: 6px;
-  padding: 6px 6px 6px 12px;
+  gap: 8px;
+  padding: 8px 8px 8px 14px;
 }
 
 .action-bar .label {
@@ -706,15 +755,13 @@ kbd {
   left: 50%;
   bottom: 100px;
   z-index: 20;
-  padding: 8px 14px;
-  border: 1px solid var(--accent);
-  border-radius: 4px;
-  background: var(--panel);
-  box-shadow: var(--glow);
+  padding: 10px 16px;
+  background: var(--surface);
+  box-shadow: var(--notch-accent), var(--drop-shadow);
   opacity: 0;
   pointer-events: none;
   transform: translate(-50%, 8px);
-  transition: opacity 0.2s ease, transform 0.2s ease;
+  transition: opacity 0.15s steps(2), transform 0.15s steps(2);
 }
 
 .toast.is-visible {
@@ -728,26 +775,29 @@ body.is-dragging * {
 }
 
 body.is-file-over #world {
-  outline: 3px dashed var(--accent);
+  outline: var(--px) dashed var(--accent);
   outline-offset: -14px;
 }
 
 /* ── Petits écrans (tablettes, téléphones) ─────────────────────────────── */
 
-@media (max-width: 1180px) {
+@media (max-width: 1100px) {
   .legend li:last-child {
     display: none;
   }
 }
 
-@media (max-width: 960px) {
+@media (max-width: 900px) {
   .legend {
     display: none;
   }
+}
 
+/* Barre du bas compacte : on garde les icônes, on retire les petits textes. */
+@media (max-width: 1220px) {
   .transport-btn {
-    width: 42px;
-    height: 42px;
+    width: 46px;
+    height: 46px;
     padding: 0;
   }
 
@@ -763,21 +813,26 @@ body.is-file-over #world {
 
   /* La barre du bas peut passer sur deux lignes : on laisse plus de place en bas. */
   .library {
-    width: 220px;
-    max-height: calc(100% - 54px - 190px - 2 * var(--gap));
+    width: 232px;
+    max-height: calc(100% - 62px - 200px - 2 * var(--gap));
   }
 }
 
 @media (max-width: 560px) {
   :root {
-    --gap: 8px;
+    --gap: 10px;
+    --px: 2px;
+  }
+
+  .title-bar h1 {
+    font-size: 20px;
   }
 
   .counters dd {
-    font-size: 13px;
+    font-size: 18px;
   }
 
   .library {
-    max-height: calc(100% - 54px - 230px - 2 * var(--gap));
+    max-height: calc(100% - 62px - 240px - 2 * var(--gap));
   }
 }

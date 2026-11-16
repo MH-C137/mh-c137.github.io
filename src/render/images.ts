@@ -10,8 +10,8 @@
  *
  * Préparation des images (faite UNE fois, à l'import) :
  *   1. On recadre l'image en carré, centré (comme `object-fit: cover` en CSS).
- *   2. On la réduit en une « tuile » de TILE_SIZE pixels, aux coins arrondis
- *      comme les cellules. Dessiner une petite tuile des milliers de fois par
+ *   2. On la réduit en une « tuile » de TILE_SIZE pixels, aux coins de la même
+ *      forme que les cellules (carrés). Dessiner une petite tuile des milliers de fois par
  *      seconde est bien plus rapide que dessiner la grande image d'origine.
  *   3. On calcule sa couleur moyenne : quand on dézoome et que les cases font
  *      quelques pixels, on dessine cette couleur au lieu de l'image (illisible
@@ -22,8 +22,12 @@ import { Emitter } from '../core/events';
 
 /** Taille (en pixels) des tuiles préparées. */
 export const TILE_SIZE = 96;
-/** Arrondi des coins, en proportion du côté (le même que les cellules). */
-export const CORNER_RATIO = 0.22;
+/**
+ * Arrondi des coins, en proportion du côté (le même pour les cellules et les images).
+ * 0 = coins carrés : c'est le style « pixel » du site. Mettre par exemple 0.22 ferait
+ * revenir des coins arrondis partout d'un coup (cellules, images, miniatures).
+ */
+export const CORNER_RATIO = 0;
 
 export interface SkinImage {
   /** Numéro de l'image (≥ 1). */
@@ -76,7 +80,7 @@ export class ImageLibrary extends Emitter<{ change: void }> {
     const sourceX = (source.width - side) / 2;
     const sourceY = (source.height - side) / 2;
 
-    // Coins arrondis : on dessine d'abord la forme, puis on « découpe » (clip) dedans.
+    // Forme de la tuile (carrée tant que CORNER_RATIO vaut 0) : on la trace d'abord, puis on « découpe » (clip) dedans.
     context.beginPath();
     roundedRectPath(context, 0, 0, TILE_SIZE, TILE_SIZE, TILE_SIZE * CORNER_RATIO);
     context.clip();
@@ -135,7 +139,7 @@ function averageColor(image: CanvasImageSource, x: number, y: number, side: numb
 }
 
 /**
- * Trace un rectangle aux coins arrondis (utilise `roundRect` si le navigateur
+ * Trace un rectangle aux coins arrondis, ou carré si `radius` vaut 0 (utilise `roundRect` si le navigateur
  * le connaît, sinon des arcs de cercle « à la main »).
  */
 export function roundedRectPath(
