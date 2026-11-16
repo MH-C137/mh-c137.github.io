@@ -87,6 +87,18 @@ export interface CellRect {
   readonly y1: number;
 }
 
+/**
+ * Carré de `size` × `size` cases, centré sur la case (x, y).
+ * Pour une taille paire, il n'y a pas de case au milieu : le carré dépasse
+ * d'une case vers la droite et vers le bas (décalage = moitié arrondie vers le bas).
+ * Exemples : taille 1 → la case seule ; 3 → une case de chaque côté ;
+ * 4 → une case à gauche / en haut, deux à droite / en bas.
+ */
+export function squareAround(x: number, y: number, size: number): CellRect {
+  const before = Math.floor((size - 1) / 2);
+  return { x0: x - before, y0: y - before, x1: x - before + size - 1, y1: y - before + size - 1 };
+}
+
 /** Construit un rectangle à partir de deux coins quelconques (dans n'importe quel ordre). */
 export function rectFromCorners(ax: number, ay: number, bx: number, by: number): CellRect {
   return {

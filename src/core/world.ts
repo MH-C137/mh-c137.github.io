@@ -62,6 +62,19 @@ export function snapshotSize(snapshot: WorldSnapshot): number {
   return snapshot.keys.length + snapshot.trace.length;
 }
 
+/** Une cellule « clignote » toute les 3 générations passées en vie. */
+export const PULSE_PERIOD = 3;
+
+/**
+ * Vrai si une cellule de cet âge est dans sa génération de clignotement :
+ * âge 3, 6, 9… (l'âge 0 est la naissance, qui a sa propre couleur).
+ * Sert au dessin : sans ce signe, une longue suite d'âges identiques ressemblerait
+ * à une image figée, alors que la cellule continue de vivre.
+ */
+export function isPulseAge(age: number): boolean {
+  return age > 0 && age % PULSE_PERIOD === 0;
+}
+
 export class World {
   /** Cellules vivantes : clé → âge (0 = née à cette génération). */
   private ages = new Map<number, number>();

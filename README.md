@@ -38,10 +38,15 @@ Le site est **statique** : pas de serveur, pas de base de données. Plusieurs fa
 - **Fichier unique `dist-single/index.html`** : tout est dedans (code, style, icônes). Pratique à envoyer par mail ou à déposer sur un portail.
 - **Dans une iframe** : ça marche. Attention seulement : les futures sauvegardes dans le navigateur (localStorage, IndexedDB) seront cloisonnées par site dans une iframe d'un autre domaine. C'est pour ça que la sauvegarde principale prévue est l'export de fichiers.
 
+## Style
+
+Le site est en **arcade pixel** : coins carrés partout, cadres en escalier, icônes en pixel art, police Pixelify Sans (embarquée, licence OFL, dans `src/assets/fonts/`). Les règles sont dans `DESIGN.md`. Pour redonner des coins arrondis aux cellules, il suffit de changer `CORNER_RATIO` dans `src/render/images.ts`.
+
 ## Ce qu'on peut faire
 
 - **Monde quasi infini** (67 millions de cases de côté) avec zoom (molette, curseur, deux doigts) et déplacement.
-- **Outils** : sélection, main (déplacer la vue), pinceau, gomme (ou clic droit).
+- **Outils** : sélection, main (déplacer la vue), pinceau, gomme (ou clic droit). La **taille de la gomme** (1 à 15 cases) se règle avec un petit slider qui apparaît quand on survole l'icône de gomme.
+- **Clignotement** : une cellule qui reste en vie clignote (violet clair) toutes les 3 générations, pour qu'une scène stable ne ressemble pas à un bug.
 - **Lecture** : `<<` lecture arrière · `<` une génération en arrière · `||` pause · `>` une génération en avant · `>>` lecture.
 - **Vitesse** réglable de 1 à 120 générations par seconde.
 - **Modifier pendant la pause** : on ajoute des cellules ou des structures sans tout recommencer.

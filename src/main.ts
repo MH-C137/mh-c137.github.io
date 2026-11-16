@@ -35,7 +35,7 @@ import { byId, measureUiInsets, releaseFocusAfterClick } from './ui/dom';
 import { setupLibrary } from './ui/library';
 import { setupShortcuts } from './ui/shortcuts';
 import { ThemeManager } from './ui/theme';
-import { setupMenu, setupToolbar } from './ui/toolbar';
+import { setupEraserSize, setupMenu, setupToolbar } from './ui/toolbar';
 import { setupTransport, setupZoom } from './ui/transport';
 
 // ── 1. Les objets du programme ─────────────────────────────────────────────
@@ -61,6 +61,7 @@ const app: App = { world, simulation, camera, images, library, editor, renderer,
 // ── 2. Les branchements ────────────────────────────────────────────────────
 new InputController(canvas, editor);
 setupToolbar(app);
+setupEraserSize(app);
 setupTransport(app);
 setupZoom(app);
 setupLibrary(app);
