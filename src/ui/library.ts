@@ -121,9 +121,12 @@ export function setupLibrary(app: App): void {
   setupImages(app);
 }
 
-/** Section « Images » : importer, choisir l'image du pinceau. */
+/**
+ * Section « Images » : importer, puis choisir l'image des cellules VIVANTES (utilisée par
+ * le crayon et les structures). Avec les options avancées, on peut aussi choisir une
+ * image pour les cellules MORTES (celles qui viennent de mourir).
+ */
 function setupImages(app: App): void {
-  const container = byId('image-list');
   const input = byId<HTMLInputElement>('image-input');
   byId('image-add').addEventListener('click', () => input.click());
   input.addEventListener('change', () => {
@@ -131,28 +134,46 @@ function setupImages(app: App): void {
     input.value = ''; // permet de réimporter le même fichier
   });
 
-  const chip = (id: number, label: string, content: Node) => {
-    const button = el('button', {
-      class: 'image-chip',
-      type: 'button',
-      title: label,
-      'aria-label': label,
-      'aria-pressed': String(app.images.current === id),
-    }, [content]);
-    button.addEventListener('click', () => {
-      app.images.current = id;
-    });
-    return button;
+  /**
+   * Remplit une liste de pastilles (« sans image » + une par image importée).
+   * @param get  numéro de l'image actuellement choisie pour ce rôle
+   * @param set  choisit une image pour ce rôle
+   */
+  const setupChooser = (container: HTMLElement, noneLabel: string, get: () => number, set: (id: number) => void) => {
+    const chip = (id: number, label: string, content: Node) => {
+      const button = el('button', {
+        class: 'image-chip',
+        type: 'button',
+        title: label,
+        'aria-label': label,
+        'aria-pressed': String(get() === id),
+      }, [content]);
+      button.addEventListener('click', () => set(id));
+      return button;
+    };
+    const render = () => {
+      container.replaceChildren(
+        chip(0, noneLabel, el('span', { class: 'neon-swatch' })),
+        ...app.images.list().map((image) => chip(image.id, image.name, el('img', { src: image.thumbnailUrl, alt: '' }))),
+      );
+    };
+    app.images.on('change', render);
+    render();
   };
+  setupChooser(byId('image-list'), 'Sans image (néon)', () => app.images.current, (id) => {
+    app.images.current = id;
+  });
+  setupChooser(byId('dead-image-list'), 'Sans image (couleur de trace)', () => app.images.deadImage, (id) => {
+    app.images.deadImage = id;
+  });
 
-  const render = () => {
-    container.replaceChildren(
-      chip(0, 'Sans image (néon)', el('span', { class: 'neon-swatch' })),
-      ...app.images.list().map((image) =>
-        chip(image.id, image.name, el('img', { src: image.thumbnailUrl, alt: '' })),
-      ),
-    );
+  // Options avancées : titres et choix de l'image des cellules mortes.
+  const aliveTitle = byId('alive-images-title');
+  const deadBlock = byId('dead-images');
+  const renderAdvanced = () => {
+    aliveTitle.hidden = !app.viewSettings.advancedVisible;
+    deadBlock.hidden = !app.viewSettings.advancedVisible;
   };
-  app.images.on('change', render);
-  render();
+  app.viewSettings.on('change', renderAdvanced);
+  renderAdvanced();
 }

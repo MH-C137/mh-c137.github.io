@@ -52,6 +52,7 @@ export function setupTutorial(_app: App, menu: { showMenu: () => void }): Tutori
   /** Affiche l'étape `index` : textes, compteur, boutons, puis position de la bulle. */
   const render = () => {
     const step = TOUR_STEPS[index]!;
+    prepareScroll(step);
     const last = index === TOUR_STEPS.length - 1;
     stepLabel.textContent = `${index + 1}/${TOUR_STEPS.length}`;
     title.textContent = step.title;
@@ -70,8 +71,7 @@ export function setupTutorial(_app: App, menu: { showMenu: () => void }): Tutori
   const position = () => {
     if (index < 0) return;
     const step = TOUR_STEPS[index]!;
-    const target = step.target ? document.querySelector<HTMLElement>(step.target) : null;
-    const box = target?.getBoundingClientRect();
+    const box = targetBox(step);
     const size = { width: tour.offsetWidth, height: tour.offsetHeight };
     const viewport = { width: window.innerWidth, height: window.innerHeight };
 
@@ -183,4 +183,36 @@ function renderStep(step: TourStep): HTMLElement[] {
   }
   if (step.outro) blocks.push(el('p', {}, [step.outro]));
   return blocks;
+}
+
+/**
+ * Rectangle à entourer pour une étape : celui de l'élément visé, ou le plus
+ * petit rectangle qui contient TOUS les éléments visés (ex. soleil/lune + œil).
+ * Renvoie null si rien n'est visible (la bulle sera alors centrée).
+ */
+function targetBox(step: TourStep): DOMRect | null {
+  if (!step.target) return null;
+  const selectors = typeof step.target === 'string' ? [step.target] : step.target;
+  const boxes = selectors
+    .map((selector) => document.querySelector<HTMLElement>(selector)?.getBoundingClientRect())
+    .filter((box): box is DOMRect => box !== undefined && box.width > 0 && box.height > 0);
+  if (boxes.length === 0) return null;
+  const left = Math.min(...boxes.map((box) => box.left));
+  const top = Math.min(...boxes.map((box) => box.top));
+  const right = Math.max(...boxes.map((box) => box.right));
+  const bottom = Math.max(...boxes.map((box) => box.bottom));
+  return new DOMRect(left, top, right - left, bottom - top);
+}
+
+/**
+ * Si l'étape le demande, déplie la bibliothèque et fait défiler son contenu en haut
+ * ou en bas (pour montrer la partie « Images » tout en bas). À faire AVANT de
+ * mesurer les éléments : sinon on entourerait un endroit qui n'est pas à l'écran.
+ */
+function prepareScroll(step: TourStep): void {
+  if (!step.scroll) return;
+  const library = document.getElementById('library');
+  if (library?.classList.contains('is-collapsed')) document.getElementById('library-toggle')?.click();
+  const container = document.querySelector<HTMLElement>(step.scroll.container);
+  if (container) container.scrollTop = step.scroll.to === 'bottom' ? container.scrollHeight : 0;
 }

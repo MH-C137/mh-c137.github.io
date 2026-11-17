@@ -7,12 +7,20 @@
  * standard de la communauté. Pour en ajouter une : copier son RLE depuis
  * LifeWiki (https://conwaylife.com/wiki) et ajouter une entrée ci-dessous.
  *
+ * Les trois « structures énormes » sont trop longues pour tenir ici : leur RLE est dans
+ * des fichiers `src/data/rle/*.rle` (copiés tels quels de la collection LifeWiki /
+ * conwaylife.com, avec le nom de leur auteur dans les commentaires `#O`), importés
+ * en texte avec `?raw`.
+ *
  * Les descriptions sont écrites pour des collégiens : courtes et concrètes.
  */
 
 import { Emitter } from '../core/events';
 import type { Pattern } from '../core/pattern';
 import { parseRle } from '../core/rle';
+import breeder1 from './rle/breeder1.rle?raw';
+import cordership10 from './rle/10enginecordership.rle?raw';
+import spacefiller1 from './rle/spacefiller1.rle?raw';
 
 export type PatternCategory =
   | 'Stables'
@@ -20,6 +28,7 @@ export type PatternCategory =
   | 'Vaisseaux'
   | 'Canons'
   | 'Mathusalems'
+  | 'Structures énormes'
   | 'Mes structures';
 
 /** Ordre d'affichage des catégories dans le panneau. */
@@ -30,6 +39,7 @@ export const CATEGORY_ORDER: readonly PatternCategory[] = [
   'Vaisseaux',
   'Canons',
   'Mathusalems',
+  'Structures énormes',
 ];
 
 export interface PatternEntry {
@@ -92,6 +102,14 @@ const BUILTIN_DEFINITIONS: BuiltinDefinition[] = [
     description: 'Disparaît entièrement après 130 générations.' },
   { id: 'acorn', name: 'Gland', category: 'Mathusalems', rle: 'bo5b$3bo3b$2o2b3o!',
     description: '7 cellules qui explosent pendant 5206 générations.' },
+
+  // ── Structures énormes : de grandes machines (fichiers .rle de LifeWiki) ──
+  { id: 'breeder1', name: 'Breeder 1', category: 'Structures énormes', rle: breeder1,
+    description: 'Une usine à usines (Bill Gosper) : des vaisseaux posent des canons, qui tirent des planeurs sans fin. Elle grandit de plus en plus vite !' },
+  { id: 'cordership10', name: 'Cordership à 10 moteurs', category: 'Structures énormes', rle: cordership10,
+    description: 'Un énorme vaisseau (Dean Hickerson) fait de 10 « moteurs ». Il avance en diagonale de 8 cases toutes les 96 générations.' },
+  { id: 'spacefiller1', name: 'Remplisseur', category: 'Structures énormes', rle: spacefiller1,
+    description: 'Il grandit dans tous les sens et finit par remplir l’écran d’un motif régulier (David Bell).' },
 ];
 
 /** Les structures célèbres, prêtes à l'emploi. */

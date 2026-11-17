@@ -179,8 +179,14 @@ export class Renderer {
     const screenX = (x: number) => (x - camera.centerX) * zoom + halfWidth;
     const screenY = (y: number) => (y - camera.centerY) * zoom + halfHeight;
 
+    // Cellules qui viennent de mourir : couleur de trace, ou l'image choisie pour les « mortes »
+    // (vue de près seulement ; de loin, la couleur de trace reste plus lisible).
+    const deadImage = images.deadImage !== 0 ? images.get(images.deadImage) : undefined;
+    const deadTiles: Array<{ sx: number; sy: number }> = [];
     world.forEachTrace((x, y) => {
-      if (isVisible(x, y)) addCellShape(tracePath, screenX(x), screenY(y), geometry);
+      if (!isVisible(x, y)) return;
+      if (deadImage && showImages) deadTiles.push({ sx: screenX(x), sy: screenY(y) });
+      else addCellShape(tracePath, screenX(x), screenY(y), geometry);
     });
 
     world.forEachCell((x, y, age, skin) => {
@@ -209,6 +215,13 @@ export class Renderer {
 
     context.fillStyle = palette.trace;
     context.fill(tracePath);
+    if (deadImage && deadTiles.length > 0) {
+      context.globalAlpha = 0.5; // un peu transparente : on voit qu'elle est « éteinte »
+      for (const { sx, sy } of deadTiles) {
+        context.drawImage(deadImage.tile, sx + geometry.inset, sy + geometry.inset, geometry.size, geometry.size);
+      }
+      context.globalAlpha = 1;
+    }
     context.fillStyle = palette.alive;
     context.fill(alivePath);
     context.fillStyle = palette.pulse;

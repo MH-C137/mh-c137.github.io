@@ -437,32 +437,34 @@ body[data-theme='day'] .icon-sun {
   padding: 8px;
 }
 
-/* Réglage de taille de la gomme : invisible au repos, il sort à droite du bouton
-   quand on le survole ou qu'on y arrive au clavier. Un « pont » invisible comble
-   l'espace entre le bouton et le panneau : la souris peut passer de l'un à l'autre
-   sans qu'il se referme. */
+/* Petits panneaux de réglage du crayon et de la gomme : invisibles au repos, ils sortent
+   à droite du bouton quand on le survole ou qu'on y arrive au clavier. Un « pont »
+   invisible comble l'espace entre le bouton et le panneau : la souris peut passer de
+   l'un à l'autre sans qu'il se referme. */
 .tool-slot {
   position: relative;
 }
 
-.eraser-size {
+.tool-options {
   position: absolute;
   left: 100%;
   top: 0;
-  height: 100%;
+  min-height: 100%;
   display: flex;
-  align-items: center;
-  gap: 10px;
+  flex-direction: column;
+  justify-content: center;
+  gap: 4px;
   margin-left: 16px;
-  padding: 0 12px;
+  padding: 6px 12px;
   background: var(--surface);
   box-shadow: var(--notch-line), var(--drop-shadow);
   opacity: 0;
   visibility: hidden;
   transition: opacity 0.12s steps(2), visibility 0s 0.12s;
+  white-space: nowrap;
 }
 
-.eraser-size::before {
+.tool-options::before {
   content: '';
   position: absolute;
   right: 100%;
@@ -471,26 +473,108 @@ body[data-theme='day'] .icon-sun {
   height: 100%;
 }
 
-.tool-slot:hover .eraser-size,
-.tool-slot:focus-within .eraser-size {
+.tool-slot:hover .tool-options,
+.tool-slot:focus-within .tool-options {
   opacity: 1;
   visibility: visible;
   transition-delay: 0s;
+  z-index: 5;
 }
 
-.eraser-size input {
+.tool-name {
+  color: var(--muted);
+}
+
+.tool-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.tool-row input {
   width: 96px;
 }
 
-.eraser-size span {
-  white-space: nowrap;
-}
-
-.eraser-size output {
+.tool-row output {
   min-width: 2ch;
   font-variant-numeric: tabular-nums;
   text-align: right;
   color: var(--muted);
+}
+
+/* Barre d'outils : séparateur avant Annuler / Rétablir (options avancées). */
+.tool-sep {
+  height: var(--px);
+  margin: 2px 4px;
+  background: var(--line-soft);
+}
+
+/* Types de trait : une rangée de petits boutons dont l'icône montre le motif. */
+.stroke-picker {
+  display: flex;
+  gap: 8px;
+  padding: 4px var(--px) 2px;
+}
+
+.stroke-picker svg {
+  width: 24px;
+  height: 24px;
+}
+
+/* ── Menu Options : couleurs des cellules (options avancées) ───────────── */
+
+.menu-colors {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 14px;
+  padding: 6px 12px 4px;
+}
+
+.menu-colors-title {
+  flex-basis: 100%;
+  color: var(--muted);
+}
+
+.color-pick {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+}
+
+/* Sélecteur de couleur de la page, habillé comme le reste : carré, contour épais. */
+input[type='color'] {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 34px;
+  height: 34px;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: var(--notch-soft);
+  cursor: pointer;
+}
+
+input[type='color']::-webkit-color-swatch-wrapper {
+  padding: 0;
+}
+
+input[type='color']::-webkit-color-swatch {
+  border: 0;
+  border-radius: 0;
+}
+
+input[type='color']::-moz-color-swatch {
+  border: 0;
+  border-radius: 0;
+}
+
+.link-btn:disabled {
+  opacity: 0.4;
+  cursor: default;
+  text-decoration: none;
 }
 
 /* ── Menu déroulant « Options » ────────────────────────────────────────── */
@@ -839,7 +923,8 @@ kbd {
   font-size: 20px;
 }
 
-#pattern-list h3 {
+#pattern-list h3,
+.library-body h3 {
   margin: 16px 0 8px;
   font-size: 22px;
   color: var(--muted);

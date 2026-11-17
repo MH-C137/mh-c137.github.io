@@ -35,7 +35,7 @@ import { setupLibrary } from './ui/library';
 import { setupShortcuts } from './ui/shortcuts';
 import { ThemeManager } from './ui/theme';
 import { setupOptions } from './ui/options';
-import { setupEraserSize, setupMenu, setupToolbar } from './ui/toolbar';
+import { setupMenu, setupToolbar, setupToolOptions } from './ui/toolbar';
 import { setupTooltips } from './ui/tooltips';
 import { setupTutorial } from './ui/tutorial';
 import { ViewSettings } from './ui/viewsettings';
@@ -65,7 +65,7 @@ const app: App = { world, simulation, camera, images, library, editor, renderer,
 // ── 2. Les branchements ────────────────────────────────────────────────────
 new InputController(canvas, editor);
 setupToolbar(app);
-setupEraserSize(app);
+setupToolOptions(app);
 setupTransport(app);
 setupZoom(app);
 setupLibrary(app);

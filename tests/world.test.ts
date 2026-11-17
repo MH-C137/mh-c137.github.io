@@ -180,3 +180,34 @@ describe('Photos et bord du monde', () => {
     expect(world.population).toBe(5);
   });
 });
+
+// ── Structures énormes (fichiers RLE de LifeWiki) ───────────────────────────
+describe('Structures énormes', () => {
+  it('ont les dimensions annoncées par LifeWiki', () => {
+    const size = (id: string) => {
+      const p = builtinPattern(id);
+      return [p.width, p.height];
+    };
+    expect(size('breeder1')).toEqual([749, 338]);
+    expect(size('cordership10')).toEqual([88, 88]);
+    expect(size('spacefiller1')).toEqual([29, 43]);
+  });
+
+  it('Cordership à 10 moteurs : après 96 générations, la même forme décalée de 8 cases en diagonale (c/12)', () => {
+    const world = new World();
+    const start = builtinPattern('cordership10');
+    world.placePattern(start, 0, 0);
+    const before = world.snapshot();
+    for (let i = 0; i < 96; i++) world.step();
+    const after = world.snapshot();
+    expect(after.keys.length).toBe(before.keys.length); // même nombre de cellules
+    // Chaque case vivante au début doit être vivante 8 cases plus loin (dans l'un des 4 sens diagonaux).
+    const alive = new Set<string>();
+    world.forEachCell((x, y) => alive.add(`${x},${y}`));
+    const original = start.cells.map(([x, y]) => [x, y] as const);
+    const moved = [[8, 8], [-8, 8], [8, -8], [-8, -8]].find(([dx, dy]) =>
+      original.every(([x, y]) => alive.has(`${x + dx!},${y + dy!}`)),
+    );
+    expect(moved).toBeDefined();
+  });
+});

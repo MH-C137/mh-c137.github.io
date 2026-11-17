@@ -15,6 +15,7 @@
 
 import { rectFromCorners, squareAround } from '../core/coords';
 import type { Editor } from './editor';
+import { strokeAllows } from '../core/strokes';
 import { cellsOnLine } from './line';
 
 export type ToolId = 'select' | 'hand' | 'brush' | 'eraser' | 'stamp';
@@ -108,7 +109,7 @@ export class PaintTool implements Tool {
       x: pointer.cellX,
       y: pointer.cellY,
       mode: this.id === 'eraser' ? 'erase' : 'draw',
-      size: this.brushSize,
+      size: this.hoverSize,
     });
     if (!pressed || !this.lastCell) return;
     // Relie la case précédente à la case actuelle : le trait reste continu.
@@ -129,22 +130,33 @@ export class PaintTool implements Tool {
     this.editor.setHover(null);
   }
 
-  /** Côté du carré touché : réglable pour la gomme, toujours 1 pour le pinceau. */
+  /**
+   * Côté du carré touché : la taille de la gomme quand on efface (gomme, ou clic
+   * droit avec le crayon), l'épaisseur du crayon quand on dessine.
+   */
   private get brushSize(): number {
-    return this.id === 'eraser' ? this.editor.eraserSize : 1;
+    return this.drawing ? this.editor.brushSize : this.editor.eraserSize;
+  }
+
+  /** Taille du contour affiché sous le curseur (le clic droit n'est pas connu au simple survol). */
+  private get hoverSize(): number {
+    return this.id === 'eraser' ? this.editor.eraserSize : this.editor.brushSize;
   }
 
   /**
-   * Change l'état de la case (x, y) ; pour une grosse gomme, de toutes les cases
-   * du carré centré sur (x, y). Le trait relie déjà les positions successives
+   * Change l'état de la case (x, y) ; pour une grosse gomme ou un crayon épais, de
+   * toutes les cases du carré centré sur (x, y). Pour dessiner, le type de trait
+   * (damier, points…) décide quelles cases du carré reçoivent vraiment une cellule. Le trait relie déjà les positions successives
    * (Bresenham) : en appliquant le carré à chaque case du trait, on obtient
    * une bande continue de la largeur de la gomme.
    */
   private paint(x: number, y: number): void {
     const skin = this.drawing ? this.editor.images.current : 0;
     const area = squareAround(x, y, this.brushSize);
+    const stroke = this.editor.stroke;
     for (let cy = area.y0; cy <= area.y1; cy++) {
       for (let cx = area.x0; cx <= area.x1; cx++) {
+        if (this.drawing && !strokeAllows(stroke, cx, cy)) continue;
         if (this.editor.world.setCell(cx, cy, this.drawing, skin)) {
           this.changed = true;
           this.editor.invalidate();

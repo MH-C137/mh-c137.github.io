@@ -38,6 +38,10 @@ Le site est **statique** : pas de serveur, pas de base de données. Plusieurs fa
 - **Fichier unique `dist-single/index.html`** : tout est dedans (code, style, icônes). Pratique à envoyer par mail ou à déposer sur un portail.
 - **Dans une iframe** : ça marche. Attention seulement : les futures sauvegardes dans le navigateur (localStorage, IndexedDB) seront cloisonnées par site dans une iframe d'un autre domaine. C'est pour ça que la sauvegarde principale prévue est l'export de fichiers.
 
+## Crédits
+
+Les structures énormes (`src/data/rle/*.rle`) viennent de la collection de motifs de **LifeWiki / conwaylife.com** (Breeder 1 : Bill Gosper ; Cordership à 10 moteurs : Dean Hickerson ; Spacefiller 1 : David Bell). Le nom des auteurs est dans les commentaires de chaque fichier. Police **Jersey 10** (licence OFL, dans `src/assets/fonts/`).
+
 ## Style
 
 Le site est en **arcade pixel** : coins carrés partout, cadres en escalier, icônes en pixel art, police Jersey 10 (embarquée, licence OFL, dans `src/assets/fonts/`). Les règles sont dans `DESIGN.md`. Pour redonner des coins arrondis aux cellules, il suffit de changer `CORNER_RATIO` dans `src/render/images.ts`.
@@ -57,8 +61,14 @@ Le site est en **arcade pixel** : coins carrés partout, cadres en escalier, ic�
 - **4 couleurs** : née (cyan), vivante (violet), vient de mourir (trace sombre), morte (fond).
 - **Mode nuit (néon) / mode jour** (bouton en haut à droite, à gauche de l'œil) et un bouton **œil** pour masquer toute l'interface.
 - **Grille vide au départ** : on arrive sur une page vierge, en pause. La grille est bien visible et se masque dans le menu **Options** (bouton à trois barres, en haut à gauche).
-- **Didacticiel** : à la première visite, un parcours en 6 bulles (Suivant / Précédent, compteur `1/6`, « Passer le didacticiel »). Pour le revoir : Options → Aide (?), ou la touche `?`.
-- **Options avancées** (menu Options) : affichent **Annuler** et **Rétablir** (`Ctrl+Z`, `Ctrl+Maj+Z`). Annuler défait la dernière modification faite à la main (un trait, une structure posée, « Effacer »…).
+- **Didacticiel** : à la première visite, un parcours en 9 bulles (Suivant / Précédent, compteur `1/9`, « Passer le didacticiel »). Pour le revoir : Options → Aide (?), ou la touche `?`.
+- **Épaisseur du crayon** (1 à 15) : survole le crayon, un slider apparaît. Le crayon pose plusieurs cellules d'un coup (il ne grossit pas les cellules).
+- **Options avancées** (menu Options, interrupteur) : ajoutent
+  - **Annuler / Rétablir** sous les outils (`Ctrl+Z`, `Ctrl+Maj+Z`) : défait un trait, une structure posée, « Effacer »… ;
+  - le **type de trait** du crayon : plein, damier, points, lignes, colonnes, spray ;
+  - le choix des **couleurs** des cellules nées et vivantes (retenu séparément pour le mode jour et le mode nuit) ;
+  - une **image pour les cellules mortes** (celles qui viennent de mourir), en plus de l'image des cellules vivantes.
+- **Structures énormes** : Breeder 1 (une usine à usines de canons), le Cordership à 10 moteurs et le Remplisseur, tirés de la collection LifeWiki.
 - **Infobulles** : survole n'importe quel bouton pour savoir ce qu'il fait.
 - Bouton **Effacer** en deux clics, pour éviter les accidents.
 
@@ -87,6 +97,8 @@ src/
 │   ├── world.ts         LE MOTEUR : cellules vivantes, calcul d'une génération, photos
 │   ├── history.ts       Historique passé / futur (pour reculer dans le temps)
 │   ├── pattern.ts       Structures + rotation / miroir
+│   ├── edithistory.ts   Annuler / Rétablir les modifications de la personne
+│   ├── strokes.ts       Types de trait du crayon (plein, damier, points…)
 │   ├── rle.ts           Lecture / écriture du format RLE
 │   └── events.ts        Système d'événements (patron Observateur)
 ├── simulation/
@@ -104,6 +116,7 @@ src/
 │   └── line.ts          Tracé de lignes de cases (Bresenham)
 ├── data/
 │   ├── patterns.ts      Structures célèbres (au format RLE) + « Mes structures »
+│   ├── rle/             Fichiers .rle des structures énormes (LifeWiki / conwaylife.com)
 │   └── tour.ts          Les étapes du didacticiel
 ├── ui/                  Interface (boutons, panneaux, clavier, menu Options, didacticiel, infobulles)
 └── styles.css           Apparence
