@@ -10,6 +10,7 @@
  *   M             afficher / masquer l'interface (œil)   N  mode nuit / jour
  *   ?             revoir le didacticiel
  *   Ctrl+C / X / V  copier / couper / coller   Suppr  supprimer la sélection
+ *   Ctrl+Z / Ctrl+Maj+Z  annuler / rétablir
  *   Échap         annuler (sélection, structure en main)
  */
 
@@ -31,7 +32,15 @@ export function setupShortcuts(app: App, menu: { toggleMenu: () => void }, tutor
 
     if (event.ctrlKey || event.metaKey) {
       const key = event.key.toLowerCase();
-      if (key === 'c' && editor.selection) {
+      if (key === 'z') {
+        // Ctrl+Z annule ; Ctrl+Maj+Z rétablit (Ctrl+Y aussi, comme sous Windows).
+        event.preventDefault();
+        if (event.shiftKey) editor.redo();
+        else editor.undo();
+      } else if (key === 'y') {
+        event.preventDefault();
+        editor.redo();
+      } else if (key === 'c' && editor.selection) {
         event.preventDefault();
         copySelection(app);
       } else if (key === 'x' && editor.selection) {

@@ -74,7 +74,7 @@ function setupClearButton(app: App): void {
       window.clearTimeout(timer);
       disarm();
       app.editor.setSelection(null);
-      app.simulation.clear();
+      app.editor.clearAll();
       app.notify('Grille effacée');
       return;
     }

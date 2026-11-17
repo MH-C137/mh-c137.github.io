@@ -25,7 +25,8 @@ Monde quasi infini, lecture arrière, images à la place des cellules, structure
 Palette néon : cyan (née) et violet (vivante) sur fond noir, plus un mode jour. Direction visuelle choisie par le propriétaire : **arcade pixel**, aucun rectangle arrondi (les rectangles arrondis « sentent l'IA »).
 
 ## Product Principles
-- Lisible par un collégien avant d'être joli.
+- Lisible par un collégien avant d'être joli (police claire, texte assez grand, listes d'une idée par ligne).
+- Simple d'abord : les outils les plus utiles (crayon, gomme) en premier ; le reste dans des options avancées.
 - Tout est expliquable à l'oral : le code et l'interface restent simples.
 - On arrive sur une grille vide et on apprend avec un didacticiel court, qu'on peut passer et revoir.
 - La grille est la star ; l'interface se fait petite et discrète (ex. le réglage de la gomme n'apparaît qu'au survol).

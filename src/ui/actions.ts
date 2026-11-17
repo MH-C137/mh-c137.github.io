@@ -102,7 +102,7 @@ export async function importFiles(
   }
   if (lastImageId !== 0) {
     app.images.current = lastImageId; // la dernière image importée devient l'image du pinceau
-    app.notify(imported > 1 ? `${imported} images importées` : 'Image importée : le pinceau l’utilise');
+    app.notify(imported > 1 ? `${imported} images importées` : 'Image importée : le crayon l’utilise');
   }
 }
 

@@ -3,6 +3,9 @@
  *  viewsettings.ts — Les réglages d'affichage (pour l'instant : la grille)
  * ============================================================================
  *
+ * Réglages : la grille (visible ou non) et les « options avancées » (affichent
+ * Annuler / Rétablir dans le menu).
+ *
  * Même idée que ThemeManager : un petit objet qui garde le réglage, le
  * transmet au renderer, le retient d'une visite à l'autre (localStorage) et
  * PRÉVIENT l'interface quand il change (patron Observateur). Le bouton
@@ -13,14 +16,17 @@
 import { Emitter } from '../core/events';
 import type { Renderer } from '../render/renderer';
 
-const STORAGE_KEY = 'jeu-de-la-vie:grille';
+const GRID_KEY = 'jeu-de-la-vie:grille';
+const ADVANCED_KEY = 'jeu-de-la-vie:avance';
 
 export class ViewSettings extends Emitter<{ change: void }> {
   private grid: boolean;
+  private advanced: boolean;
 
   constructor(private readonly renderer: Renderer) {
     super();
-    this.grid = readSavedGrid() ?? true; // la grille est visible par défaut
+    this.grid = readSaved(GRID_KEY) ?? true; // la grille est visible par défaut
+    this.advanced = readSaved(ADVANCED_KEY) ?? false; // options avancées masquées par défaut
     this.apply();
   }
 
@@ -29,12 +35,28 @@ export class ViewSettings extends Emitter<{ change: void }> {
     return this.grid;
   }
 
+  /** Vrai si les options avancées (Annuler / Rétablir…) sont affichées. */
+  get advancedVisible(): boolean {
+    return this.advanced;
+  }
+
   /** Affiche ou masque la grille, et retient le choix. */
   toggleGrid(): void {
     this.grid = !this.grid;
+    this.save(GRID_KEY, this.grid);
     this.apply();
+  }
+
+  /** Affiche ou masque les options avancées, et retient le choix. */
+  toggleAdvanced(): void {
+    this.advanced = !this.advanced;
+    this.save(ADVANCED_KEY, this.advanced);
+    this.apply();
+  }
+
+  private save(key: string, value: boolean): void {
     try {
-      localStorage.setItem(STORAGE_KEY, String(this.grid));
+      localStorage.setItem(key, String(value));
     } catch {
       // Stockage indisponible (navigation privée, iframe…) : le choix ne sera juste pas retenu.
     }
@@ -46,9 +68,9 @@ export class ViewSettings extends Emitter<{ change: void }> {
   }
 }
 
-function readSavedGrid(): boolean | null {
+function readSaved(key: string): boolean | null {
   try {
-    const saved = localStorage.getItem(STORAGE_KEY);
+    const saved = localStorage.getItem(key);
     return saved === 'true' ? true : saved === 'false' ? false : null;
   } catch {
     return null;

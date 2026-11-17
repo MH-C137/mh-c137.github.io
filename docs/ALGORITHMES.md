@@ -219,6 +219,10 @@ Une cellule qui reste en vie clignote (violet clair) quand son âge vaut 3, 6, 9
 
 Les infobulles et les étapes du didacticiel se posent à côté d'un élément. `placePopup` essaie les côtés dans l'ordre de préférence (ex. dessous, dessus, droite, gauche) et garde **le premier où la bulle tient entièrement dans l'écran**. Sur l'autre axe, la bulle est centrée sur l'élément puis « recalée » (`clamp`) entre les marges de l'écran. Si aucun côté ne tient, on garde le préféré, ramené dans l'écran. Fonction pure (pas de DOM) : testée avec des rectangles calculés à la main.
 
+## 10 quater. Annuler / Rétablir — `src/core/edithistory.ts`
+
+Deux piles de photos du monde (`WorldSnapshot`, les mêmes que pour reculer dans le temps). **Avant** chaque modification de la personne (un trait de crayon, une structure posée, une suppression, « Effacer »), l'éditeur prend une photo (`beginEdit`) ; si quelque chose a vraiment changé, il la range dans la pile `undo` (`endEdit`). **Annuler** : on prend la photo du dessus de `undo` et on met l'état actuel dans `redo`. **Rétablir** : l'inverse. Une nouvelle modification vide `redo`. On garde au plus 100 modifications et 1 million de cellules en tout (les plus vieilles sont oubliées d'abord). Annuler remet le monde dans l'état de la photo, **en pause**, et oublie les générations mémorisées pour reculer (elles appartenaient à l'ancienne histoire). Ne pas confondre avec `history.ts`, qui sert à reculer dans le TEMPS du jeu. Tests : annuler puis rétablir dans le bon ordre, limite de taille, « rétablir » vidé par une nouvelle modification.
+
 ## 11. Le format RLE — `src/core/rle.ts`
 
 RLE (*Run Length Encoding*, codage par plages) est le format standard de la communauté (Golly, LifeWiki) :

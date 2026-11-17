@@ -40,12 +40,12 @@ Le site est **statique** : pas de serveur, pas de base de données. Plusieurs fa
 
 ## Style
 
-Le site est en **arcade pixel** : coins carrés partout, cadres en escalier, icônes en pixel art, police Pixelify Sans (embarquée, licence OFL, dans `src/assets/fonts/`). Les règles sont dans `DESIGN.md`. Pour redonner des coins arrondis aux cellules, il suffit de changer `CORNER_RATIO` dans `src/render/images.ts`.
+Le site est en **arcade pixel** : coins carrés partout, cadres en escalier, icônes en pixel art, police Jersey 10 (embarquée, licence OFL, dans `src/assets/fonts/`). Les règles sont dans `DESIGN.md`. Pour redonner des coins arrondis aux cellules, il suffit de changer `CORNER_RATIO` dans `src/render/images.ts`.
 
 ## Ce qu'on peut faire
 
 - **Monde quasi infini** (67 millions de cases de côté) avec zoom (molette, curseur, deux doigts) et déplacement.
-- **Outils** : sélection, main (déplacer la vue), pinceau, gomme (ou clic droit). La **taille de la gomme** (1 à 15 cases) se règle avec un petit slider qui apparaît quand on survole l'icône de gomme.
+- **Outils** (dans cet ordre) : crayon, gomme (ou clic droit), main (déplacer la vue), sélection. La **taille de la gomme** (1 à 15 cases) se règle avec un petit slider qui apparaît quand on survole l'icône de gomme.
 - **Clignotement** : une cellule qui reste en vie clignote (violet clair) toutes les 3 générations, pour qu'une scène stable ne ressemble pas à un bug.
 - **Lecture** : `<<` lecture arrière · `<` une génération en arrière · `||` pause · `>` une génération en avant · `>>` lecture.
 - **Vitesse** réglable de 1 à 120 générations par seconde.
@@ -58,6 +58,7 @@ Le site est en **arcade pixel** : coins carrés partout, cadres en escalier, ic�
 - **Mode nuit (néon) / mode jour** (bouton en haut à droite, à gauche de l'œil) et un bouton **œil** pour masquer toute l'interface.
 - **Grille vide au départ** : on arrive sur une page vierge, en pause. La grille est bien visible et se masque dans le menu **Options** (bouton à trois barres, en haut à gauche).
 - **Didacticiel** : à la première visite, un parcours en 6 bulles (Suivant / Précédent, compteur `1/6`, « Passer le didacticiel »). Pour le revoir : Options → Aide (?), ou la touche `?`.
+- **Options avancées** (menu Options) : affichent **Annuler** et **Rétablir** (`Ctrl+Z`, `Ctrl+Maj+Z`). Annuler défait la dernière modification faite à la main (un trait, une structure posée, « Effacer »…).
 - **Infobulles** : survole n'importe quel bouton pour savoir ce qu'il fait.
 - Bouton **Effacer** en deux clics, pour éviter les accidents.
 

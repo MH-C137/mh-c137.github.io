@@ -4,6 +4,7 @@
  */
 import { describe, expect, it } from 'vitest';
 import { squareAround } from '../src/core/coords';
+import { EditHistory } from '../src/core/edithistory';
 import { isPulseAge, PULSE_PERIOD, World } from '../src/core/world';
 import { TOUR_STEPS } from '../src/data/tour';
 import { placePopup } from '../src/ui/placement';
@@ -82,7 +83,62 @@ describe('Didacticiel', () => {
     expect(TOUR_STEPS.length).toBeGreaterThanOrEqual(5);
     for (const step of TOUR_STEPS) {
       expect(step.title.length).toBeGreaterThan(0);
-      expect(step.text.length).toBeGreaterThan(0);
+      expect((step.intro ?? '').length + (step.items?.length ?? 0)).toBeGreaterThan(0);
     }
+  });
+});
+
+// ── Annuler / Rétablir ──────────────────────────────────────────────────────
+describe('Annuler / Rétablir', () => {
+  /** Dessine une cellule en (x, 0) en enregistrant l'état d'avant, comme le fait l'éditeur. */
+  function draw(world: World, edits: EditHistory, x: number): void {
+    edits.record(world.snapshot());
+    world.setCell(x, 0, true, 0);
+  }
+
+  it('annule puis rétablit deux modifications dans le bon ordre', () => {
+    const world = new World();
+    const edits = new EditHistory();
+    draw(world, edits, 1);
+    draw(world, edits, 2);
+    expect(world.population).toBe(2);
+
+    world.restore(edits.undo(world.snapshot())!); // annule la cellule 2
+    expect([world.isAlive(1, 0), world.isAlive(2, 0)]).toEqual([true, false]);
+    world.restore(edits.undo(world.snapshot())!); // annule la cellule 1
+    expect(world.population).toBe(0);
+    expect(edits.canUndo).toBe(false);
+
+    world.restore(edits.redo(world.snapshot())!); // rétablit la cellule 1
+    world.restore(edits.redo(world.snapshot())!); // rétablit la cellule 2
+    expect([world.isAlive(1, 0), world.isAlive(2, 0)]).toEqual([true, true]);
+    expect(edits.canRedo).toBe(false);
+  });
+
+  it('une nouvelle modification vide « rétablir »', () => {
+    const world = new World();
+    const edits = new EditHistory();
+    draw(world, edits, 1);
+    world.restore(edits.undo(world.snapshot())!);
+    expect(edits.canRedo).toBe(true);
+    draw(world, edits, 5);
+    expect(edits.canRedo).toBe(false);
+  });
+
+  it('ne garde que les dernières modifications (limite)', () => {
+    const world = new World();
+    const edits = new EditHistory({ maxSteps: 3, maxCells: 1000 });
+    for (let x = 0; x < 10; x++) draw(world, edits, x);
+    let undone = 0;
+    while (edits.canUndo) {
+      world.restore(edits.undo(world.snapshot())!);
+      undone++;
+    }
+    expect(undone).toBe(3);
+    expect(world.population).toBe(7); // les 7 premières cellules ne peuvent plus être annulées
+  });
+
+  it('annuler sans rien à annuler ne fait rien', () => {
+    expect(new EditHistory().undo(new World().snapshot())).toBeNull();
   });
 });
