@@ -40,8 +40,8 @@ export interface Palette {
 export const PALETTES: Record<ThemeName, Palette> = {
   night: {
     background: '#05050b',
-    grid: 'rgba(120, 130, 255, 0.07)',
-    gridMajor: 'rgba(120, 130, 255, 0.16)',
+    grid: 'rgba(120, 130, 255, 0.2)',
+    gridMajor: 'rgba(120, 130, 255, 0.4)',
     newborn: '#3cf2ff',
     alive: '#a45cff',
     pulse: '#dcc2ff',
@@ -52,8 +52,8 @@ export const PALETTES: Record<ThemeName, Palette> = {
   },
   day: {
     background: '#f3f0e8',
-    grid: 'rgba(40, 30, 90, 0.07)',
-    gridMajor: 'rgba(40, 30, 90, 0.15)',
+    grid: 'rgba(40, 30, 90, 0.18)',
+    gridMajor: 'rgba(40, 30, 90, 0.36)',
     newborn: '#008ca6',
     alive: '#6a2bd4',
     pulse: '#3a0f8f',

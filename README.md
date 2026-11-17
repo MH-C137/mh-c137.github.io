@@ -55,7 +55,10 @@ Le site est en **arcade pixel** : coins carrés partout, cadres en escalier, ic�
 - **Format RLE** : on peut coller (Ctrl+V) une structure copiée sur [LifeWiki](https://conwaylife.com/wiki), ou déposer un fichier `.rle` sur la page.
 - **Images** : on importe des images (bouton ou glisser-déposer). Le pinceau et les structures posent alors des cellules qui portent cette image. Une cellule qui naît prend l'image la plus présente parmi ses parents, donc les images se propagent et se disputent le terrain.
 - **4 couleurs** : née (cyan), vivante (violet), vient de mourir (trace sombre), morte (fond).
-- **Mode nuit (néon) / mode jour**, et un bouton pour **masquer le menu**.
+- **Mode nuit (néon) / mode jour** (bouton en haut à droite, à gauche de l'œil) et un bouton **œil** pour masquer toute l'interface.
+- **Grille vide au départ** : on arrive sur une page vierge, en pause. La grille est bien visible et se masque dans le menu **Options** (bouton à trois barres, en haut à gauche).
+- **Didacticiel** : à la première visite, un parcours en 6 bulles (Suivant / Précédent, compteur `1/6`, « Passer le didacticiel »). Pour le revoir : Options → Aide (?), ou la touche `?`.
+- **Infobulles** : survole n'importe quel bouton pour savoir ce qu'il fait.
 - Bouton **Effacer** en deux clics, pour éviter les accidents.
 
 ### Raccourcis clavier
@@ -67,7 +70,7 @@ Le site est en **arcade pixel** : coins carrés partout, cadres en escalier, ic�
 | `Maj` + `→` / `←` | lecture avant / arrière | `P` | pinceau |
 | `+` / `-` | zoomer / dézoomer | `G` | gomme |
 | `0` | recentrer sur les cellules | `R` / `F` | tourner / retourner la structure en main |
-| `Ctrl+C` / `X` / `V` | copier / couper / coller | `M` | afficher / masquer le menu |
+| `Ctrl+C` / `X` / `V` | copier / couper / coller | `M` | afficher / masquer l'interface (œil) |
 | `Suppr` | supprimer la sélection | `N` | mode nuit / jour |
 | `Échap` | annuler (sélection, structure en main) | clic du milieu | déplacer la vue |
 
@@ -100,8 +103,8 @@ src/
 │   └── line.ts          Tracé de lignes de cases (Bresenham)
 ├── data/
 │   ├── patterns.ts      Structures célèbres (au format RLE) + « Mes structures »
-│   └── demo.ts          Le monde affiché à l'ouverture
-├── ui/                  Interface (boutons, panneaux, clavier)
+│   └── tour.ts          Les étapes du didacticiel
+├── ui/                  Interface (boutons, panneaux, clavier, menu Options, didacticiel, infobulles)
 └── styles.css           Apparence
 tests/                   Tests automatiques (Vitest)
 docs/ALGORITHMES.md      Explication détaillée de chaque algorithme

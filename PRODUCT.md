@@ -27,6 +27,7 @@ Palette néon : cyan (née) et violet (vivante) sur fond noir, plus un mode jour
 ## Product Principles
 - Lisible par un collégien avant d'être joli.
 - Tout est expliquable à l'oral : le code et l'interface restent simples.
+- On arrive sur une grille vide et on apprend avec un didacticiel court, qu'on peut passer et revoir.
 - La grille est la star ; l'interface se fait petite et discrète (ex. le réglage de la gomme n'apparaît qu'au survol).
 
 ## Accessibility & Inclusion

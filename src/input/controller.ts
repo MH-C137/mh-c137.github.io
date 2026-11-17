@@ -40,6 +40,10 @@ export class InputController {
       if (!this.gestureTool) editor.hidePreviews();
     });
     canvas.addEventListener('wheel', this.onWheel, { passive: false });
+    // Safari (Mac et iPhone/iPad) envoie des événements « gesture* » pour le pincement.
+    canvas.addEventListener('gesturestart', this.onGesture as EventListener);
+    canvas.addEventListener('gesturechange', this.onGesture as EventListener);
+    canvas.addEventListener('gestureend', this.onGesture as EventListener);
     canvas.addEventListener('contextmenu', (event) => event.preventDefault()); // clic droit = gomme
     editor.on('tool', () => this.updateCursor());
     this.updateCursor();
@@ -117,6 +121,34 @@ export class InputController {
     const delta = event.deltaMode === 1 ? event.deltaY * 16 : event.deltaY; // 1 = en lignes (Firefox)
     const factor = Math.exp(-delta * (event.ctrlKey ? 0.01 : 0.0015));
     this.editor.camera.zoomAt(event.clientX - bounds.left, event.clientY - bounds.top, factor);
+  };
+
+  /** Dernière échelle reçue pendant un pincement Safari (1 = début du geste). */
+  private gestureScale = 1;
+
+  /**
+   * Pincement version Safari. Chrome et Firefox le traduisent en molette + Ctrl
+   * (voir onWheel), mais Safari envoie des événements « gesturestart / gesturechange »
+   * avec une échelle cumulée (`scale`, 1 au départ). Sans ce code, Safari zoome
+   * toute la PAGE au lieu de la grille. On bloque le comportement par défaut, puis
+   * on applique à la grille le rapport entre deux échelles successives
+   * (échelle 1,2 puis 1,5 → facteur 1,5 / 1,2), vers la position du curseur.
+   */
+  private readonly onGesture = (event: Event): void => {
+    const gesture = event as Event & { scale: number; clientX: number; clientY: number };
+    event.preventDefault();
+    if (event.type === 'gesturestart') {
+      this.gestureScale = 1;
+      return;
+    }
+    if (event.type !== 'gesturechange' || !(gesture.scale > 0)) return;
+    const bounds = this.canvas.getBoundingClientRect();
+    this.editor.camera.zoomAt(
+      gesture.clientX - bounds.left,
+      gesture.clientY - bounds.top,
+      gesture.scale / this.gestureScale,
+    );
+    this.gestureScale = gesture.scale;
   };
 
   /** Distance entre les deux doigts et position de leur milieu. */

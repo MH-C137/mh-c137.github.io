@@ -50,22 +50,24 @@ export function setupEraserSize(app: App): void {
   render(app.editor.eraserSize);
 }
 
-/** Bouton « afficher / masquer le menu » et bouton jour / nuit. Renvoie de quoi basculer le menu au clavier. */
-export function setupMenu(app: App): { toggleMenu: () => void } {
+/**
+ * L'œil (en haut à droite) affiche ou masque toute l'interface ; le bouton
+ * jour / nuit est juste à sa gauche. Le bouton Options (≡) est géré par options.ts.
+ * Renvoie de quoi afficher / masquer l'interface depuis le clavier (touche M) ou le didacticiel.
+ */
+export function setupMenu(app: App): { toggleMenu: () => void; showMenu: () => void } {
   const ui = byId('ui');
-  const menuButton = byId<HTMLButtonElement>('menu-toggle');
+  const eyeButton = byId<HTMLButtonElement>('eye-toggle');
   const themeButton = byId<HTMLButtonElement>('theme-toggle');
 
   const setMenuVisible = (visible: boolean) => {
     ui.classList.toggle('is-hidden', !visible);
     ui.inert = !visible; // les panneaux cachés ne reçoivent plus le clavier
-    const label = visible ? 'Masquer le menu (M)' : 'Afficher le menu (M)';
-    menuButton.setAttribute('aria-pressed', String(visible));
-    menuButton.setAttribute('aria-label', label);
-    menuButton.title = label;
+    eyeButton.setAttribute('aria-pressed', String(visible)); // « enfoncé » = interface affichée
   };
   const toggleMenu = () => setMenuVisible(ui.classList.contains('is-hidden'));
-  menuButton.addEventListener('click', toggleMenu);
+  const showMenu = () => setMenuVisible(true);
+  eyeButton.addEventListener('click', toggleMenu);
 
   themeButton.addEventListener('click', () => app.theme.toggle());
   const renderTheme = () => {
@@ -77,5 +79,5 @@ export function setupMenu(app: App): { toggleMenu: () => void } {
   renderTheme();
 
   setMenuVisible(true);
-  return { toggleMenu };
+  return { toggleMenu, showMenu };
 }

@@ -15,6 +15,9 @@ export default defineConfig(({ mode }) => ({
   base: './',
   plugins: mode === 'single' ? [viteSingleFile()] : [],
   build: {
+    // Le code final reste lisible par les Safari un peu anciens (Safari 14 et +) :
+    // sans cette ligne, un Safari plus vieux que la valeur par défaut de Vite affiche une page blanche.
+    target: ['es2020', 'safari14'],
     outDir: mode === 'single' ? 'dist-single' : 'dist',
     emptyOutDir: true,
   },
