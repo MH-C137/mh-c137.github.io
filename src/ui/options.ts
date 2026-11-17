@@ -6,7 +6,8 @@
  * Contenu pour l'instant :
  *   - « Grille » : affiche ou masque les lignes de la grille ;
  *   - « Aide » (?) : relance le didacticiel ;
- *   - « Options avancées » : affiche en plus « Annuler » et « Rétablir ».
+ *   - « Options avancées » : affiche en plus le choix des couleurs des cellules ici,
+ *     et ailleurs Annuler / Rétablir, les types de trait et l'image des cellules mortes.
  *
  * Le menu se ferme quand on clique ailleurs, avec Échap, ou quand on masque
  * l'interface avec l'œil. Comme partout, le bouton « Grille » APPELLE
@@ -25,8 +26,7 @@ export function setupOptions(app: App, tutorial: Tutorial): void {
   const helpItem = byId<HTMLButtonElement>('opt-help');
   const advancedItem = byId<HTMLButtonElement>('opt-advanced');
   const advancedState = byId('opt-advanced-state');
-  const undoItem = byId<HTMLButtonElement>('opt-undo');
-  const redoItem = byId<HTMLButtonElement>('opt-redo');
+  const colors = byId('opt-colors');
 
   const setOpen = (open: boolean) => {
     menu.hidden = !open;
@@ -36,8 +36,6 @@ export function setupOptions(app: App, tutorial: Tutorial): void {
   button.addEventListener('click', () => setOpen(menu.hidden === true));
   gridItem.addEventListener('click', () => app.viewSettings.toggleGrid());
   advancedItem.addEventListener('click', () => app.viewSettings.toggleAdvanced());
-  undoItem.addEventListener('click', () => app.editor.undo());
-  redoItem.addEventListener('click', () => app.editor.redo());
   helpItem.addEventListener('click', () => {
     setOpen(false);
     tutorial.start();
@@ -66,22 +64,29 @@ export function setupOptions(app: App, tutorial: Tutorial): void {
   app.viewSettings.on('change', renderGrid);
   renderGrid();
 
-  // Options avancées : montrent ou cachent « Annuler » et « Rétablir ».
+  // Options avancées : texte de l'interrupteur, et affichage des sélecteurs de couleur.
   const renderAdvanced = () => {
     const visible = app.viewSettings.advancedVisible;
     advancedItem.setAttribute('aria-checked', String(visible));
     advancedState.textContent = visible ? 'affichées' : 'masquées';
-    undoItem.hidden = !visible;
-    redoItem.hidden = !visible;
+    colors.hidden = !visible;
   };
   app.viewSettings.on('change', renderAdvanced);
   renderAdvanced();
 
-  // Les deux boutons sont grisés quand il n'y a rien à annuler / rétablir.
-  const renderHistory = (state: { canUndo: boolean; canRedo: boolean }) => {
-    undoItem.disabled = !state.canUndo;
-    redoItem.disabled = !state.canRedo;
+  // Couleurs des cellules (options avancées) : deux sélecteurs de couleur + « Remettre ».
+  const newbornPicker = byId<HTMLInputElement>('color-newborn');
+  const alivePicker = byId<HTMLInputElement>('color-alive');
+  const resetColors = byId<HTMLButtonElement>('color-reset');
+  newbornPicker.addEventListener('input', () => app.theme.setColor('newborn', newbornPicker.value));
+  alivePicker.addEventListener('input', () => app.theme.setColor('alive', alivePicker.value));
+  resetColors.addEventListener('click', () => app.theme.resetColors());
+  const renderColors = () => {
+    // Les sélecteurs montrent les couleurs réellement utilisées (thème + choix).
+    newbornPicker.value = app.theme.palette.newborn;
+    alivePicker.value = app.theme.palette.alive;
+    resetColors.disabled = !app.theme.hasCustomColors;
   };
-  app.editor.on('history', renderHistory);
-  renderHistory({ canUndo: app.editor.canUndo, canRedo: app.editor.canRedo });
+  app.theme.on('change', renderColors);
+  renderColors();
 }

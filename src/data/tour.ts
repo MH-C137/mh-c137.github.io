@@ -33,8 +33,13 @@ export interface TourStep {
   readonly items?: readonly TourItem[];
   /** Phrase de conclusion (sous la liste). */
   readonly outro?: string;
-  /** Sélecteur CSS de l'élément mis en avant (null = bulle centrée, sans élément). */
-  readonly target: string | null;
+  /**
+   * Sélecteur CSS de l'élément mis en avant (null = bulle centrée, sans élément).
+   * Une liste de sélecteurs entoure plusieurs éléments d'un seul cadre.
+   */
+  readonly target: string | readonly string[] | null;
+  /** Fait défiler un panneau jusqu'en haut ou en bas avant d'afficher l'étape (ex. la bibliothèque jusqu'aux images). */
+  readonly scroll?: { readonly container: string; readonly to: 'top' | 'bottom' };
   /** Côtés préférés pour poser la bulle autour de l'élément. */
   readonly sides?: readonly Side[];
 }
@@ -66,11 +71,10 @@ export const TOUR_STEPS: readonly TourStep[] = [
   {
     title: 'Dessiner',
     items: [
-      { label: 'Crayon', text: 'fait naître des cellules.' },
+      { label: 'Crayon', text: 'fait naître des cellules. Survole-le pour choisir son épaisseur.' },
       { label: 'Gomme', text: 'les efface. Survole-la pour régler sa taille.' },
       { label: 'Main', text: 'déplace la vue.' },
       { label: 'Sélection', text: 'entoure une zone à copier.' },
-      { label: 'Molette', text: 'zoome.' },
     ],
     target: '#toolbar',
     sides: ['right', 'bottom'],
@@ -87,24 +91,49 @@ export const TOUR_STEPS: readonly TourStep[] = [
     sides: ['top', 'right'],
   },
   {
-    title: 'Structures et images',
+    title: 'Structures',
     intro: 'Des formes toutes prêtes à poser :',
     items: [
       { label: 'Glisse', text: 'une structure sur la grille.' },
       { label: 'Touche R', text: 'pour la tourner.' },
-      { label: 'Images', text: 'importe les tiennes à la place des cellules.' },
     ],
     target: '#library',
     sides: ['left', 'bottom'],
+    scroll: { container: '.library-body', to: 'top' },
   },
   {
     title: 'Options et aide',
     items: [
       { label: 'Trois barres', text: 'ouvrent les options : grille, aide, options avancées.' },
-      { label: 'Œil', text: 'cache toute l\'interface.' },
+      { label: 'Options avancées', text: 'ajoutent Annuler / Rétablir, des types de trait, des couleurs…' },
     ],
-    outro: 'Bon jeu !',
     target: '#menu-toggle',
     sides: ['bottom', 'right'],
+  },
+  {
+    title: 'Images',
+    intro: 'Remplace les cellules par tes propres images :',
+    items: [
+      { label: 'Importer', text: 'des images depuis ton ordinateur (ou dépose-les sur la page).' },
+      { label: 'Clique', text: 'une image pour l\'utiliser avec le crayon et les structures.' },
+    ],
+    target: ['.images-title', '#image-add'],
+    sides: ['left', 'bottom'],
+    scroll: { container: '.library-body', to: 'bottom' },
+  },
+  {
+    title: 'Jour, nuit et interface',
+    items: [
+      { label: 'Soleil / lune', text: 'passe du mode jour au mode nuit.' },
+      { label: 'Œil', text: 'cache toute l\'interface pour voir la grille en grand.' },
+    ],
+    target: ['#theme-toggle', '#eye-toggle'],
+    sides: ['bottom', 'left'],
+  },
+  {
+    title: 'Explore les différentes possibilités',
+    intro: 'Le jeu de la vie est à toi ! Essaie toutes les possibilités, dessine tes structures, suis leur évolution et sauvegarde-les.',
+    outro: 'Le plus important : amuse-toi !',
+    target: null,
   },
 ];

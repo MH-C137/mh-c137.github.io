@@ -223,6 +223,14 @@ Les infobulles et les étapes du didacticiel se posent à côté d'un élément.
 
 Deux piles de photos du monde (`WorldSnapshot`, les mêmes que pour reculer dans le temps). **Avant** chaque modification de la personne (un trait de crayon, une structure posée, une suppression, « Effacer »), l'éditeur prend une photo (`beginEdit`) ; si quelque chose a vraiment changé, il la range dans la pile `undo` (`endEdit`). **Annuler** : on prend la photo du dessus de `undo` et on met l'état actuel dans `redo`. **Rétablir** : l'inverse. Une nouvelle modification vide `redo`. On garde au plus 100 modifications et 1 million de cellules en tout (les plus vieilles sont oubliées d'abord). Annuler remet le monde dans l'état de la photo, **en pause**, et oublie les générations mémorisées pour reculer (elles appartenaient à l'ancienne histoire). Ne pas confondre avec `history.ts`, qui sert à reculer dans le TEMPS du jeu. Tests : annuler puis rétablir dans le bon ordre, limite de taille, « rétablir » vidé par une nouvelle modification.
 
+## 10 quinquies. Types de trait et épaisseur du crayon — `src/core/strokes.ts`, `PaintTool.paint()`
+
+L'épaisseur `n` fait poser un carré de `n × n` cases à chaque position du trait (même idée que la gomme, section 10 bis). Le **type de trait** décide ensuite, case par case, si on y pose vraiment une cellule : `strokeAllows(type, x, y)`. Le test porte sur la position **absolue** (pas la place dans le trait), donc deux traits qui se croisent forment le même motif. Damier : `(x + y)` pair (le `((… % 2) + 2) % 2` gère les coordonnées négatives). Points : `x` et `y` pairs. Lignes : `y` pair. Colonnes : `x` pair. Spray : `hash(x, y) % 100 < 35`, où `hash` mélange les coordonnées avec deux grands nombres premiers (`Math.imul`) : pseudo-aléatoire, mais **toujours le même** pour une case donnée (pas de scintillement, et c'est testable). Test : un damier de 17 × 5 cases a des lignes de 9, 8, 9, 8, 9 cellules (43 en tout).
+
+## 10 sexies. Couleurs choisies — `mixColors()` et `applyCustomColors()` dans `src/render/theme.ts`
+
+On ne choisit que deux couleurs : « née » et « vivante ». Le reste se **déduit** : `mixColors(a, b, t)` mélange deux couleurs canal par canal (`a × (1 − t) + b × t`). Clignotement = couleur vivante mélangée à 55 % de blanc (nuit) ou 45 % de noir (jour) ; trace = couleur vivante mélangée à 80 % de fond. Les choix sont gardés séparément pour chaque thème et relus avec vérification du format `#rrggbb` (le stockage du navigateur peut contenir n'importe quoi).
+
 ## 11. Le format RLE — `src/core/rle.ts`
 
 RLE (*Run Length Encoding*, codage par plages) est le format standard de la communauté (Golly, LifeWiki) :
@@ -265,6 +273,7 @@ Le moteur est vérifié sur des comportements **documentés** (LifeWiki). Une er
 | Canon de Gosper | +5 cellules (un planeur) toutes les 30 générations | monde infini, collisions |
 | R-pentomino | 116 cellules à la génération 1103 | 1 103 générations exactes |
 | Diehard | population 0 exactement à la génération 130 | morts |
+| Cordership à 10 moteurs (88 × 88) | identique, décalé de 8 cases en diagonale après 96 générations (c/12) | gros vaisseaux, structures importées de LifeWiki |
 | Gland | 633 cellules à la génération 5206 | longue évolution |
 | Historique | reculer 10 fois redonne exactement les 10 états | piles passé / futur |
 

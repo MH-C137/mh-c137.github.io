@@ -5,8 +5,10 @@
 import { describe, expect, it } from 'vitest';
 import { squareAround } from '../src/core/coords';
 import { EditHistory } from '../src/core/edithistory';
+import { strokeAllows } from '../src/core/strokes';
 import { isPulseAge, PULSE_PERIOD, World } from '../src/core/world';
 import { TOUR_STEPS } from '../src/data/tour';
+import { applyCustomColors, mixColors, PALETTES } from '../src/render/theme';
 import { placePopup } from '../src/ui/placement';
 
 describe('Carré de la gomme', () => {
@@ -79,8 +81,8 @@ describe('Placement des bulles', () => {
 });
 
 describe('Didacticiel', () => {
-  it('a des étapes complètes', () => {
-    expect(TOUR_STEPS.length).toBeGreaterThanOrEqual(5);
+  it('a 9 étapes complètes', () => {
+    expect(TOUR_STEPS.length).toBe(9);
     for (const step of TOUR_STEPS) {
       expect(step.title.length).toBeGreaterThan(0);
       expect((step.intro ?? '').length + (step.items?.length ?? 0)).toBeGreaterThan(0);
@@ -140,5 +142,61 @@ describe('Annuler / Rétablir', () => {
 
   it('annuler sans rien à annuler ne fait rien', () => {
     expect(new EditHistory().undo(new World().snapshot())).toBeNull();
+  });
+});
+
+// ── Types de trait ──────────────────────────────────────────────────────────
+describe('Types de trait', () => {
+  /** Compte les cases remplies dans un rectangle w × h dont le coin est (0, 0). */
+  const count = (kind: Parameters<typeof strokeAllows>[0], w: number, h: number) => {
+    let n = 0;
+    for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) if (strokeAllows(kind, x, y)) n++;
+    return n;
+  };
+
+  it('damier 17 × 5 : lignes de 9, 8, 9, 8, 9 cellules (= 43)', () => {
+    const row = (y: number) => count('checker', 17, 1 + y) - count('checker', 17, y);
+    expect([0, 1, 2, 3, 4].map(row)).toEqual([9, 8, 9, 8, 9]);
+    expect(count('checker', 17, 5)).toBe(43);
+  });
+
+  it('plein, lignes, colonnes et points', () => {
+    expect(count('solid', 4, 4)).toBe(16);
+    expect(count('rows', 4, 4)).toBe(8);
+    expect(count('columns', 4, 4)).toBe(8);
+    expect(count('dots', 4, 4)).toBe(4);
+  });
+
+  it('marche aussi avec des coordonnées négatives (pas de décalage au passage de 0)', () => {
+    expect(strokeAllows('checker', -1, 0)).toBe(false);
+    expect(strokeAllows('checker', -1, -1)).toBe(true);
+    expect(strokeAllows('rows', 0, -2)).toBe(true);
+    expect(strokeAllows('rows', 0, -1)).toBe(false);
+  });
+
+  it('spray : même résultat à chaque fois, et environ 35 % de cases', () => {
+    expect(strokeAllows('spray', 12, -7)).toBe(strokeAllows('spray', 12, -7));
+    const share = count('spray', 100, 100) / 10000;
+    expect(share).toBeGreaterThan(0.3);
+    expect(share).toBeLessThan(0.4);
+  });
+});
+
+describe('Couleurs personnalisées', () => {
+  it('mélange de couleurs', () => {
+    expect(mixColors('#000000', '#ffffff', 0.5)).toBe('#808080');
+    expect(mixColors('#ff0000', '#0000ff', 0)).toBe('#ff0000');
+    expect(mixColors('#ff0000', '#0000ff', 1)).toBe('#0000ff');
+  });
+
+  it('sans choix, la palette du thème est inchangée', () => {
+    expect(applyCustomColors(PALETTES.night, {}, 'night')).toEqual(PALETTES.night);
+  });
+
+  it('une couleur « vivante » choisie déduit clignotement et trace', () => {
+    const palette = applyCustomColors(PALETTES.night, { alive: '#ff8000' }, 'night');
+    expect(palette.alive).toBe('#ff8000');
+    expect(palette.pulse).not.toBe(PALETTES.night.pulse);
+    expect(palette.newborn).toBe(PALETTES.night.newborn);
   });
 });

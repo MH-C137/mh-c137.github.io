@@ -45,6 +45,7 @@ export class ImageLibrary extends Emitter<{ change: void }> {
   private readonly images = new Map<number, SkinImage>();
   private nextId = 1;
   private _current = 0;
+  private _deadImage = 0;
 
   /** Image utilisée par le pinceau et les structures (0 = aucune). */
   get current(): number {
@@ -53,6 +54,16 @@ export class ImageLibrary extends Emitter<{ change: void }> {
 
   set current(id: number) {
     this._current = id === 0 || this.images.has(id) ? id : 0;
+    this.emit('change', undefined);
+  }
+
+  /** Image affichée sur les cellules qui viennent de mourir (0 = aucune : couleur de trace). */
+  get deadImage(): number {
+    return this._deadImage;
+  }
+
+  set deadImage(id: number) {
+    this._deadImage = id === 0 || this.images.has(id) ? id : 0;
     this.emit('change', undefined);
   }
 

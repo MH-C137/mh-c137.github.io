@@ -18,6 +18,7 @@
 
 import type { CellRect } from '../core/coords';
 import { EditHistory } from '../core/edithistory';
+import type { StrokeKind } from '../core/strokes';
 import { Emitter } from '../core/events';
 import { flipHorizontal, hasSkins, rotateClockwise, withSkin, type Pattern } from '../core/pattern';
 import type { World, WorldSnapshot } from '../core/world';
@@ -28,9 +29,11 @@ import type { Overlay } from '../render/renderer';
 import type { Simulation } from '../simulation/simulation';
 import { HandTool, PaintTool, SelectTool, StampTool, type Tool, type ToolId } from './tools';
 
-/** Bornes de la taille de la gomme, en cases de côté. */
+/** Bornes de la taille de la gomme et de l'épaisseur du crayon, en cases de côté. */
 export const MIN_ERASER_SIZE = 1;
 export const MAX_ERASER_SIZE = 15;
+export const MIN_BRUSH_SIZE = 1;
+export const MAX_BRUSH_SIZE = 15;
 
 export interface EditorEvents extends Record<string, unknown> {
   /** L'outil actif a changé. */
@@ -41,6 +44,10 @@ export interface EditorEvents extends Record<string, unknown> {
   held: Pattern | null;
   /** La taille de la gomme a changé (côté du carré, en cases). */
   eraserSize: number;
+  /** L'épaisseur du crayon a changé (côté du carré, en cases). */
+  brushSize: number;
+  /** Le type de trait du crayon a changé (plein, damier…). */
+  stroke: StrokeKind;
   /** On peut (ou non) annuler / rétablir : sert à griser les boutons. */
   history: { canUndo: boolean; canRedo: boolean };
 }
@@ -75,6 +82,10 @@ export class Editor extends Emitter<EditorEvents> {
   private readonly edits = new EditHistory();
   /** Photo prise au début d'une modification en cours (trait, pose…), rangée à la fin si quelque chose a changé. */
   private pending: WorldSnapshot | null = null;
+  /** Épaisseur du crayon : côté du carré de cellules posé à chaque position (1 = une seule case). */
+  private _brushSize = MIN_BRUSH_SIZE;
+  /** Type de trait du crayon (réglable dans les options avancées). */
+  private _stroke: StrokeKind = 'solid';
   /** Côté du carré effacé par la gomme, en cases (1 = une seule case). */
   private _eraserSize = MIN_ERASER_SIZE;
   /** Structure tenue en main (tampon ou glisser-déposer). */
@@ -191,6 +202,34 @@ export class Editor extends Emitter<EditorEvents> {
     this.beginEdit();
     this.simulation.clear();
     this.endEdit(hadContent);
+  }
+
+  get brushSize(): number {
+    return this._brushSize;
+  }
+
+  /**
+   * Règle l'épaisseur du crayon. Attention : le crayon pose PLUSIEURS cellules
+   * (un carré de n × n), il ne rend pas les cellules plus grosses.
+   */
+  setBrushSize(size: number): void {
+    const clamped = Math.min(MAX_BRUSH_SIZE, Math.max(MIN_BRUSH_SIZE, Math.round(size)));
+    if (clamped === this._brushSize) return;
+    this._brushSize = clamped;
+    if (this.overlay.hover?.mode === 'draw') this.overlay.hover = { ...this.overlay.hover, size: clamped };
+    this.emit('brushSize', clamped);
+    this.invalidate();
+  }
+
+  get stroke(): StrokeKind {
+    return this._stroke;
+  }
+
+  /** Choisit le type de trait du crayon (plein, damier, points…). */
+  setStroke(kind: StrokeKind): void {
+    if (kind === this._stroke) return;
+    this._stroke = kind;
+    this.emit('stroke', kind);
   }
 
   get eraserSize(): number {

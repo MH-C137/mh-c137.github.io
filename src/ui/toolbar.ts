@@ -11,9 +11,10 @@
  */
 
 import type { App } from '../app';
-import { MAX_ERASER_SIZE, MIN_ERASER_SIZE } from '../input/editor';
+import { strokeAllows, STROKES, type StrokeKind } from '../core/strokes';
+import { MAX_BRUSH_SIZE, MAX_ERASER_SIZE, MIN_BRUSH_SIZE, MIN_ERASER_SIZE } from '../input/editor';
 import type { ToolId } from '../input/tools';
-import { byId } from './dom';
+import { byId, el } from './dom';
 
 export function setupToolbar(app: App): void {
   const buttons = [...document.querySelectorAll<HTMLButtonElement>('[data-tool]')];
@@ -30,24 +31,108 @@ export function setupToolbar(app: App): void {
 }
 
 /**
- * Petit slider de taille de la gomme (il apparaît au survol de l'icône, voir
- * .eraser-size dans styles.css). Comme partout : le slider APPELLE
- * editor.setEraserSize, et l'affichage se met à jour en ÉCOUTANT l'événement
- * « eraserSize » (la valeur reste juste quelle que soit l'origine du changement).
+ * Les petits panneaux de réglage du crayon et de la gomme (ils apparaissent au
+ * survol de l'icône, voir .tool-options dans styles.css) :
+ *   - crayon : épaisseur (nombre de cellules posées d'un coup) ; avec les options
+ *     avancées, en plus : le type de trait (plein, damier, points…) ;
+ *   - gomme : taille.
+ * Comme partout : un réglage APPELLE l'éditeur, et l'affichage se met à jour en
+ * ÉCOUTANT ses événements (la valeur reste juste quelle que soit l'origine du changement).
  */
-export function setupEraserSize(app: App): void {
-  const slider = byId<HTMLInputElement>('eraser-size');
-  const value = byId<HTMLOutputElement>('eraser-size-value');
-  slider.min = String(MIN_ERASER_SIZE);
-  slider.max = String(MAX_ERASER_SIZE);
-  slider.addEventListener('input', () => app.editor.setEraserSize(Number(slider.value)));
-  const render = (size: number) => {
-    slider.value = String(size);
-    value.textContent = String(size);
-    slider.setAttribute('aria-valuetext', size === 1 ? '1 case' : `${size} cases`);
+export function setupToolOptions(app: App): void {
+  const { editor } = app;
+
+  /** Branche un slider (valeur affichée à côté) sur un réglage de l'éditeur. */
+  const bindSlider = (
+    sliderId: string,
+    valueId: string,
+    range: { min: number; max: number },
+    get: () => number,
+    set: (value: number) => void,
+    onChange: (listener: (value: number) => void) => void,
+  ) => {
+    const slider = byId<HTMLInputElement>(sliderId);
+    const value = byId<HTMLOutputElement>(valueId);
+    slider.min = String(range.min);
+    slider.max = String(range.max);
+    slider.addEventListener('input', () => set(Number(slider.value)));
+    const render = (size: number) => {
+      slider.value = String(size);
+      value.textContent = String(size);
+      slider.setAttribute('aria-valuetext', size === 1 ? '1 case' : `${size} cases`);
+    };
+    onChange(render);
+    render(get());
   };
-  app.editor.on('eraserSize', render);
-  render(app.editor.eraserSize);
+  bindSlider('eraser-size', 'eraser-size-value', { min: MIN_ERASER_SIZE, max: MAX_ERASER_SIZE },
+    () => editor.eraserSize, (v) => editor.setEraserSize(v), (l) => editor.on('eraserSize', l));
+  bindSlider('brush-size', 'brush-size-value', { min: MIN_BRUSH_SIZE, max: MAX_BRUSH_SIZE },
+    () => editor.brushSize, (v) => editor.setBrushSize(v), (l) => editor.on('brushSize', l));
+
+  // Type de trait : une rangée de petits boutons, chacun dessiné avec son propre motif.
+  const picker = byId('stroke-picker');
+  const strokeButtons = STROKES.map((stroke) => {
+    const button = el('button', {
+      class: 'icon-btn small',
+      type: 'button',
+      title: `Trait : ${stroke.label}`,
+      'aria-label': `Trait ${stroke.label}`,
+    }, [strokeIcon(stroke.id)]);
+    button.addEventListener('click', () => editor.setStroke(stroke.id));
+    picker.append(button);
+    return { id: stroke.id, button };
+  });
+  const renderStroke = (kind: StrokeKind) => {
+    for (const { id, button } of strokeButtons) button.setAttribute('aria-pressed', String(id === kind));
+  };
+  editor.on('stroke', renderStroke);
+  renderStroke(editor.stroke);
+
+  // Options avancées : montrent le type de trait et les boutons Annuler / Rétablir.
+  const separator = byId('history-sep');
+  const undo = byId<HTMLButtonElement>('tool-undo');
+  const redo = byId<HTMLButtonElement>('tool-redo');
+  const renderAdvanced = () => {
+    const advanced = app.viewSettings.advancedVisible;
+    picker.hidden = !advanced;
+    separator.hidden = !advanced;
+    undo.hidden = !advanced;
+    redo.hidden = !advanced;
+    // Options avancées coupées : on revient au trait plein (sinon le crayon ferait des trous « invisibles »).
+    if (!advanced) editor.setStroke('solid');
+  };
+  app.viewSettings.on('change', renderAdvanced);
+  renderAdvanced();
+
+  undo.addEventListener('click', () => editor.undo());
+  redo.addEventListener('click', () => editor.redo());
+  // Grisés quand il n'y a rien à annuler / rétablir.
+  const renderHistory = (state: { canUndo: boolean; canRedo: boolean }) => {
+    undo.disabled = !state.canUndo;
+    redo.disabled = !state.canRedo;
+  };
+  editor.on('history', renderHistory);
+  renderHistory({ canUndo: editor.canUndo, canRedo: editor.canRedo });
+}
+
+/**
+ * Petit dessin d'un type de trait : une grille de 6 × 6 cases où l'on colorie
+ * celles que ce trait remplirait (même fonction que le crayon : strokeAllows).
+ * Le bouton montre donc exactement ce qu'il va dessiner.
+ */
+function strokeIcon(kind: StrokeKind): SVGSVGElement {
+  const SIZE = 6;
+  const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+  svg.setAttribute('viewBox', `0 0 ${SIZE} ${SIZE}`);
+  svg.setAttribute('aria-hidden', 'true');
+  let d = '';
+  for (let y = 0; y < SIZE; y++) {
+    for (let x = 0; x < SIZE; x++) if (strokeAllows(kind, x, y)) d += `M${x} ${y}h1v1h-1z`;
+  }
+  const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+  path.setAttribute('d', d);
+  svg.append(path);
+  return svg;
 }
 
 /**
