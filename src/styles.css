@@ -8,7 +8,7 @@
  *   2. Les cadres sont faits de gros « pixels » : un contour épais dont les
  *      coins sont coupés en marche d'escalier, plus une ombre dure décalée
  *      (voir --notch-* : c'est 4 ombres qui forment le cadre, sans arrondi).
- *   3. Une seule police, pixel (Pixelify Sans), en minuscules normales.
+ *   3. Une seule police, pixel (Jersey 10), en minuscules normales, assez grande pour être lue sans effort.
  *
  * Les couleurs sont des VARIABLES CSS (--bg, --accent…) définies pour chaque
  * thème. <body data-theme="night"> ou "day" choisit le jeu de variables : tout
@@ -17,24 +17,18 @@
  * de src/render/theme.ts : une seule source de vérité.
  */
 
+/* Jersey 10 : police pixel choisie pour sa lisibilité (parenthèses et accents nets).
+   Elle n'existe qu'en un seul poids, déjà assez gras : pas de gras « artificiel ». */
 @font-face {
-  font-family: 'Pixelify Sans';
+  font-family: 'Jersey 10';
   font-weight: 400;
   font-style: normal;
   font-display: swap;
-  src: url('./assets/fonts/pixelify-sans-latin-400-normal.woff2') format('woff2');
-}
-
-@font-face {
-  font-family: 'Pixelify Sans';
-  font-weight: 700;
-  font-style: normal;
-  font-display: swap;
-  src: url('./assets/fonts/pixelify-sans-latin-700-normal.woff2') format('woff2');
+  src: url('./assets/fonts/jersey-10-latin-400-normal.woff2') format('woff2');
 }
 
 :root {
-  --font: 'Pixelify Sans', ui-monospace, 'SFMono-Regular', Menlo, Consolas, monospace;
+  --font: 'Jersey 10', ui-monospace, 'SFMono-Regular', Menlo, Consolas, monospace;
   /* Un « gros pixel » : l'épaisseur des contours. */
   --px: 3px;
   --gap: 14px;
@@ -109,8 +103,9 @@ body {
   background: var(--bg);
   color: var(--fg);
   font-family: var(--font);
-  font-size: 16px;
+  font-size: 24px;
   line-height: 1.25;
+  font-synthesis: none;
   -webkit-font-smoothing: none; /* contours nets : pas de lissage sur la police pixel */
   user-select: none;
   -webkit-user-select: none;
@@ -382,8 +377,7 @@ body[data-theme='day'] .icon-sun {
 
 .title-bar h1 {
   margin: 0;
-  font-size: 24px;
-  font-weight: 700;
+  font-size: 36px;
   white-space: nowrap;
   color: var(--accent);
 }
@@ -552,7 +546,7 @@ body[data-theme='day'] .icon-sun {
   padding: 3px 9px;
   background: var(--surface);
   box-shadow: var(--notch-soft);
-  font-size: 14px;
+  font-size: 22px;
   line-height: 1.3;
   pointer-events: none;
 }
@@ -570,15 +564,49 @@ body[data-theme='day'] .icon-sun {
 .tour {
   position: fixed;
   z-index: 30;
-  width: min(420px, calc(100vw - 2 * var(--gap)));
+  width: min(480px, calc(100vw - 2 * var(--gap)));
   padding: 14px 16px 16px;
   box-shadow: var(--notch-accent), var(--drop-shadow);
 }
 
 .tour h2 {
   margin: 24px 0 8px;
-  font-size: 20px;
-  font-weight: 700;
+  font-size: 32px;
+  color: var(--accent);
+}
+
+/* La liste du didacticiel : une idée par ligne, avec un carré devant. */
+.tour-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin: 0 0 10px;
+  padding: 0;
+  list-style: none;
+}
+
+.tour-list li {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  line-height: 1.25;
+}
+
+/* Carrés de couleur et puces : alignés sur la première ligne de texte. */
+.tour-list .swatch,
+.tour-list .tour-bullet {
+  margin-top: 6px;
+  width: 14px;
+  height: 14px;
+}
+
+.tour-bullet {
+  background: var(--accent);
+  transform: scale(0.5);
+}
+
+.tour-list b {
+  font-weight: 400; /* la police n'a qu'un poids : le mot se distingue par sa couleur */
   color: var(--accent);
 }
 
@@ -696,7 +724,7 @@ body[data-theme='day'] .icon-sun {
 }
 
 .transport-btn span {
-  font-size: 13px;
+  font-size: 20px;
   line-height: 1;
   color: var(--muted);
 }
@@ -738,15 +766,14 @@ body[data-theme='day'] .icon-sun {
 }
 
 .counters dt {
-  font-size: 13px;
+  font-size: 20px;
   color: var(--muted);
 }
 
 .counters dd {
   min-width: 5ch;
   margin: 0;
-  font-size: 22px;
-  font-weight: 700;
+  font-size: 34px;
   font-variant-numeric: tabular-nums;
 }
 
@@ -772,8 +799,7 @@ body[data-theme='day'] .icon-sun {
 
 .library h2 {
   margin: 0;
-  font-size: 18px;
-  font-weight: 700;
+  font-size: 30px;
   color: var(--accent);
 }
 
@@ -800,7 +826,7 @@ body[data-theme='day'] .icon-sun {
 
 .hint {
   margin: 0 0 10px;
-  font-size: 14px;
+  font-size: 22px;
   line-height: 1.4;
   color: var(--muted);
 }
@@ -810,13 +836,12 @@ kbd {
   background: var(--surface-2);
   box-shadow: var(--notch-soft);
   font-family: inherit;
-  font-size: 13px;
+  font-size: 20px;
 }
 
 #pattern-list h3 {
   margin: 16px 0 8px;
-  font-size: 14px;
-  font-weight: 700;
+  font-size: 22px;
   color: var(--muted);
 }
 
@@ -853,7 +878,7 @@ kbd {
 }
 
 .pattern-name {
-  font-size: 14px;
+  font-size: 22px;
   line-height: 1.2;
   text-align: center;
 }
@@ -1000,11 +1025,11 @@ body.is-file-over #world {
   }
 
   .title-bar h1 {
-    font-size: 20px;
+    font-size: 32px;
   }
 
   .counters dd {
-    font-size: 18px;
+    font-size: 30px;
   }
 
   .library {

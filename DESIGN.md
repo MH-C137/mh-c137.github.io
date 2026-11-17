@@ -10,7 +10,7 @@ Console d'arcade sobre. Aucun arrondi nulle part (interface, cellules, images, m
 - Interface : `--surface`, `--surface-2`, `--line`, `--line-soft`, `--accent`, `--accent-fill` (fond d'un bouton actif) et `--on-accent`, `--danger`, `--drop` (ombre dure).
 
 ## Typographie
-Pixelify Sans (400 et 700), embarquée dans `src/assets/fonts/` (licence OFL). Minuscules normales : pas de capitales espacées. Titre 24 px, titres de panneau 18 px, texte 16 px, aide 14 px. Chiffres à chasse fixe.
+Jersey 10 (un seul poids ; choisie pour des parenthèses et des accents bien lisibles), embarquée dans `src/assets/fonts/` (licence OFL). Minuscules normales : pas de capitales espacées. Titre 36 px, titres de panneau 30 px, texte 24 px, aide 22 px, petits libellés 20 px (la police est dessinée sur une grille de 10 px : on garde des tailles paires). Chiffres à chasse fixe.
 
 ## Cadres et boutons
 - Cadre = contour épais aux coins en escalier, fait de 4 ombres pleines (`--notch-line`, `--notch-soft`, `--notch-accent`) + ombre dure décalée (`--drop-shadow`).
@@ -24,6 +24,8 @@ Pixel art sur une grille de 12 × 12 (SVG de rectangles, `shape-rendering: crisp
 - **Infobulle** : petite, une seule ligne, apparaît après 0,35 s de survol (ou au focus clavier), texte pris dans `title`. Jamais au doigt.
 - **Didacticiel** : bulle à cadre d'accent, compteur `n/6` en haut à gauche, croix en haut à droite, élément expliqué entouré de pointillés. Non bloquant.
 - **Boutons du haut** : Options (gauche) ; jour / nuit puis œil (droite). L'œil reste visible quand l'interface est masquée.
+- **Outils** : dans l'ordre crayon, gomme, main, sélection (le plus utile en haut, pour des enfants).
+- **Options avancées** : un interrupteur du menu Options ; elles ajoutent Annuler / Rétablir.
 - **Grille** : lignes visibles dès 5 px par case ; désactivable dans Options.
 
 ## Mouvement

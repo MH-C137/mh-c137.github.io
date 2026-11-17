@@ -17,9 +17,10 @@
  */
 
 import type { CellRect } from '../core/coords';
+import { EditHistory } from '../core/edithistory';
 import { Emitter } from '../core/events';
 import { flipHorizontal, hasSkins, rotateClockwise, withSkin, type Pattern } from '../core/pattern';
-import type { World } from '../core/world';
+import type { World, WorldSnapshot } from '../core/world';
 import type { PatternLibrary } from '../data/patterns';
 import type { Camera, Insets } from '../render/camera';
 import type { ImageLibrary } from '../render/images';
@@ -40,6 +41,8 @@ export interface EditorEvents extends Record<string, unknown> {
   held: Pattern | null;
   /** La taille de la gomme a changé (côté du carré, en cases). */
   eraserSize: number;
+  /** On peut (ou non) annuler / rétablir : sert à griser les boutons. */
+  history: { canUndo: boolean; canRedo: boolean };
 }
 
 /** Tout ce dont l'éditeur a besoin, fourni par main.ts. */
@@ -68,6 +71,10 @@ export class Editor extends Emitter<EditorEvents> {
   private activeTool: Tool;
   /** Outil à retrouver quand on range une structure (Échap). */
   private toolBeforeStamp: ToolId = 'brush';
+  /** Annuler / Rétablir les modifications de l'utilisateur (voir core/edithistory.ts). */
+  private readonly edits = new EditHistory();
+  /** Photo prise au début d'une modification en cours (trait, pose…), rangée à la fin si quelque chose a changé. */
+  private pending: WorldSnapshot | null = null;
   /** Côté du carré effacé par la gomme, en cases (1 = une seule case). */
   private _eraserSize = MIN_ERASER_SIZE;
   /** Structure tenue en main (tampon ou glisser-déposer). */
@@ -123,6 +130,69 @@ export class Editor extends Emitter<EditorEvents> {
     else if (this.overlay.selection) this.setSelection(null);
   }
 
+  // ──────────────────────────────────────────────────────────────────────────
+  //  Annuler / Rétablir
+  // ──────────────────────────────────────────────────────────────────────────
+
+  /**
+   * À appeler AVANT de modifier la grille : on prend une photo de l'état d'avant.
+   * (Appeler deux fois de suite ne change rien : un trait de crayon = une seule photo.)
+   */
+  beginEdit(): void {
+    this.pending ??= this.world.snapshot();
+  }
+
+  /**
+   * À appeler quand la modification est terminée. Si quelque chose a vraiment
+   * changé, la photo d'avant est rangée (et « Rétablir » est vidé) ; sinon on la jette.
+   */
+  endEdit(changed: boolean): void {
+    if (this.pending && changed) {
+      this.edits.record(this.pending);
+      this.emitHistory();
+    }
+    this.pending = null;
+  }
+
+  get canUndo(): boolean {
+    return this.edits.canUndo;
+  }
+
+  get canRedo(): boolean {
+    return this.edits.canRedo;
+  }
+
+  /** Annule la dernière modification. */
+  undo(): void {
+    const before = this.edits.undo(this.world.snapshot());
+    if (before) this.applyHistory(before);
+  }
+
+  /** Rétablit la modification annulée. */
+  redo(): void {
+    const after = this.edits.redo(this.world.snapshot());
+    if (after) this.applyHistory(after);
+  }
+
+  private applyHistory(snapshot: WorldSnapshot): void {
+    this.simulation.restoreEdit(snapshot);
+    this.setSelection(null);
+    this.invalidate();
+    this.emitHistory();
+  }
+
+  private emitHistory(): void {
+    this.emit('history', { canUndo: this.edits.canUndo, canRedo: this.edits.canRedo });
+  }
+
+  /** Bouton « Effacer » : vide toute la grille (et peut s'annuler). */
+  clearAll(): void {
+    const hadContent = this.world.population > 0 || this.world.generation > 0;
+    this.beginEdit();
+    this.simulation.clear();
+    this.endEdit(hadContent);
+  }
+
   get eraserSize(): number {
     return this._eraserSize;
   }
@@ -176,7 +246,9 @@ export class Editor extends Emitter<EditorEvents> {
   /** Supprime les cellules de la sélection. */
   deleteSelection(): void {
     if (!this.overlay.selection) return;
-    this.world.clearRect(this.overlay.selection);
+    this.beginEdit();
+    const removed = this.world.clearRect(this.overlay.selection);
+    this.endEdit(removed > 0);
     this.simulation.markEdited();
     this.invalidate();
   }
@@ -292,9 +364,10 @@ export class Editor extends Emitter<EditorEvents> {
     const toPlace = this.patternToPlace(pattern);
     const originX = cellX - Math.floor(toPlace.width / 2);
     const originY = cellY - Math.floor(toPlace.height / 2);
-    if (this.world.placePattern(toPlace, originX, originY) > 0) {
-      this.simulation.markEdited();
-    }
+    this.beginEdit();
+    const placed = this.world.placePattern(toPlace, originX, originY) > 0;
+    this.endEdit(placed);
+    if (placed) this.simulation.markEdited();
     this.invalidate();
   }
 

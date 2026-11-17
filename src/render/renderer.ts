@@ -269,7 +269,7 @@ export class Renderer {
     context.strokeStyle = palette.selectionStroke;
     context.strokeRect(x, y, width, height);
     context.setLineDash([]);
-    context.font = '14px "Pixelify Sans", ui-monospace, Menlo, Consolas, monospace';
+    context.font = '22px "Jersey 10", ui-monospace, Menlo, Consolas, monospace';
     context.fillStyle = palette.selectionStroke;
     context.fillText(`${rect.x1 - rect.x0 + 1} × ${rect.y1 - rect.y0 + 1}`, x, y - 6);
   }

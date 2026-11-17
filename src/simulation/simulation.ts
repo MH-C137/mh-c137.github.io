@@ -25,7 +25,7 @@
 
 import { Emitter } from '../core/events';
 import { History } from '../core/history';
-import type { World } from '../core/world';
+import type { World, WorldSnapshot } from '../core/world';
 
 export type PlayState = 'paused' | 'forward' | 'backward';
 
@@ -177,6 +177,19 @@ export class Simulation extends Emitter<{ change: SimulationInfo }> {
    */
   markEdited(): void {
     this.history.clearFuture();
+    this.notify();
+  }
+
+  /**
+   * Annuler / Rétablir : remplace le monde par une photo prise avant (ou après)
+   * une modification de l'utilisateur. On met en pause, et on OUBLIE le temps
+   * mémorisé : les générations enregistrées appartenaient à l'ancienne histoire
+   * du monde, les garder ferait reculer vers un passé qui ne correspond plus.
+   */
+  restoreEdit(snapshot: WorldSnapshot): void {
+    this.state = 'paused';
+    this.world.restore(snapshot);
+    this.history.clear();
     this.notify();
   }
 

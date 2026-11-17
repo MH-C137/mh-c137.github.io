@@ -6,16 +6,33 @@
  * Chaque étape pointe vers un élément de la page (sélecteur CSS) et dit ce
  * qu'il fait. Pour ajouter ou changer une étape, il suffit de modifier cette
  * liste : le compteur « 3/6 » et les boutons Précédent / Suivant s'adaptent seuls.
- * Les textes sont courts et parlent aux collégiens (tutoiement, mots simples).
+ *
+ * Présentation : une phrase d'introduction, puis une LISTE (une idée par ligne,
+ * avec un petit carré de couleur ou un mot en couleur devant), puis éventuellement
+ * une conclusion. Courtes phrases, mots simples, tutoiement (public : collégiens).
  */
 
 import type { Side } from '../ui/placement';
 
+/** Les 4 états d'une cellule : sert à dessiner le carré de couleur devant la ligne. */
+export type TourSwatch = 'newborn' | 'alive' | 'trace' | 'dead';
+
+/** Une ligne de liste : soit un carré de couleur, soit un mot en avant (`label`), puis le texte. */
+export interface TourItem {
+  readonly text: string;
+  readonly label?: string;
+  readonly swatch?: TourSwatch;
+}
+
 export interface TourStep {
   /** Titre court de l'étape. */
   readonly title: string;
-  /** Paragraphes de texte. */
-  readonly text: readonly string[];
+  /** Phrase d'introduction (au-dessus de la liste). */
+  readonly intro?: string;
+  /** La liste : une idée par ligne. */
+  readonly items?: readonly TourItem[];
+  /** Phrase de conclusion (sous la liste). */
+  readonly outro?: string;
   /** Sélecteur CSS de l'élément mis en avant (null = bulle centrée, sans élément). */
   readonly target: string | null;
   /** Côtés préférés pour poser la bulle autour de l'élément. */
@@ -25,53 +42,68 @@ export interface TourStep {
 export const TOUR_STEPS: readonly TourStep[] = [
   {
     title: 'Bienvenue !',
-    text: [
-      'Ici, tu dessines des cellules et tu regardes ce qu\'elles deviennent.',
-      'Trois règles seulement : une cellule qui a 2 ou 3 voisines survit. Une case vide qui a exactement 3 voisines voit naître une cellule. Dans tous les autres cas, la cellule meurt.',
+    intro: 'Ici, tu dessines des cellules et tu regardes ce qu\'elles deviennent. Il n\'y a que 3 règles :',
+    items: [
+      { text: 'Une cellule qui a 2 ou 3 voisines survit.' },
+      { text: 'Une case vide qui a exactement 3 voisines : une cellule naît.' },
+      { text: 'Sinon, la cellule meurt.' },
     ],
     target: null,
   },
   {
     title: 'Les couleurs',
-    text: [
-      'Cyan : la cellule vient de naître. Violet : elle est vivante (elle clignote en violet clair toutes les 3 générations). Violet foncé : elle vient de mourir.',
+    intro: 'La couleur d\'une cellule dit où elle en est :',
+    items: [
+      { swatch: 'newborn', text: 'Elle vient de naître : elle s\'allume.' },
+      { swatch: 'alive', text: 'Elle vit depuis longtemps.' },
+      { swatch: 'trace', text: 'Elle vient de mourir : elle s\'éteint.' },
+      { swatch: 'dead', text: 'Case vide : rien n\'y vit.' },
     ],
+    outro: 'Une cellule qui survit clignote toutes les 3 générations.',
     target: '#title-bar',
     sides: ['bottom', 'right'],
   },
   {
     title: 'Dessiner',
-    text: [
-      'Le crayon fait naître des cellules, la gomme les efface. Survole la gomme pour régler sa taille.',
-      'Molette pour zoomer, outil Main pour déplacer la vue.',
+    items: [
+      { label: 'Crayon', text: 'fait naître des cellules.' },
+      { label: 'Gomme', text: 'les efface. Survole-la pour régler sa taille.' },
+      { label: 'Main', text: 'déplace la vue.' },
+      { label: 'Sélection', text: 'entoure une zone à copier.' },
+      { label: 'Molette', text: 'zoome.' },
     ],
     target: '#toolbar',
     sides: ['right', 'bottom'],
   },
   {
     title: 'Faire vivre',
-    text: [
-      'Lecture lance la vie. +1 avance d\'une génération, −1 recule : tu peux même remonter le temps !',
-      'Le curseur Vitesse règle le nombre de générations par seconde.',
+    items: [
+      { label: 'Lecture', text: 'lance la vie.' },
+      { label: '+1', text: 'avance d\'une génération.' },
+      { label: '−1', text: 'recule : tu remontes le temps !' },
+      { label: 'Vitesse', text: 'règle la rapidité.' },
     ],
     target: '.transport',
     sides: ['top', 'right'],
   },
   {
     title: 'Structures et images',
-    text: [
-      'Glisse une structure sur la grille (ou clique dessus, puis clique sur la grille). Touche R pour la tourner.',
-      'Tu peux aussi importer tes images : elles remplacent les cellules.',
+    intro: 'Des formes toutes prêtes à poser :',
+    items: [
+      { label: 'Glisse', text: 'une structure sur la grille.' },
+      { label: 'Touche R', text: 'pour la tourner.' },
+      { label: 'Images', text: 'importe les tiennes à la place des cellules.' },
     ],
     target: '#library',
     sides: ['left', 'bottom'],
   },
   {
     title: 'Options et aide',
-    text: [
-      'Le bouton à trois barres ouvre les options : afficher la grille, revoir ce didacticiel. L\'œil, en haut à droite, cache toute l\'interface.',
-      'Bon jeu !',
+    items: [
+      { label: 'Trois barres', text: 'ouvrent les options : grille, aide, options avancées.' },
+      { label: 'Œil', text: 'cache toute l\'interface.' },
     ],
+    outro: 'Bon jeu !',
     target: '#menu-toggle',
     sides: ['bottom', 'right'],
   },

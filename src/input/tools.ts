@@ -98,6 +98,7 @@ export class PaintTool implements Tool {
   /** Clic gauche : pinceau = dessine, gomme = efface. Clic droit : efface toujours. */
   pointerDown(pointer: PointerInfo): void {
     this.drawing = this.id === 'brush' && pointer.button !== 2;
+    this.editor.beginEdit(); // photo de l'état d'avant, pour pouvoir annuler le trait
     this.lastCell = { x: pointer.cellX, y: pointer.cellY };
     this.paint(pointer.cellX, pointer.cellY);
   }
@@ -117,6 +118,7 @@ export class PaintTool implements Tool {
 
   /** Fin du trait : on signale UNE modification (et non une par case). */
   pointerUp(): void {
+    this.editor.endEdit(this.changed);
     if (this.changed) this.editor.simulation.markEdited();
     this.lastCell = null;
     this.changed = false;

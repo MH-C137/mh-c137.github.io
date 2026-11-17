@@ -20,7 +20,7 @@
  */
 
 import type { App } from '../app';
-import { TOUR_STEPS } from '../data/tour';
+import { TOUR_STEPS, type TourStep } from '../data/tour';
 import { byId, el } from './dom';
 import { placePopup } from './placement';
 
@@ -55,7 +55,7 @@ export function setupTutorial(_app: App, menu: { showMenu: () => void }): Tutori
     const last = index === TOUR_STEPS.length - 1;
     stepLabel.textContent = `${index + 1}/${TOUR_STEPS.length}`;
     title.textContent = step.title;
-    text.replaceChildren(...step.text.map((paragraph) => el('p', {}, [paragraph])));
+    text.replaceChildren(...renderStep(step));
     previous.disabled = index === 0;
     next.textContent = last ? 'Terminer' : 'Suivant';
     skip.hidden = last;
@@ -161,4 +161,26 @@ export function setupTutorial(_app: App, menu: { showMenu: () => void }): Tutori
       return index >= 0;
     },
   };
+}
+
+/**
+ * Construit le contenu d'une étape : phrase d'introduction, LISTE (une ligne
+ * par idée, avec un carré de couleur ou un mot en avant), puis conclusion.
+ * Les carrés réutilisent les classes `.swatch-*` de la légende : mêmes couleurs.
+ */
+function renderStep(step: TourStep): HTMLElement[] {
+  const blocks: HTMLElement[] = [];
+  if (step.intro) blocks.push(el('p', {}, [step.intro]));
+  if (step.items) {
+    const lines = step.items.map((item) => {
+      const marker = item.swatch
+        ? el('span', { class: `swatch swatch-${item.swatch}`, 'aria-hidden': 'true' })
+        : el('span', { class: 'tour-bullet', 'aria-hidden': 'true' });
+      const words: Array<Node | string> = item.label ? [el('b', {}, [item.label]), ' ', item.text] : [item.text];
+      return el('li', {}, [marker, el('span', {}, words)]);
+    });
+    blocks.push(el('ul', { class: 'tour-list' }, lines));
+  }
+  if (step.outro) blocks.push(el('p', {}, [step.outro]));
+  return blocks;
 }
