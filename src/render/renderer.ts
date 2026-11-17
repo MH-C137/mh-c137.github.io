@@ -71,6 +71,8 @@ export class Renderer {
   /** Pixels physiques par pixel CSS (2 sur un écran « Retina »). */
   private pixelRatio = 1;
   palette: Palette = PALETTES.night;
+  /** Faux = on ne dessine pas les lignes de la grille (réglage du menu Options). */
+  gridVisible = true;
 
   constructor(
     private readonly canvas: HTMLCanvasElement,
@@ -103,7 +105,7 @@ export class Renderer {
     context.fillStyle = this.palette.background;
     context.fillRect(0, 0, this.camera.width, this.camera.height);
 
-    this.drawGrid();
+    if (this.gridVisible) this.drawGrid();
     this.drawCells();
     if (overlay.hover) this.drawHover(overlay.hover);
     if (overlay.selection) this.drawSelection(overlay.selection);
@@ -119,8 +121,9 @@ export class Renderer {
     const { camera, context, palette } = this;
     const zoom = camera.zoom;
     const view = camera.visibleCells();
-    const minorAlpha = clamp01((zoom - 8) / 8);
-    const majorAlpha = clamp01((zoom - 3) / 4);
+    // La grille apparaît tôt (dès 5 px par case) et progressivement, pour rester lisible.
+    const minorAlpha = clamp01((zoom - 4) / 5);
+    const majorAlpha = clamp01((zoom - 2) / 3);
     if (majorAlpha === 0) return;
 
     // Aligne une coordonnée sur un pixel physique pour des lignes nettes de 1 pixel.

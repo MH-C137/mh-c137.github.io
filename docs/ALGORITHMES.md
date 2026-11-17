@@ -215,6 +215,10 @@ La gomme efface un **carré** de `n × n` cases (n de 1 à 15, réglé par le sl
 
 Une cellule qui reste en vie clignote (violet clair) quand son âge vaut 3, 6, 9… (`age > 0 && age % 3 === 0`). Les 4 états ne changent pas : c'est un simple effet de dessin, calculé à partir de l'âge déjà mémorisé, donc il marche aussi en lecture arrière. Test : un bloc 2×2 (stable) clignote aux âges 3 et 6.
 
+## 10 ter. Placer une bulle sans sortir de l'écran — `placePopup()` dans `src/ui/placement.ts`
+
+Les infobulles et les étapes du didacticiel se posent à côté d'un élément. `placePopup` essaie les côtés dans l'ordre de préférence (ex. dessous, dessus, droite, gauche) et garde **le premier où la bulle tient entièrement dans l'écran**. Sur l'autre axe, la bulle est centrée sur l'élément puis « recalée » (`clamp`) entre les marges de l'écran. Si aucun côté ne tient, on garde le préféré, ramené dans l'écran. Fonction pure (pas de DOM) : testée avec des rectangles calculés à la main.
+
 ## 11. Le format RLE — `src/core/rle.ts`
 
 RLE (*Run Length Encoding*, codage par plages) est le format standard de la communauté (Golly, LifeWiki) :

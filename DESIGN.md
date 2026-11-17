@@ -20,5 +20,11 @@ Pixelify Sans (400 et 700), embarquée dans `src/assets/fonts/` (licence OFL). M
 ## Icônes
 Pixel art sur une grille de 12 × 12 (SVG de rectangles, `shape-rendering: crispEdges`), affichées à 24 px (échelle 2×).
 
+## Aides
+- **Infobulle** : petite, une seule ligne, apparaît après 0,35 s de survol (ou au focus clavier), texte pris dans `title`. Jamais au doigt.
+- **Didacticiel** : bulle à cadre d'accent, compteur `n/6` en haut à gauche, croix en haut à droite, élément expliqué entouré de pointillés. Non bloquant.
+- **Boutons du haut** : Options (gauche) ; jour / nuit puis œil (droite). L'œil reste visible quand l'interface est masquée.
+- **Grille** : lignes visibles dès 5 px par case ; désactivable dans Options.
+
 ## Mouvement
 Rare et par paliers (`steps()`), jamais de fondu doux. Le réglage de taille de la gomme apparaît au survol de l'icône.

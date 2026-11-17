@@ -7,7 +7,8 @@
  *   →  /  ←       une génération avant/arrière  P  pinceau       G  gomme
  *   Maj + → / ←   lecture avant / arrière      R  tourner la structure en main
  *   + / − / 0     zoomer / dézoomer / recentrer F  retourner la structure en main
- *   M             afficher / masquer le menu   N  mode nuit / jour
+ *   M             afficher / masquer l'interface (œil)   N  mode nuit / jour
+ *   ?             revoir le didacticiel
  *   Ctrl+C / X / V  copier / couper / coller   Suppr  supprimer la sélection
  *   Échap         annuler (sélection, structure en main)
  */
@@ -15,8 +16,9 @@
 import type { App } from '../app';
 import { copySelection, cutSelection, deleteSelection, importFiles, pasteText } from './actions';
 import { isTyping, measureUiInsets } from './dom';
+import type { Tutorial } from './tutorial';
 
-export function setupShortcuts(app: App, menu: { toggleMenu: () => void }): void {
+export function setupShortcuts(app: App, menu: { toggleMenu: () => void }, tutorial: Tutorial): void {
   const { editor, simulation, camera } = app;
 
   window.addEventListener('keydown', (event) => {
@@ -75,7 +77,7 @@ export function setupShortcuts(app: App, menu: { toggleMenu: () => void }): void
         camera.setZoom(camera.zoom / 1.5);
         break;
       default:
-        handled = handleLetter(app, event.key.toLowerCase(), menu);
+        handled = event.key === '?' ? (tutorial.start(), true) : handleLetter(app, event.key.toLowerCase(), menu);
     }
     if (handled) event.preventDefault();
   });

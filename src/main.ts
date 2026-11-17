@@ -22,7 +22,6 @@
 import './styles.css';
 import type { App } from './app';
 import { World } from './core/world';
-import { seedDemoWorld } from './data/demo';
 import { PatternLibrary } from './data/patterns';
 import { InputController } from './input/controller';
 import { Editor } from './input/editor';
@@ -35,7 +34,11 @@ import { byId, measureUiInsets, releaseFocusAfterClick } from './ui/dom';
 import { setupLibrary } from './ui/library';
 import { setupShortcuts } from './ui/shortcuts';
 import { ThemeManager } from './ui/theme';
+import { setupOptions } from './ui/options';
 import { setupEraserSize, setupMenu, setupToolbar } from './ui/toolbar';
+import { setupTooltips } from './ui/tooltips';
+import { setupTutorial } from './ui/tutorial';
+import { ViewSettings } from './ui/viewsettings';
 import { setupTransport, setupZoom } from './ui/transport';
 
 // ── 1. Les objets du programme ─────────────────────────────────────────────
@@ -56,7 +59,8 @@ const invalidate = () => {
 const editor = new Editor({ world, simulation, camera, images, library, invalidate });
 const theme = new ThemeManager(renderer);
 const notify = createNotifier(byId('toast'), byId('dock'));
-const app: App = { world, simulation, camera, images, library, editor, renderer, theme, invalidate, notify };
+const viewSettings = new ViewSettings(renderer);
+const app: App = { world, simulation, camera, images, library, editor, renderer, theme, viewSettings, invalidate, notify };
 
 // ── 2. Les branchements ────────────────────────────────────────────────────
 new InputController(canvas, editor);
@@ -66,7 +70,11 @@ setupTransport(app);
 setupZoom(app);
 setupLibrary(app);
 setupActionBars(app);
-setupShortcuts(app, setupMenu(app));
+const menu = setupMenu(app);
+const tutorial = setupTutorial(app, menu);
+setupOptions(app, tutorial);
+setupShortcuts(app, menu, tutorial);
+setupTooltips();
 releaseFocusAfterClick(document.body);
 
 // Tout changement visible demande un nouveau dessin (patron Observateur).
@@ -74,6 +82,7 @@ simulation.on('change', invalidate);
 camera.on('change', invalidate);
 images.on('change', invalidate);
 theme.on('change', invalidate);
+viewSettings.on('change', invalidate);
 
 renderer.resize();
 window.addEventListener('resize', () => {
@@ -81,11 +90,10 @@ window.addEventListener('resize', () => {
   invalidate();
 });
 
-// ── 3. Le monde de départ ──────────────────────────────────────────────────
-seedDemoWorld(world);
+// ── 3. Le monde de départ : une grille VIDE, en pause ──────────────────────
+// (on arrive sur une page vierge : c'est à toi de dessiner, puis de lancer la vie)
 simulation.speed = 10;
 editor.centerView(measureUiInsets());
-simulation.play('forward');
 
 // ── 4. La boucle principale ────────────────────────────────────────────────
 let previousTime = performance.now();

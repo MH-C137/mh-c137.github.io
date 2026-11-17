@@ -63,6 +63,8 @@ Patrons en place (garde-les cohérents) :
 - **Ajouter une structure** : une entrée dans `BUILTIN_DEFINITIONS` (`data/patterns.ts`), avec son RLE copié depuis LifeWiki, une catégorie et une description d'une ligne pour des collégiens. Ajoute un test si elle a une propriété connue (période, vitesse…).
 - **Ajouter un outil** : une classe qui implémente `Tool` (`input/tools.ts`), enregistrée dans le constructeur d'`Editor`. Ensuite, un bouton `data-tool="…"` dans `index.html` (avec `aria-label` et `title` incluant le raccourci) et une lettre dans `ui/shortcuts.ts`.
 - **Ajouter une règle** : `RULE_PRESETS` existe déjà dans `core/rules.ts`. Il reste à créer un menu dans l'interface qui modifie `world.rule`, puis à appeler `simulation.markEdited()`.
+- **Ajouter ou changer une étape du didacticiel** : une entrée dans `TOUR_STEPS` (`data/tour.ts`) avec le sélecteur CSS de l'élément à expliquer. Le compteur et les boutons s'adaptent seuls.
+- **Infobulle** : mets simplement un attribut `title` sur le bouton (court, avec le raccourci). Pas de code à ajouter.
 - **Ajouter un panneau** : son HTML dans `index.html` (dans `#ui`, pour qu'il se masque avec le menu), son style dans `styles.css`, et une fonction `setupXxx(app)` dans `src/ui/`, appelée depuis `main.ts`.
 
 ## Avant de dire « terminé »

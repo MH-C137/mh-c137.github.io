@@ -2,7 +2,8 @@
 <!--
   Structure de la page (le style est dans src/styles.css, le comportement dans src/*.ts).
   - <canvas id="world"> occupe tout l'écran : c'est la grille.
-  - Les panneaux de #ui flottent par-dessus (position: fixed). Le bouton #menu-toggle les masque.
+  - Les panneaux de #ui flottent par-dessus (position: fixed). Le bouton œil #eye-toggle (hors de #ui) les masque.
+  - #menu-toggle (en haut à gauche) ouvre le menu Options ; #tour est la bulle du didacticiel ; #tooltip l'infobulle des boutons.
   Les attributs aria-label / title décrivent chaque bouton (infobulles + lecteurs d'écran).
 -->
 <html lang="fr">
@@ -18,14 +19,31 @@
     />
   </head>
   <body data-theme="night">
-    <canvas id="world" aria-label="Grille du jeu de la vie : dessine des cellules avec le pinceau"></canvas>
+    <canvas id="world" aria-label="Grille du jeu de la vie : dessine des cellules avec le crayon"></canvas>
 
-    <!-- Toujours visible : affiche / masque tout le reste de l'interface -->
-    <button id="menu-toggle" class="icon-btn floating" type="button" aria-pressed="true">
-      <svg viewBox="0 0 12 12" aria-hidden="true"><path d="M1 1h10v1h-10zM1 2h10v1h-10zM1 5h10v1h-10zM1 6h10v1h-10zM1 9h10v1h-10zM1 10h10v1h-10z" /></svg>
+    <!-- Toujours visible : affiche / masque tout le reste de l'interface (aria-pressed = interface affichée) -->
+    <button id="eye-toggle" class="icon-btn floating panel" type="button" aria-pressed="true" title="Afficher / désactiver l'interface (M)" aria-label="Afficher ou désactiver l'interface">
+      <svg class="icon-eye-open" viewBox="0 0 12 12" aria-hidden="true"><path d="M3 2h6v1h-6zM2 3h2v1h-2zM8 3h2v1h-2zM1 4h2v1h-2zM5 4h2v1h-2zM9 4h2v1h-2zM0 5h2v1h-2zM4 5h4v1h-4zM10 5h2v1h-2zM0 6h2v1h-2zM4 6h4v1h-4zM10 6h2v1h-2zM1 7h2v1h-2zM5 7h2v1h-2zM9 7h2v1h-2zM2 8h2v1h-2zM8 8h2v1h-2zM3 9h6v1h-6z" /></svg>
+      <svg class="icon-eye-off" viewBox="0 0 12 12" aria-hidden="true"><path d="M10 0h2v1h-2zM9 1h2v1h-2zM3 2h7v1h-7zM2 3h2v1h-2zM7 3h3v1h-3zM1 4h2v1h-2zM5 4h3v1h-3zM9 4h2v1h-2zM0 5h2v1h-2zM4 5h4v1h-4zM10 5h2v1h-2zM0 6h2v1h-2zM4 6h4v1h-4zM10 6h2v1h-2zM1 7h6v1h-6zM9 7h2v1h-2zM2 8h2v1h-2zM8 8h2v1h-2zM1 9h8v1h-8zM0 10h2v1h-2z" /></svg>
     </button>
 
     <div id="ui">
+      <!-- En haut à gauche : bouton Options (ouvre le menu déroulant ci-dessous) -->
+      <button id="menu-toggle" class="icon-btn floating panel" type="button" aria-expanded="false" aria-controls="options-menu" title="Options" aria-label="Options">
+        <svg viewBox="0 0 12 12" aria-hidden="true"><path d="M1 1h10v1h-10zM1 2h10v1h-10zM1 5h10v1h-10zM1 6h10v1h-10zM1 9h10v1h-10zM1 10h10v1h-10z" /></svg>
+      </button>
+
+      <div id="options-menu" class="panel options-menu" aria-label="Options" hidden>
+        <button id="opt-grid" class="menu-item" type="button" role="switch" aria-checked="true">
+          <svg viewBox="0 0 12 12" aria-hidden="true"><path d="M1 1h10v1h-10zM1 2h1v1h-1zM4 2h1v1h-1zM7 2h1v1h-1zM10 2h1v1h-1zM1 3h1v1h-1zM4 3h1v1h-1zM7 3h1v1h-1zM10 3h1v1h-1zM1 4h10v1h-10zM1 5h1v1h-1zM4 5h1v1h-1zM7 5h1v1h-1zM10 5h1v1h-1zM1 6h1v1h-1zM4 6h1v1h-1zM7 6h1v1h-1zM10 6h1v1h-1zM1 7h10v1h-10zM1 8h1v1h-1zM4 8h1v1h-1zM7 8h1v1h-1zM10 8h1v1h-1zM1 9h1v1h-1zM4 9h1v1h-1zM7 9h1v1h-1zM10 9h1v1h-1zM1 10h10v1h-10z" /></svg>
+          <span>Grille</span>
+          <output id="opt-grid-state">activée</output>
+        </button>
+        <button id="opt-help" class="menu-item" type="button">
+          <svg viewBox="0 0 12 12" aria-hidden="true"><path d="M3 0h6v1h-6zM2 1h8v1h-8zM1 2h3v1h-3zM8 2h3v1h-3zM1 3h3v1h-3zM8 3h3v1h-3zM8 4h3v1h-3zM7 5h3v1h-3zM6 6h3v1h-3zM5 7h3v1h-3zM5 8h3v1h-3zM5 10h3v1h-3zM5 11h3v1h-3z" /></svg>
+          <span>Aide : revoir le didacticiel</span>
+        </button>
+      </div>
       <!-- En haut : titre et légende des 4 couleurs -->
       <header id="title-bar" class="panel title-bar">
         <h1>Jeu de la vie</h1>
@@ -50,15 +68,16 @@
         <button class="icon-btn" type="button" data-tool="hand" aria-label="Main" title="Main : déplace la vue (D)">
           <svg viewBox="0 0 12 12" aria-hidden="true"><path d="M5 0h2v1h-2zM4 1h4v1h-4zM3 2h6v1h-6zM5 3h2v1h-2zM1 4h1v1h-1zM5 4h2v1h-2zM10 4h1v1h-1zM0 5h12v1h-12zM0 6h12v1h-12zM1 7h1v1h-1zM5 7h2v1h-2zM10 7h1v1h-1zM5 8h2v1h-2zM3 9h6v1h-6zM4 10h4v1h-4zM5 11h2v1h-2z" /></svg>
         </button>
-        <button class="icon-btn" type="button" data-tool="brush" aria-label="Pinceau" title="Pinceau : fait naître des cellules (P)">
+        <button class="icon-btn" type="button" data-tool="brush" aria-label="Crayon" title="Crayon : fait naître des cellules (P)">
           <svg viewBox="0 0 12 12" aria-hidden="true"><path d="M9 0h2v1h-2zM8 1h4v1h-4zM7 2h4v1h-4zM6 3h4v1h-4zM5 4h4v1h-4zM4 5h4v1h-4zM3 6h4v1h-4zM2 7h4v1h-4zM1 8h4v1h-4zM1 9h3v1h-3zM0 10h2v1h-2z" /></svg>
         </button>
         <!-- La gomme a un petit réglage de taille qui n'apparaît qu'au survol (voir .eraser-size dans styles.css) -->
         <div class="tool-slot">
-          <button class="icon-btn" type="button" data-tool="eraser" aria-label="Gomme" title="Gomme : efface des cellules (G) — clic droit aussi">
+          <button class="icon-btn" type="button" data-tool="eraser" aria-label="Gomme" aria-describedby="eraser-size-label">
             <svg viewBox="0 0 12 12" aria-hidden="true"><path d="M1 2h10v1h-10zM1 3h1v1h-1zM5 3h7v1h-7zM1 4h1v1h-1zM5 4h7v1h-7zM1 5h1v1h-1zM5 5h7v1h-7zM1 6h1v1h-1zM5 6h7v1h-7zM1 7h10v1h-10zM0 10h12v1h-12z" /></svg>
           </button>
-          <label class="eraser-size" title="Taille de la gomme">
+          <label class="eraser-size">
+            <span id="eraser-size-label">Gomme (G)</span>
             <input id="eraser-size" type="range" min="1" max="15" step="1" value="1" aria-label="Taille de la gomme" />
             <output id="eraser-size-value">1</output>
           </label>
@@ -135,7 +154,7 @@
           <div id="pattern-list"></div>
 
           <h2 class="images-title">Images</h2>
-          <p class="hint">Le pinceau et les structures utilisent l'image choisie. Tu peux aussi déposer des images sur la page.</p>
+          <p class="hint">Le crayon et les structures utilisent l'image choisie. Tu peux aussi déposer des images sur la page.</p>
           <div id="image-list" class="image-list"></div>
           <button id="image-add" class="text-btn" type="button">
             <svg viewBox="0 0 12 12" aria-hidden="true"><path d="M1 1h10v1h-10zM1 2h1v1h-1zM10 2h1v1h-1zM1 3h1v1h-1zM3 3h2v1h-2zM10 3h1v1h-1zM1 4h1v1h-1zM3 4h2v1h-2zM10 4h1v1h-1zM1 5h1v1h-1zM10 5h1v1h-1zM1 6h1v1h-1zM5 6h2v1h-2zM10 6h1v1h-1zM1 7h1v1h-1zM4 7h4v1h-4zM10 7h1v1h-1zM1 8h1v1h-1zM3 8h6v1h-6zM10 8h1v1h-1zM1 9h1v1h-1zM10 9h1v1h-1zM1 10h10v1h-10z" /></svg>
@@ -164,6 +183,25 @@
         <button class="text-btn" type="button" data-action="done" title="Ranger la structure (Échap)">Terminé</button>
       </div>
     </div>
+
+    <!-- Didacticiel : une bulle à la fois (voir src/ui/tutorial.ts et src/data/tour.ts) -->
+    <div id="tour-spot" class="tour-spot" hidden></div>
+    <section id="tour" class="panel tour" role="dialog" aria-labelledby="tour-title" aria-describedby="tour-text" hidden>
+      <span id="tour-step" class="tour-step" aria-live="polite">1/6</span>
+      <button id="tour-close" class="icon-btn small" type="button" aria-label="Fermer le didacticiel" title="Fermer (Échap)">
+        <svg viewBox="0 0 12 12" aria-hidden="true"><path d="M1 1h2v1h-2zM9 1h2v1h-2zM2 2h2v1h-2zM8 2h2v1h-2zM3 3h2v1h-2zM7 3h2v1h-2zM4 4h4v1h-4zM5 5h2v1h-2zM5 6h2v1h-2zM4 7h4v1h-4zM3 8h2v1h-2zM7 8h2v1h-2zM2 9h2v1h-2zM8 9h2v1h-2zM1 10h2v1h-2zM9 10h2v1h-2z" /></svg>
+      </button>
+      <h2 id="tour-title"></h2>
+      <div id="tour-text" class="tour-text"></div>
+      <div class="tour-actions">
+        <button id="tour-skip" class="link-btn" type="button">Passer le didacticiel</button>
+        <button id="tour-prev" class="text-btn" type="button">Précédent</button>
+        <button id="tour-next" class="text-btn primary" type="button">Suivant</button>
+      </div>
+    </section>
+
+    <!-- Infobulle discrète des boutons (texte pris dans leur attribut title) -->
+    <div id="tooltip" class="tooltip" role="tooltip" hidden></div>
 
     <div id="toast" class="toast" role="status" aria-live="polite"></div>
 
