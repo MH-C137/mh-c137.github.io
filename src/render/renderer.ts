@@ -28,6 +28,7 @@ import type { Pattern } from '../core/pattern';
 import { isPulseAge, type World } from '../core/world';
 import type { Camera } from './camera';
 import { CORNER_RATIO, roundedRectPath, type ImageLibrary } from './images';
+import { CellSprites, type SpriteKind } from './sprites';
 import { PALETTES, type Palette } from './theme';
 
 /** Ce qui se superpose à la grille pendant l'édition (rempli par l'éditeur). */
@@ -70,9 +71,31 @@ export class Renderer {
   private readonly context: CanvasRenderingContext2D;
   /** Pixels physiques par pixel CSS (2 sur un écran « Retina »). */
   private pixelRatio = 1;
-  palette: Palette = PALETTES.night;
+  private _palette: Palette = PALETTES.night;
   /** Faux = on ne dessine pas les lignes de la grille (réglage du menu Options). */
   gridVisible = true;
+  /** Style du quadrillage, choisi par la DA : lignes simples, ou lignes + croix aux croisements. */
+  gridStyle: 'lines' | 'crosses' = 'lines';
+  /** Image de fond (derrière la grille, fixe à l'écran), choisie par la DA et le thème ; null = fond uni. */
+  backgroundImage: CanvasImageSource & { width: number; height: number } | null = null;
+  backgroundOpacity = 1;
+  /** Cellules en forme d'icône (étoiles…), si la DA en fournit une ; null = carrés. */
+  private sprites: CellSprites | null = null;
+
+  /** Palette courante. Changer de palette recolore aussi les icônes des cellules. */
+  get palette(): Palette {
+    return this._palette;
+  }
+
+  set palette(palette: Palette) {
+    this._palette = palette;
+    this.sprites?.retint(palette);
+  }
+
+  /** Donne (ou retire, avec null) une icône qui sert de forme aux cellules. */
+  setCellIcon(icon: (CanvasImageSource & { width: number; height: number }) | null, scale: number, minZoom: number): void {
+    this.sprites = icon ? new CellSprites(icon, scale, minZoom, this._palette) : null;
+  }
 
   constructor(
     private readonly canvas: HTMLCanvasElement,
@@ -104,12 +127,30 @@ export class Renderer {
     context.setTransform(this.pixelRatio, 0, 0, this.pixelRatio, 0, 0);
     context.fillStyle = this.palette.background;
     context.fillRect(0, 0, this.camera.width, this.camera.height);
+    this.drawBackgroundImage();
 
     if (this.gridVisible) this.drawGrid();
     this.drawCells();
     if (overlay.hover) this.drawHover(overlay.hover);
     if (overlay.selection) this.drawSelection(overlay.selection);
     if (overlay.ghost) this.drawGhost(overlay.ghost);
+  }
+
+  /**
+   * Image de fond de la DA : elle remplit tout l'écran SANS se déformer (comme `object-fit: cover`
+   * en CSS : on prend le plus petit agrandissement qui couvre l'écran, centré) et ne bouge pas
+   * quand on déplace la vue. Dessinée avant la grille et les cellules, donc derrière.
+   */
+  private drawBackgroundImage(): void {
+    const image = this.backgroundImage;
+    if (!image || image.width === 0) return;
+    const { camera, context } = this;
+    const scale = Math.max(camera.width / image.width, camera.height / image.height);
+    const width = image.width * scale;
+    const height = image.height * scale;
+    context.globalAlpha = this.backgroundOpacity;
+    context.drawImage(image, (camera.width - width) / 2, (camera.height - height) / 2, width, height);
+    context.globalAlpha = 1;
   }
 
   /**
@@ -152,7 +193,33 @@ export class Renderer {
     context.globalAlpha = majorAlpha;
     context.strokeStyle = palette.gridMajor;
     context.stroke(major);
+    if (this.gridStyle === 'crosses' && zoom >= 8) this.drawGridCrosses(view, crisp);
     context.globalAlpha = 1;
+  }
+
+  /**
+   * Style « croix » : une petite croix épaisse à chaque croisement de lignes, par-dessus le
+   * quadrillage fin. Toutes les croix sont regroupées dans un seul chemin (un seul ordre de
+   * dessin) et apparaissent progressivement quand on zoome, comme les lignes.
+   */
+  private drawGridCrosses(view: { x0: number; x1: number; y0: number; y1: number }, crisp: (value: number) => number): void {
+    const { camera, context, palette } = this;
+    const arm = Math.min(camera.zoom * 0.14, 7); // longueur d'un bras de la croix
+    const crosses = new Path2D();
+    for (let x = view.x0; x <= view.x1 + 1; x++) {
+      const sx = crisp(camera.worldToScreenX(x));
+      for (let y = view.y0; y <= view.y1 + 1; y++) {
+        const sy = crisp(camera.worldToScreenY(y));
+        crosses.moveTo(sx - arm, sy);
+        crosses.lineTo(sx + arm, sy);
+        crosses.moveTo(sx, sy - arm);
+        crosses.lineTo(sx, sy + arm);
+      }
+    }
+    context.globalAlpha = clamp01((camera.zoom - 6) / 4) * 0.7; // un peu plus discrètes que les lignes principales
+    context.lineWidth = Math.max(2, camera.zoom * 0.06);
+    context.strokeStyle = palette.gridMajor;
+    context.stroke(crosses);
   }
 
   /** Les cellules : on trie chaque case visible dans le bon « paquet » de couleur. */
@@ -179,6 +246,17 @@ export class Renderer {
     const screenX = (x: number) => (x - camera.centerX) * zoom + halfWidth;
     const screenY = (y: number) => (y - camera.centerY) * zoom + halfHeight;
 
+    // Cellules en icône (étoiles…) : seulement quand les cases sont assez grandes ; sinon, des carrés.
+    const sprites = this.sprites;
+    const useIcons = sprites !== null && geometry.shapes && zoom >= sprites.minZoom;
+    /** Positions (x, y, x, y…) des cellules à dessiner avec l'icône, par sorte. */
+    const icons: Record<SpriteKind, number[]> = { trace: [], alive: [], pulse: [], newborn: [] };
+    /** Note une cellule : un carré ajouté à son chemin, ou sa position pour l'icône. */
+    const mark = (kind: SpriteKind, path: Path2D, sx: number, sy: number) => {
+      if (useIcons) icons[kind].push(sx, sy);
+      else addCellShape(path, sx, sy, geometry);
+    };
+
     // Cellules qui viennent de mourir : couleur de trace, ou l'image choisie pour les « mortes »
     // (vue de près seulement ; de loin, la couleur de trace reste plus lisible).
     const deadImage = images.deadImage !== 0 ? images.get(images.deadImage) : undefined;
@@ -186,7 +264,7 @@ export class Renderer {
     world.forEachTrace((x, y) => {
       if (!isVisible(x, y)) return;
       if (deadImage && showImages) deadTiles.push({ sx: screenX(x), sy: screenY(y) });
-      else addCellShape(tracePath, screenX(x), screenY(y), geometry);
+      else mark('trace', tracePath, screenX(x), screenY(y));
     });
 
     world.forEachCell((x, y, age, skin) => {
@@ -210,7 +288,9 @@ export class Renderer {
           return;
         }
       }
-      addCellShape(age === 0 ? newbornPath : isPulseAge(age) ? pulsePath : alivePath, sx, sy, geometry);
+      if (age === 0) mark('newborn', newbornPath, sx, sy);
+      else if (isPulseAge(age)) mark('pulse', pulsePath, sx, sy);
+      else mark('alive', alivePath, sx, sy);
     });
 
     context.fillStyle = palette.trace;
@@ -232,6 +312,14 @@ export class Renderer {
     }
     context.fillStyle = palette.newborn;
     context.fill(newbornPath);
+
+    // Cellules en icône : trace, puis vivantes, clignotantes, nées (la dernière est dessus).
+    if (sprites && useIcons) {
+      for (const kind of ['trace', 'alive', 'pulse', 'newborn'] as const) {
+        const positions = icons[kind];
+        for (let i = 0; i < positions.length; i += 2) sprites.draw(context, kind, positions[i]!, positions[i + 1]!, zoom);
+      }
+    }
 
     // Images vues de près. Les nouveau-nés gardent un liseré cyan pour rester
     // reconnaissables (on voit toujours les 4 états, même avec des images).

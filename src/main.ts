@@ -39,6 +39,8 @@ import { setupMenu, setupToolbar, setupToolOptions } from './ui/toolbar';
 import { setupTooltips } from './ui/tooltips';
 import { setupTutorial } from './ui/tutorial';
 import { ViewSettings } from './ui/viewsettings';
+import { chooseDesign } from './da/registry';
+import { DesignRuntime } from './da/runtime';
 import { setupTransport, setupZoom } from './ui/transport';
 
 // ── 1. Les objets du programme ─────────────────────────────────────────────
@@ -57,7 +59,10 @@ const invalidate = () => {
 };
 
 const editor = new Editor({ world, simulation, camera, images, library, invalidate });
-const theme = new ThemeManager(renderer);
+// La DA (direction artistique) : couleurs, polices, forme des cellules… (voir src/da/ et docs/DA.md)
+const design = new DesignRuntime(chooseDesign(), renderer, invalidate);
+design.applyStatic();
+const theme = new ThemeManager(renderer, design);
 const notify = createNotifier(byId('toast'), byId('dock'));
 const viewSettings = new ViewSettings(renderer);
 const app: App = { world, simulation, camera, images, library, editor, renderer, theme, viewSettings, invalidate, notify };

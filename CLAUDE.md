@@ -5,7 +5,7 @@ Tu reprends un **jeu de la vie interactif** écrit en TypeScript, sans framework
 ## Contexte
 
 - **Projet scolaire et académique.** Le code doit pouvoir être présenté et expliqué à l'oral. Chaque fonction est commentée, et la logique algorithmique est expliquée, pas seulement le « quoi ».
-- **Public : des collégiens.** L'interface reste simple, en français, au tutoiement, avec des mots concrets (« Effacer », « Tourner », pas de jargon). Style **arcade pixel** : cyan / violet sur fond noir, plus un mode jour. **Aucun rectangle arrondi** (ni dans l'interface, ni sur les cellules : `CORNER_RATIO = 0`), pas de flou ni de lueur. Voir `DESIGN.md` et `PRODUCT.md` (utilisés par le skill Impeccable installé dans `.claude/`).
+- **Public : des collégiens.** L'interface reste simple, en français, au tutoiement, avec des mots concrets (« Effacer », « Tourner », pas de jargon). L'**apparence** (couleurs, polices, forme des cellules, quadrillage, fond, titre) est une **DA** (direction artistique) : un dossier `src/da/<nom>/` choisi dans `src/da/active.ts` (`nova` = DA de l'équipe artistique, `pixel` = DA d'origine). **Aucun rectangle arrondi** (interface et cellules : `CORNER_RATIO = 0`), pas de flou ni de lueur. Mode d'emploi : `docs/DA.md`. `DESIGN.md` et `PRODUCT.md` sont utilisés par le skill Impeccable installé dans `.claude/`.
 - **Le propriétaire du projet n'est pas développeur web** (il vient de l'IA). Explique tes changements simplement, en français, à la fin de chaque tâche.
 - **Projet perso à venir** : un « labo génétique ». Les simulations massives tourneront en Python et exporteront du RLE / JSON, que le site affichera. Le moteur doit donc rester réutilisable.
 
@@ -52,7 +52,7 @@ Patrons en place (garde-les cohérents) :
   - les commentaires dans le code ;
   - une **section dans `docs/ALGORITHMES.md`** ;
   - un **test sur un résultat connu** (une valeur documentée sur LifeWiki par exemple).
-- Couleurs : uniquement dans `render/theme.ts` (canvas) et dans les variables CSS de `styles.css`. Ne jamais coder une couleur en dur ailleurs.
+- Couleurs : uniquement dans les `da.json` des DA (`src/da/<nom>/da.json`), dans `render/theme.ts` (palette de secours et couleurs déduites) et dans les variables CSS de `styles.css`. Ne jamais coder une couleur en dur ailleurs. **Ne jamais mettre une couleur, une police ou une image de DA directement dans le code** : elle va dans le `da.json`.
 - Interface : pas de `border-radius`. Les cadres utilisent les variables `--notch-*` et `--drop-shadow` de `styles.css`. Les icônes sont du pixel art 12 × 12 (voir `DESIGN.md`).
 - Les 4 états de cellule ont un sens fixe : née (âge 0), vivante (âge ≥ 1), vient de mourir (trace), morte. Ne change pas cette sémantique.
 - Tout accès à `localStorage` / `IndexedDB` est entouré de `try / catch` (le site peut tourner dans une iframe où le stockage est refusé).
@@ -62,6 +62,7 @@ Patrons en place (garde-les cohérents) :
 
 - **Ajouter une structure** : une entrée dans `BUILTIN_DEFINITIONS` (`data/patterns.ts`), avec son RLE copié depuis LifeWiki, une catégorie et une description d'une ligne pour des collégiens. Ajoute un test si elle a une propriété connue (période, vitesse…).
 - **Ajouter un outil** : une classe qui implémente `Tool` (`input/tools.ts`), enregistrée dans le constructeur d'`Editor`. Ensuite, un bouton `data-tool="…"` dans `index.html` (avec `aria-label` et `title` incluant le raccourci) et une lettre dans `ui/shortcuts.ts`.
+- **Changer ou créer une DA** : voir `docs/DA.md` (copier un dossier de `src/da/`, modifier son `da.json`, changer le mot dans `src/da/active.ts`). Les images se rognent avec `tools/rogner_png.py`. `npm test` vérifie les fichiers de DA.
 - **Ajouter une règle** : `RULE_PRESETS` existe déjà dans `core/rules.ts`. Il reste à créer un menu dans l'interface qui modifie `world.rule`, puis à appeler `simulation.markEdited()`.
 - **Ajouter ou changer une étape du didacticiel** : une entrée dans `TOUR_STEPS` (`data/tour.ts`) avec le sélecteur CSS de l'élément à expliquer. Le compteur et les boutons s'adaptent seuls.
 - **Infobulle** : mets simplement un attribut `title` sur le bouton (court, avec le raccourci). Pas de code à ajouter.

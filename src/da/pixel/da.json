@@ -1,0 +1,71 @@
+{
+  "name": "Arcade pixel",
+  "description": "La DA d'origine : style console d'arcade, cyan et violet sur fond noir, coins carrés, police pixel.",
+  "defaultTheme": "night",
+
+  "fonts": [
+    { "family": "Jersey 10", "file": "assets/fonts/jersey-10-latin-400-normal.woff2", "weight": "400" }
+  ],
+
+  "ui": {
+    "fontFamily": "'Jersey 10', ui-monospace, 'SFMono-Regular', Menlo, Consolas, monospace",
+    "textScale": 1,
+    "frame": "notched",
+    "borderWidth": 3
+  },
+
+  "title": { "text": "Jeu de la vie", "imageHeight": 46 },
+
+  "cells": { "icon": null, "scale": 1, "iconMinZoom": 6 },
+
+  "grid": { "style": "lines" },
+
+  "background": { "opacity": 1 },
+
+  "themes": {
+    "night": {
+      "colors": {
+        "background": "#05050b",
+        "grid": "rgba(120, 130, 255, 0.2)",
+        "gridMajor": "rgba(120, 130, 255, 0.4)",
+        "newborn": "#3cf2ff",
+        "alive": "#a45cff",
+        "pulse": "#dcc2ff",
+        "trace": "#2d1b4e",
+        "selection": "#3cf2ff",
+        "erase": "#ff4d8d"
+      },
+      "interface": {
+        "bg": "#05050b", "fg": "#e8e6ff", "muted": "#a3a0d0",
+        "surface": "#0e0d20", "surface2": "#181633", "hover": "#26224d",
+        "line": "#5b46b8", "lineSoft": "#3b3282", "drop": "#000000",
+        "accent": "#3cf2ff", "accentFill": "#3cf2ff", "onAccent": "#05050b", "accentSoft": "#123e4d",
+        "danger": "#ff4d8d"
+      },
+      "titleImage": null,
+      "backgroundImage": null
+    },
+    "day": {
+      "colors": {
+        "background": "#f3f0e8",
+        "grid": "rgba(40, 30, 90, 0.18)",
+        "gridMajor": "rgba(40, 30, 90, 0.36)",
+        "newborn": "#008ca6",
+        "alive": "#6a2bd4",
+        "pulse": "#3a0f8f",
+        "trace": "#dccdf2",
+        "selection": "#008ca6",
+        "erase": "#d6336c"
+      },
+      "interface": {
+        "bg": "#f3f0e8", "fg": "#1e1b30", "muted": "#5a5580",
+        "surface": "#fffdf6", "surface2": "#ece7d8", "hover": "#ddd5ee",
+        "line": "#2a1f5c", "lineSoft": "#8f86b8", "drop": "#c4bbdc",
+        "accent": "#006f86", "accentFill": "#00788f", "onAccent": "#ffffff", "accentSoft": "#cdeaf0",
+        "danger": "#c4204f"
+      },
+      "titleImage": null,
+      "backgroundImage": null
+    }
+  }
+}

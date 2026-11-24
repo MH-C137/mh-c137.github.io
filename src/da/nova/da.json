@@ -1,0 +1,72 @@
+{
+  "name": "Nova",
+  "description": "La DA de l'équipe artistique : palette bleu clair / jaune / bleu nuit / violet, cellules en étoiles, quadrillage à croix, fond d'étoiles, titre « Nova ».",
+  "defaultTheme": "day",
+
+  "fonts": [
+    { "family": "Space Grotesk", "file": "assets/fonts/space-grotesk-latin-400-normal.woff2", "weight": "400" },
+    { "family": "Space Grotesk", "file": "assets/fonts/space-grotesk-latin-700-normal.woff2", "weight": "700" }
+  ],
+
+  "ui": {
+    "fontFamily": "'Space Grotesk', system-ui, 'Segoe UI', Helvetica, Arial, sans-serif",
+    "textScale": 0.68,
+    "frame": "flat",
+    "borderWidth": 2
+  },
+
+  "title": { "text": "Nova : comprendre le « Jeu de la vie »", "imageHeight": 72 },
+
+  "cells": { "icon": "assets/etoile.png", "scale": 1, "iconMinZoom": 6 },
+
+  "grid": { "style": "crosses" },
+
+  "background": { "opacity": 0.3 },
+
+  "themes": {
+    "night": {
+      "colors": {
+        "background": "#253165",
+        "grid": "rgba(84, 142, 188, 0.3)",
+        "gridMajor": "rgba(84, 142, 188, 0.6)",
+        "newborn": "#cbc737",
+        "alive": "#548ebc",
+        "pulse": "#ffffff",
+        "trace": "#6f5ca4",
+        "selection": "#cbc737",
+        "erase": "#ff7a9c"
+      },
+      "interface": {
+        "bg": "#253165", "fg": "#f4f6ff", "muted": "#b4c0e4",
+        "surface": "#1b2552", "surface2": "#2b3a78", "hover": "#364891",
+        "line": "#548ebc", "lineSoft": "#41599a", "drop": "#00000000",
+        "accent": "#cbc737", "accentFill": "#cbc737", "onAccent": "#253165", "accentSoft": "#3a4572",
+        "danger": "#ff7a9c"
+      },
+      "titleImage": "assets/titre-nuit.png",
+      "backgroundImage": "assets/fond-nuit.png"
+    },
+    "day": {
+      "colors": {
+        "background": "#ffffff",
+        "grid": "rgba(37, 49, 101, 0.22)",
+        "gridMajor": "rgba(37, 49, 101, 0.5)",
+        "newborn": "#548ebc",
+        "alive": "#6f5ca4",
+        "pulse": "#253165",
+        "trace": "#d3cce8",
+        "selection": "#253165",
+        "erase": "#d6336c"
+      },
+      "interface": {
+        "bg": "#ffffff", "fg": "#253165", "muted": "#58628f",
+        "surface": "#ffffff", "surface2": "#eef2f8", "hover": "#dfe8f4",
+        "line": "#253165", "lineSoft": "#aebbd6", "drop": "#00000000",
+        "accent": "#253165", "accentFill": "#253165", "onAccent": "#ffffff", "accentSoft": "#dfe8f4",
+        "danger": "#c4204f"
+      },
+      "titleImage": "assets/titre-jour.png",
+      "backgroundImage": "assets/fond-jour.png"
+    }
+  }
+}

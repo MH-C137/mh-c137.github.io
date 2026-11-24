@@ -1,14 +1,19 @@
 /*
  * ============================================================================
- *  styles.css — Apparence de l'interface : arcade pixel
+ *  styles.css — Structure et style de l'interface
  * ============================================================================
  *
- * Le style en trois règles :
+ * Ce fichier décrit la STRUCTURE de l'interface ; l'APPARENCE (couleurs, police, épaisseur des
+ * contours, taille du texte, cadres) vient de la DA active, dans src/da/<nom>/da.json (voir
+ * docs/DA.md). Elle arrive ici sous forme de variables CSS posées sur <body> par src/da/runtime.ts.
+ * Les valeurs écrites plus bas ne sont que des valeurs de secours.
+ *
+ * Règles communes à toutes les DA :
  *   1. AUCUN arrondi. Tous les coins sont carrés (pas de border-radius).
- *   2. Les cadres sont faits de gros « pixels » : un contour épais dont les
- *      coins sont coupés en marche d'escalier, plus une ombre dure décalée
- *      (voir --notch-* : c'est 4 ombres qui forment le cadre, sans arrondi).
- *   3. Une seule police, pixel (Jersey 10), en minuscules normales, assez grande pour être lue sans effort.
+ *   2. Les cadres utilisent --notch-* (contour) et --drop-shadow (ombre) : en escalier + ombre
+ *      dure pour une DA « pixel » (data-frame="notched"), simple contour fin pour une DA
+ *      « plate » (data-frame="flat").
+ *   3. Les tailles de texte sont multipliées par --text-scale (réglé par la DA).
  *
  * Les couleurs sont des VARIABLES CSS (--bg, --accent…) définies pour chaque
  * thème. <body data-theme="night"> ou "day" choisit le jeu de variables : tout
@@ -17,20 +22,13 @@
  * de src/render/theme.ts : une seule source de vérité.
  */
 
-/* Jersey 10 : police pixel choisie pour sa lisibilité (parenthèses et accents nets).
-   Elle n'existe qu'en un seul poids, déjà assez gras : pas de gras « artificiel ». */
-@font-face {
-  font-family: 'Jersey 10';
-  font-weight: 400;
-  font-style: normal;
-  font-display: swap;
-  src: url('./assets/fonts/jersey-10-latin-400-normal.woff2') format('woff2');
-}
-
 :root {
-  --font: 'Jersey 10', ui-monospace, 'SFMono-Regular', Menlo, Consolas, monospace;
-  /* Un « gros pixel » : l'épaisseur des contours. */
-  --px: 3px;
+  /* Police, épaisseur des contours, taille du texte… : posées par la DA active (src/da/runtime.ts) ; ces valeurs ne servent que de secours. */
+  --font: ui-monospace, 'SFMono-Regular', Menlo, Consolas, monospace;
+  --text-scale: 1;
+  --bar-h: 46px; /* hauteur de la barre de titre (plus haute quand le titre est une image) */
+  /* L'épaisseur des contours (un « gros pixel » en DA pixel). */
+  --px: var(--da-px, 3px);
   --gap: 14px;
 }
 
@@ -79,7 +77,18 @@ body {
     calc(var(--px) * -1) 0 0 0 var(--line-soft), var(--px) 0 0 0 var(--line-soft);
   --notch-accent: 0 calc(var(--px) * -1) 0 0 var(--accent), 0 var(--px) 0 0 var(--accent),
     calc(var(--px) * -1) 0 0 0 var(--accent), var(--px) 0 0 0 var(--accent);
+  --notch-danger: 0 calc(var(--px) * -1) 0 0 var(--danger), 0 var(--px) 0 0 var(--danger),
+    calc(var(--px) * -1) 0 0 0 var(--danger), var(--px) 0 0 0 var(--danger);
   --drop-shadow: calc(var(--px) * 3) calc(var(--px) * 3) 0 0 var(--drop);
+}
+
+/* DA à cadres PLATS (ex. Nova) : un simple contour fin, sans coins en escalier ni ombre dure. */
+body[data-frame='flat'] {
+  --notch-line: 0 0 0 var(--px) var(--line);
+  --notch-soft: 0 0 0 var(--px) var(--line-soft);
+  --notch-accent: 0 0 0 var(--px) var(--accent);
+  --notch-danger: 0 0 0 var(--px) var(--danger);
+  --drop-shadow: 0 0 0 0 transparent;
 }
 
 /* ── Bases ─────────────────────────────────────────────────────────────── */
@@ -103,12 +112,17 @@ body {
   background: var(--bg);
   color: var(--fg);
   font-family: var(--font);
-  font-size: 24px;
+  font-size: calc(24px * var(--text-scale));
   line-height: 1.25;
   font-synthesis: none;
-  -webkit-font-smoothing: none; /* contours nets : pas de lissage sur la police pixel */
+  -webkit-font-smoothing: antialiased;
   user-select: none;
   -webkit-user-select: none;
+}
+
+/* DA pixel (cadres en escalier) : contours nets, pas de lissage sur la police pixel. */
+body[data-frame='notched'] {
+  -webkit-font-smoothing: none;
 }
 
 button {
@@ -246,8 +260,7 @@ svg {
 }
 
 .text-btn.danger:hover {
-  box-shadow: 0 calc(var(--px) * -1) 0 0 var(--danger), 0 var(--px) 0 0 var(--danger),
-    calc(var(--px) * -1) 0 0 0 var(--danger), var(--px) 0 0 0 var(--danger);
+  box-shadow: var(--notch-danger);
 }
 
 .text-btn.danger[data-armed='true'] {
@@ -368,7 +381,7 @@ body[data-theme='day'] .icon-sun {
   position: fixed;
   top: var(--gap);
   left: calc(var(--gap) + var(--px) + 46px + var(--gap));
-  height: 46px;
+  min-height: var(--bar-h);
   display: flex;
   align-items: center;
   gap: 24px;
@@ -377,9 +390,25 @@ body[data-theme='day'] .icon-sun {
 
 .title-bar h1 {
   margin: 0;
-  font-size: 36px;
+  font-size: calc(36px * var(--text-scale));
   white-space: nowrap;
   color: var(--accent);
+}
+
+/* Titre en image (DA qui en fournit une) : le texte reste pour les lecteurs d'écran, mais se cache. */
+.title-image {
+  display: block;
+  height: var(--title-height, 46px);
+  width: auto;
+}
+
+body[data-title='image'] .title-text {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
 }
 
 .legend {
@@ -422,6 +451,20 @@ body[data-theme='day'] .icon-sun {
   background: var(--cell-dead);
   outline: 2px solid var(--line-soft);
   outline-offset: -2px;
+}
+
+/* DA à cellules en icône (étoiles…) : les carrés de la légende et du didacticiel prennent la même forme. */
+body[data-cell-shape='icon'] .swatch {
+  width: 18px;
+  height: 18px;
+  outline: none;
+  -webkit-mask: var(--cell-icon) center / contain no-repeat;
+  mask: var(--cell-icon) center / contain no-repeat;
+}
+
+body[data-cell-shape='icon'] .swatch-dead {
+  background: var(--line-soft);
+  opacity: 0.4;
 }
 
 /* ── À gauche : barre d'outils ─────────────────────────────────────────── */
@@ -630,7 +673,7 @@ input[type='color']::-moz-color-swatch {
   padding: 3px 9px;
   background: var(--surface);
   box-shadow: var(--notch-soft);
-  font-size: 22px;
+  font-size: calc(22px * var(--text-scale));
   line-height: 1.3;
   pointer-events: none;
 }
@@ -655,7 +698,7 @@ input[type='color']::-moz-color-swatch {
 
 .tour h2 {
   margin: 24px 0 8px;
-  font-size: 32px;
+  font-size: calc(32px * var(--text-scale));
   color: var(--accent);
 }
 
@@ -808,7 +851,7 @@ input[type='color']::-moz-color-swatch {
 }
 
 .transport-btn span {
-  font-size: 20px;
+  font-size: calc(20px * var(--text-scale));
   line-height: 1;
   color: var(--muted);
 }
@@ -850,14 +893,14 @@ input[type='color']::-moz-color-swatch {
 }
 
 .counters dt {
-  font-size: 20px;
+  font-size: calc(20px * var(--text-scale));
   color: var(--muted);
 }
 
 .counters dd {
   min-width: 5ch;
   margin: 0;
-  font-size: 34px;
+  font-size: calc(34px * var(--text-scale));
   font-variant-numeric: tabular-nums;
 }
 
@@ -865,7 +908,7 @@ input[type='color']::-moz-color-swatch {
 
 .library {
   position: fixed;
-  top: calc(var(--gap) + 62px);
+  top: calc(var(--gap) + var(--bar-h) + 16px);
   right: calc(var(--gap) + var(--px));
   width: 272px;
   max-height: calc(100% - 62px - 130px - 2 * var(--gap));
@@ -883,7 +926,7 @@ input[type='color']::-moz-color-swatch {
 
 .library h2 {
   margin: 0;
-  font-size: 30px;
+  font-size: calc(30px * var(--text-scale));
   color: var(--accent);
 }
 
@@ -910,7 +953,7 @@ input[type='color']::-moz-color-swatch {
 
 .hint {
   margin: 0 0 10px;
-  font-size: 22px;
+  font-size: calc(22px * var(--text-scale));
   line-height: 1.4;
   color: var(--muted);
 }
@@ -920,13 +963,13 @@ kbd {
   background: var(--surface-2);
   box-shadow: var(--notch-soft);
   font-family: inherit;
-  font-size: 20px;
+  font-size: calc(20px * var(--text-scale));
 }
 
 #pattern-list h3,
 .library-body h3 {
   margin: 16px 0 8px;
-  font-size: 22px;
+  font-size: calc(22px * var(--text-scale));
   color: var(--muted);
 }
 
@@ -963,7 +1006,7 @@ kbd {
 }
 
 .pattern-name {
-  font-size: 22px;
+  font-size: calc(22px * var(--text-scale));
   line-height: 1.2;
   text-align: center;
 }
@@ -1017,7 +1060,7 @@ kbd {
 
 .action-bar {
   position: fixed;
-  top: calc(var(--gap) + 70px);
+  top: calc(var(--gap) + var(--bar-h) + 24px);
   left: 50%;
   transform: translateX(-50%);
   width: max-content; /* sans ça, la barre est limitée à la moitié de l'écran à cause de left: 50% */
@@ -1106,15 +1149,15 @@ body.is-file-over #world {
 @media (max-width: 560px) {
   :root {
     --gap: 10px;
-    --px: 2px;
+    --px: min(var(--da-px, 3px), 2px);
   }
 
   .title-bar h1 {
-    font-size: 32px;
+    font-size: calc(32px * var(--text-scale));
   }
 
   .counters dd {
-    font-size: 30px;
+    font-size: calc(30px * var(--text-scale));
   }
 
   .library {
