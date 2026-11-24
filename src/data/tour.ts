@@ -132,8 +132,8 @@ export const TOUR_STEPS: readonly TourStep[] = [
   },
   {
     title: 'Explore les différentes possibilités',
-    intro: 'Le jeu de la vie est à toi ! Essaie toutes les possibilités, dessine tes structures, suis leur évolution et sauvegarde-les.',
-    outro: 'Le plus important : amuse-toi !',
+    intro: 'Le jeu de la vie, je vous le laisse si vous voulez... Essayez toutes les possibilités, dessinez vos structures, suivez leur évolution et sauvegardez-les.',
+    outro: 'Le plus important, amusez-vous !',
     target: null,
   },
 ];

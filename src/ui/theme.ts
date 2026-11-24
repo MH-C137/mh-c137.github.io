@@ -3,7 +3,8 @@
  *  ui/theme.ts — Bascule mode nuit / mode jour
  * ============================================================================
  *
- * Appliquer un thème, c'est :
+ * Les couleurs viennent de la DA active (src/da/, voir docs/DA.md) : chaque DA décrit ses
+ * deux thèmes. Appliquer un thème, c'est :
  *   1. donner la palette au renderer (couleurs de la grille) ;
  *   2. écrire les couleurs des cellules dans des variables CSS (--cell-newborn…),
  *      pour que la légende de l'interface utilise EXACTEMENT les mêmes ;
@@ -18,7 +19,8 @@
 
 import { Emitter } from '../core/events';
 import type { Renderer } from '../render/renderer';
-import { applyCustomColors, PALETTES, type CustomColors, type Palette, type ThemeName } from '../render/theme';
+import type { DesignRuntime } from '../da/runtime';
+import { applyCustomColors, type CustomColors, type Palette, type ThemeName } from '../render/theme';
 
 const STORAGE_KEY = 'jeu-de-la-vie:theme';
 const COLORS_KEY = 'jeu-de-la-vie:couleurs';
@@ -28,9 +30,13 @@ export class ThemeManager extends Emitter<{ change: ThemeName }> {
   /** Couleurs choisies, pour chaque thème. */
   private custom: Record<ThemeName, CustomColors> = { night: {}, day: {} };
 
-  constructor(private readonly renderer: Renderer) {
+  constructor(
+    private readonly renderer: Renderer,
+    /** La DA : donne les palettes des deux thèmes (voir src/da/). */
+    private readonly design: DesignRuntime,
+  ) {
     super();
-    this.current = readSavedTheme() ?? 'night';
+    this.current = readSavedTheme() ?? design.design.pack.defaultTheme;
     this.custom = readSavedColors();
     this.apply();
   }
@@ -41,7 +47,7 @@ export class ThemeManager extends Emitter<{ change: ThemeName }> {
 
   /** Palette utilisée en ce moment : celle du thème, avec les couleurs choisies. */
   get palette(): Palette {
-    return applyCustomColors(PALETTES[this.current], this.custom[this.current], this.current);
+    return applyCustomColors(this.design.palette(this.current), this.custom[this.current], this.current);
   }
 
   /** Vrai si au moins une couleur a été changée pour le thème actuel. */
@@ -90,6 +96,7 @@ export class ThemeManager extends Emitter<{ change: ThemeName }> {
     style.setProperty('--cell-trace', palette.trace);
     style.setProperty('--cell-dead', palette.background);
     document.body.dataset.theme = this.current;
+    this.design.applyTheme(this.current); // couleurs de l'interface, titre et fond de la DA
     this.emit('change', this.current);
   }
 }

@@ -40,11 +40,13 @@ Le site est **statique** : pas de serveur, pas de base de données. Plusieurs fa
 
 ## Crédits
 
-Les structures énormes (`src/data/rle/*.rle`) viennent de la collection de motifs de **LifeWiki / conwaylife.com** (Breeder 1 : Bill Gosper ; Cordership à 10 moteurs : Dean Hickerson ; Spacefiller 1 : David Bell). Le nom des auteurs est dans les commentaires de chaque fichier. Police **Jersey 10** (licence OFL, dans `src/assets/fonts/`).
+Les structures énormes (`src/data/rle/*.rle`) viennent de la collection de motifs de **LifeWiki / conwaylife.com** (Breeder 1 : Bill Gosper ; Cordership à 10 moteurs : Dean Hickerson ; Spacefiller 1 : David Bell). Le nom des auteurs est dans les commentaires de chaque fichier. Polices **Jersey 10** (DA pixel) et **Space Grotesk** (DA Nova), licence OFL, dans les dossiers `assets/fonts/` des DA. Images de la DA Nova : équipe artistique (dossier `DOSSIER RESSOURCES/`).
 
-## Style
+## Style et DA (direction artistique)
 
-Le site est en **arcade pixel** : coins carrés partout, cadres en escalier, icônes en pixel art, police Jersey 10 (embarquée, licence OFL, dans `src/assets/fonts/`). Les règles sont dans `DESIGN.md`. Pour redonner des coins arrondis aux cellules, il suffit de changer `CORNER_RATIO` dans `src/render/images.ts`.
+Tout ce qui touche à l'apparence est regroupé dans une **DA** : un dossier `src/da/<nom>/` avec un fichier `da.json` (couleurs, polices, forme des cellules, quadrillage, fond, titre) et ses images. **Changer de DA = changer un mot** dans `src/da/active.ts` (`'nova'` : la DA de l'équipe artistique, étoiles et quadrillage à croix ; `'pixel'` : la DA d'origine), ou ajouter `?da=pixel` à l'adresse pour essayer. Mode d'emploi complet pour les artistes : [`docs/DA.md`](docs/DA.md).
+
+La DA d'origine est en **arcade pixel** : coins carrés partout, cadres en escalier, icônes en pixel art, police Jersey 10 (embarquée, licence OFL, dans `src/da/pixel/assets/fonts/`). Les règles sont dans `DESIGN.md`. Pour redonner des coins arrondis aux cellules, il suffit de changer `CORNER_RATIO` dans `src/render/images.ts`.
 
 ## Ce qu'on peut faire
 
@@ -118,6 +120,7 @@ src/
 │   ├── patterns.ts      Structures célèbres (au format RLE) + « Mes structures »
 │   ├── rle/             Fichiers .rle des structures énormes (LifeWiki / conwaylife.com)
 │   └── tour.ts          Les étapes du didacticiel
+├── da/                  Directions artistiques : un dossier par DA (da.json + assets), active.ts, schéma, application
 ├── ui/                  Interface (boutons, panneaux, clavier, menu Options, didacticiel, infobulles)
 └── styles.css           Apparence
 tests/                   Tests automatiques (Vitest)

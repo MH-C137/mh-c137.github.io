@@ -1,4 +1,6 @@
-# Design — Arcade pixel
+# Design — décrit la DA « pixel » (la DA d'origine)
+
+> L'apparence est maintenant pilotée par des **DA** interchangeables (`src/da/`, voir `docs/DA.md`). Ce document décrit la DA `pixel`.
 
 Décrit l'interface livrée (voir `src/styles.css`, `src/render/theme.ts`, `index.html`).
 
@@ -10,7 +12,7 @@ Console d'arcade sobre. Aucun arrondi nulle part (interface, cellules, images, m
 - Interface : `--surface`, `--surface-2`, `--line`, `--line-soft`, `--accent`, `--accent-fill` (fond d'un bouton actif) et `--on-accent`, `--danger`, `--drop` (ombre dure).
 
 ## Typographie
-Jersey 10 (un seul poids ; choisie pour des parenthèses et des accents bien lisibles), embarquée dans `src/assets/fonts/` (licence OFL). Minuscules normales : pas de capitales espacées. Titre 36 px, titres de panneau 30 px, texte 24 px, aide 22 px, petits libellés 20 px (la police est dessinée sur une grille de 10 px : on garde des tailles paires). Chiffres à chasse fixe.
+Jersey 10 (un seul poids ; choisie pour des parenthèses et des accents bien lisibles), embarquée dans `src/da/pixel/assets/fonts/` (licence OFL). Minuscules normales : pas de capitales espacées. Titre 36 px, titres de panneau 30 px, texte 24 px, aide 22 px, petits libellés 20 px (la police est dessinée sur une grille de 10 px : on garde des tailles paires). Chiffres à chasse fixe.
 
 ## Cadres et boutons
 - Cadre = contour épais aux coins en escalier, fait de 4 ombres pleines (`--notch-line`, `--notch-soft`, `--notch-accent`) + ombre dure décalée (`--drop-shadow`).
