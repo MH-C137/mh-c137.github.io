@@ -211,3 +211,45 @@ describe('Structures énormes', () => {
     expect(moved).toBeDefined();
   });
 });
+
+// ── Le reflet : mort depuis deux générations ────────────────────────────────
+describe('Trace et reflet', () => {
+  /** Positions (x,y) listées par un parcours du monde. */
+  const list = (visit: (cb: (x: number, y: number) => void) => void) => {
+    const out: string[] = [];
+    visit((x, y) => out.push(`${x},${y}`));
+    return out;
+  };
+
+  it('une cellule isolée : vivante → trace → reflet → plus rien', () => {
+    const world = new World();
+    world.setCell(5, 5, true, 0);
+    world.step(); // meurt de solitude : trace
+    expect(list((cb) => world.forEachTrace(cb))).toEqual(['5,5']);
+    expect(list((cb) => world.forEachFade(cb))).toEqual([]);
+    world.step(); // la trace devient le reflet
+    expect(list((cb) => world.forEachTrace(cb))).toEqual([]);
+    expect(list((cb) => world.forEachFade(cb))).toEqual(['5,5']);
+    world.step(); // plus rien
+    expect(list((cb) => world.forEachFade(cb))).toEqual([]);
+  });
+
+  it('reculer dans le temps (photo) restaure aussi le reflet', () => {
+    const world = new World();
+    world.setCell(0, 0, true, 0);
+    world.step();
+    world.step();
+    const photo = world.snapshot();
+    world.step();
+    world.restore(photo);
+    expect(list((cb) => world.forEachFade(cb))).toEqual(['0,0']);
+  });
+
+  it('une photo ancienne (sans reflet) se restaure sans erreur', () => {
+    const world = new World();
+    world.setCell(0, 0, true, 0);
+    const { generation, keys, ages, skins, trace } = world.snapshot();
+    world.restore({ generation, keys, ages, skins, trace }); // pas de champ « fade »
+    expect(world.population).toBe(1);
+  });
+});

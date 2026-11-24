@@ -231,6 +231,22 @@ L'épaisseur `n` fait poser un carré de `n × n` cases à chaque position du tr
 
 On ne choisit que deux couleurs : « née » et « vivante ». Le reste se **déduit** : `mixColors(a, b, t)` mélange deux couleurs canal par canal (`a × (1 − t) + b × t`). Clignotement = couleur vivante mélangée à 55 % de blanc (nuit) ou 45 % de noir (jour) ; trace = couleur vivante mélangée à 80 % de fond. Les choix sont gardés séparément pour chaque thème et relus avec vérification du format `#rrggbb` (le stockage du navigateur peut contenir n'importe quoi).
 
+## 10 septies. Une constellation quasi infinie — `src/render/constellation.ts`
+
+Le fond d'étoiles de la DA Nova n'est pas une image : il est **généré**. `scatterStars(taille, densité, graine)` place les étoiles d'une tuile carrée : on tire 7 à 10 **centres d'amas**, 80 % des étoiles sont tirées autour d'un centre (écart « en cloche » = somme de 3 tirages − 1,5), 20 % partout ; les tailles suivent une répartition (72 % de poussière, 24 % d'étoiles moyennes, 4 % de grosses). Le hasard est un générateur à **graine** (mulberry32) : même graine, même ciel à chaque visite, et c'est testable. **Pas de couture** : une étoile qui dépasse d'un bord est redessinée de l'autre côté (`wrappedPositions`), comme sur un tore. **Infini** : la tuile est posée en mosaïque, avec **deux couches de périodes différentes** (1 400 px et 1 030 px) dont les motifs ne retombent ensemble que très rarement, et un **parallaxe** : le fond suit le déplacement de la grille à 30 % (la couche lointaine à 55 % de cela). Les tuiles sont dessinées en demi-résolution : en les agrandissant, le navigateur les adoucit, ce qui donne un fond « flou » donc lointain, sans filtre (le flou de canvas n'existe pas sur tous les Safari).
+
+## 10 octies. La vitre — `Renderer.drawGlass()`
+
+Pour qu'on ne confonde jamais le fond avec la grille ou les cellules : après le fond et AVANT la grille, on pose une teinte translucide (`colors.glass`, ex. bleu nuit à 62 %) et un très léger reflet en diagonale (dégradé blanc presque transparent). Le fond est estompé et paraît loin ; la grille et les cellules, nettes et opaques, paraissent au premier plan, « derrière la vitre » le ciel. Ordre de dessin : fond → vitre → grille → cellules.
+
+## 10 nonies. Étoiles avec contour, étoiles vides — `src/render/sprites.ts`
+
+Trois techniques sur la silhouette de l'icône : **teinter** (`source-in` : ne colore que ce qui est déjà dessiné) ; **contour** (on dessine la silhouette 16 fois, décalée en cercle de `r` pixels : elle « grossit » de `r` ; on dessine l'icône normale par-dessus : il reste un liseré) ; **creux** (même épaississement, puis `destination-out` efface la silhouette d'origine : il ne reste que le liseré). Le clignotement peut ajouter un **halo** : une copie plus large à 35 % d'opacité. Chaque état est dessiné UNE fois dans une petite image, puis recopié (`drawImage`) pour chaque cellule.
+
+## 3 bis. Le reflet — `World.fade`
+
+En plus de la trace (cellules qui viennent de mourir), le monde mémorise celles qui sont **mortes depuis deux générations** : à chaque génération, `fade` = les cellules de l'ancienne trace qui sont toujours mortes (une cellule de la trace qui renaît ne s'éteint pas : elle vit). Aucun effet sur les règles. Les photos (`WorldSnapshot`) gardent le reflet dans un champ facultatif `fade` : les photos plus anciennes, sans ce champ, restent lisibles. Tests : une cellule isolée passe de vivante à trace, puis reflet, puis plus rien ; reculer dans le temps restaure le reflet.
+
 ## 11. Le format RLE — `src/core/rle.ts`
 
 RLE (*Run Length Encoding*, codage par plages) est le format standard de la communauté (Golly, LifeWiki) :

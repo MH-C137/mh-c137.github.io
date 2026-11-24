@@ -8,6 +8,7 @@ import { EditHistory } from '../src/core/edithistory';
 import { strokeAllows } from '../src/core/strokes';
 import { isPulseAge, PULSE_PERIOD, World } from '../src/core/world';
 import { TOUR_STEPS } from '../src/data/tour';
+import { scatterStars, seededRandom, wrappedPositions } from '../src/render/constellation';
 import { applyCustomColors, mixColors, PALETTES } from '../src/render/theme';
 import { placePopup } from '../src/ui/placement';
 
@@ -198,5 +199,47 @@ describe('Couleurs personnalisées', () => {
     expect(palette.alive).toBe('#ff8000');
     expect(palette.pulse).not.toBe(PALETTES.night.pulse);
     expect(palette.newborn).toBe(PALETTES.night.newborn);
+  });
+});
+
+// ── Constellation (fond d'étoiles) ──────────────────────────────────────────
+describe('Constellation', () => {
+  it('le même hasard donne toujours le même fond', () => {
+    expect(scatterStars(500, 1, 42)).toEqual(scatterStars(500, 1, 42));
+    expect(scatterStars(500, 1, 42)).not.toEqual(scatterStars(500, 1, 43));
+    const random = seededRandom(7);
+    const values = Array.from({ length: 1000 }, random);
+    expect(values.every((v) => v >= 0 && v < 1)).toBe(true);
+  });
+
+  it('toutes les étoiles sont dans la tuile', () => {
+    for (const star of scatterStars(800, 1.5, 5)) {
+      expect(star.x).toBeGreaterThanOrEqual(0);
+      expect(star.x).toBeLessThan(800);
+      expect(star.y).toBeGreaterThanOrEqual(0);
+      expect(star.y).toBeLessThan(800);
+    }
+  });
+
+  it('la densité règle la quantité d\'étoiles', () => {
+    const normal = scatterStars(1000, 1, 1).length;
+    expect(normal).toBe(625); // 1000² / 1600
+    expect(scatterStars(1000, 2, 1).length).toBe(1250);
+  });
+
+  it('beaucoup de poussière, peu de grosses étoiles', () => {
+    const stars = scatterStars(1400, 1, 7919);
+    const big = stars.filter((s) => s.radius >= 11).length;
+    const dust = stars.filter((s) => s.radius < 2.5).length;
+    expect(dust).toBeGreaterThan(stars.length * 0.6);
+    expect(big).toBeGreaterThan(0);
+    expect(big).toBeLessThan(stars.length * 0.08);
+  });
+
+  it('une étoile au bord est recollée de l\'autre côté (pas de couture)', () => {
+    const star = { x: 5, y: 500, radius: 10, angle: 0, alpha: 1 };
+    expect(wrappedPositions(star, 1000)).toEqual([[5, 500], [1005, 500]]);
+    expect(wrappedPositions({ x: 500, y: 500, radius: 10, angle: 0, alpha: 1 }, 1000)).toEqual([[500, 500]]);
+    expect(wrappedPositions({ x: 995, y: 4, radius: 10, angle: 0, alpha: 1 }, 1000).length).toBe(4); // dans un coin : 4 copies
   });
 });

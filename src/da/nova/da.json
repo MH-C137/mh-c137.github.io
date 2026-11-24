@@ -1,72 +1,122 @@
 {
   "name": "Nova",
-  "description": "La DA de l'équipe artistique : palette bleu clair / jaune / bleu nuit / violet, cellules en étoiles, quadrillage à croix, fond d'étoiles, titre « Nova ».",
-  "defaultTheme": "day",
-
+  "description": "La DA de l'équipe artistique : cellules en étoiles (jaune = naît, blanc = vit, violet = meurt), quadrillage à croix posé comme une vitre devant une constellation quasi infinie, interface blanche à détails violets, titre jaune.",
+  "defaultTheme": "night",
   "fonts": [
-    { "family": "Space Grotesk", "file": "assets/fonts/space-grotesk-latin-400-normal.woff2", "weight": "400" },
-    { "family": "Space Grotesk", "file": "assets/fonts/space-grotesk-latin-700-normal.woff2", "weight": "700" }
+    {
+      "family": "Space Grotesk",
+      "file": "assets/fonts/space-grotesk-latin-400-normal.woff2",
+      "weight": "400"
+    },
+    {
+      "family": "Space Grotesk",
+      "file": "assets/fonts/space-grotesk-latin-700-normal.woff2",
+      "weight": "700"
+    }
   ],
-
   "ui": {
     "fontFamily": "'Space Grotesk', system-ui, 'Segoe UI', Helvetica, Arial, sans-serif",
     "textScale": 0.68,
     "frame": "flat",
     "borderWidth": 2
   },
-
-  "title": { "text": "Nova : comprendre le « Jeu de la vie »", "imageHeight": 72 },
-
-  "cells": { "icon": "assets/etoile.png", "scale": 1, "iconMinZoom": 6 },
-
-  "grid": { "style": "crosses" },
-
-  "background": { "opacity": 0.3 },
-
+  "title": {
+    "text": "Nova : comprendre le « Jeu de la vie »",
+    "imageHeight": 72
+  },
+  "cells": {
+    "icon": "assets/etoile.png",
+    "scale": 1,
+    "iconMinZoom": 6,
+    "outlineWidth": 0.05,
+    "fadeTrail": true,
+    "pulseHalo": true
+  },
+  "grid": {
+    "style": "crosses"
+  },
+  "background": {
+    "style": "constellation",
+    "opacity": 1,
+    "density": 1,
+    "parallax": 0.3
+  },
   "themes": {
     "night": {
       "colors": {
         "background": "#253165",
-        "grid": "rgba(84, 142, 188, 0.3)",
-        "gridMajor": "rgba(84, 142, 188, 0.6)",
+        "grid": "rgba(255, 255, 255, 0.2)",
+        "gridMajor": "rgba(255, 255, 255, 0.46)",
         "newborn": "#cbc737",
-        "alive": "#548ebc",
+        "alive": "#eef2fb",
         "pulse": "#ffffff",
-        "trace": "#6f5ca4",
+        "trace": "#8f7bd0",
         "selection": "#cbc737",
-        "erase": "#ff7a9c"
+        "erase": "#ff7a9c",
+        "fade": "#8f7bd0",
+        "outline": "#253165",
+        "glass": "rgba(37, 49, 101, 0.62)",
+        "stars": "#dfe8ff"
       },
       "interface": {
-        "bg": "#253165", "fg": "#f4f6ff", "muted": "#b4c0e4",
-        "surface": "#1b2552", "surface2": "#2b3a78", "hover": "#364891",
-        "line": "#548ebc", "lineSoft": "#41599a", "drop": "#00000000",
-        "accent": "#cbc737", "accentFill": "#cbc737", "onAccent": "#253165", "accentSoft": "#3a4572",
-        "danger": "#ff7a9c"
+        "bg": "#253165",
+        "fg": "#253165",
+        "muted": "#5d6690",
+        "surface": "#ffffff",
+        "surface2": "#eef1f8",
+        "hover": "#e2e6f3",
+        "line": "#6f5ca4",
+        "lineSoft": "#c6c0df",
+        "drop": "#00000000",
+        "accent": "#6f5ca4",
+        "accentFill": "#6f5ca4",
+        "onAccent": "#ffffff",
+        "accentSoft": "#e9e5f5",
+        "danger": "#c4204f",
+        "titleBg": "#253165",
+        "titleFg": "#ffffff",
+        "titleLine": "#6f5ca4"
       },
       "titleImage": "assets/titre-nuit.png",
-      "backgroundImage": "assets/fond-nuit.png"
+      "backgroundImage": null
     },
     "day": {
       "colors": {
         "background": "#ffffff",
-        "grid": "rgba(37, 49, 101, 0.22)",
-        "gridMajor": "rgba(37, 49, 101, 0.5)",
-        "newborn": "#548ebc",
-        "alive": "#6f5ca4",
-        "pulse": "#253165",
-        "trace": "#d3cce8",
-        "selection": "#253165",
-        "erase": "#d6336c"
+        "grid": "rgba(37, 49, 101, 0.2)",
+        "gridMajor": "rgba(37, 49, 101, 0.44)",
+        "newborn": "#cbc737",
+        "alive": "#253165",
+        "pulse": "#548ebc",
+        "trace": "#6f5ca4",
+        "selection": "#6f5ca4",
+        "erase": "#d6336c",
+        "fade": "#6f5ca4",
+        "outline": "#253165",
+        "glass": "rgba(255, 255, 255, 0.64)",
+        "stars": "#548ebc"
       },
       "interface": {
-        "bg": "#ffffff", "fg": "#253165", "muted": "#58628f",
-        "surface": "#ffffff", "surface2": "#eef2f8", "hover": "#dfe8f4",
-        "line": "#253165", "lineSoft": "#aebbd6", "drop": "#00000000",
-        "accent": "#253165", "accentFill": "#253165", "onAccent": "#ffffff", "accentSoft": "#dfe8f4",
-        "danger": "#c4204f"
+        "bg": "#ffffff",
+        "fg": "#253165",
+        "muted": "#5d6690",
+        "surface": "#ffffff",
+        "surface2": "#eef1f8",
+        "hover": "#e2e6f3",
+        "line": "#6f5ca4",
+        "lineSoft": "#c6c0df",
+        "drop": "#00000000",
+        "accent": "#6f5ca4",
+        "accentFill": "#6f5ca4",
+        "onAccent": "#ffffff",
+        "accentSoft": "#e9e5f5",
+        "danger": "#c4204f",
+        "titleBg": "#253165",
+        "titleFg": "#ffffff",
+        "titleLine": "#6f5ca4"
       },
-      "titleImage": "assets/titre-jour.png",
-      "backgroundImage": "assets/fond-jour.png"
+      "titleImage": "assets/titre-nuit.png",
+      "backgroundImage": null
     }
   }
 }

@@ -15,6 +15,7 @@
  * à styles.css de s'adapter (cadres plats ou en escalier, titre en image ou en texte…).
  */
 
+import { Constellation } from '../render/constellation';
 import type { Renderer } from '../render/renderer';
 import type { Palette, ThemeName } from '../render/theme';
 import type { LoadedDesign } from './registry';
@@ -27,6 +28,10 @@ function cssVariable(key: string): string {
 
 export class DesignRuntime {
   private readonly images = new Map<string, Promise<HTMLImageElement | null>>();
+  /** Le fond d'étoiles (DA « constellation »), créé quand l'icône des cellules est chargée. */
+  private constellation: Constellation | null = null;
+  private iconReady = false;
+  private currentTheme: ThemeName | null = null;
 
   constructor(
     readonly design: LoadedDesign,
@@ -93,17 +98,46 @@ export class DesignRuntime {
     // Quadrillage et forme des cellules.
     this.renderer.gridStyle = pack.grid.style;
     this.renderer.backgroundOpacity = pack.background.opacity;
+    this.renderer.backgroundParallax = pack.background.parallax;
+    this.renderer.fadeTrail = pack.cells.fadeTrail;
+    body.dataset.fade = pack.cells.fadeTrail ? 'on' : 'off';
     if (pack.cells.icon) {
       const iconPath = pack.cells.icon;
       const url = this.design.url(iconPath);
       if (url) body.style.setProperty('--cell-icon', `url("${url}")`);
       void this.loadImage(iconPath).then((image) => {
-        this.renderer.setCellIcon(image, pack.cells.scale, pack.cells.iconMinZoom);
+        this.renderer.setCellIcon(image, pack.cells.scale, pack.cells.iconMinZoom, {
+          outlineWidth: pack.cells.outlineWidth,
+          pulseHalo: pack.cells.pulseHalo,
+        });
+        this.icon = image;
+        this.iconReady = true;
+        this.refreshConstellation();
         this.invalidate();
       });
     } else {
       this.renderer.setCellIcon(null, 1, 0);
+      this.iconReady = true;
+      this.refreshConstellation();
     }
+  }
+
+  private icon: HTMLImageElement | null = null;
+
+  /**
+   * (Re)dessine le fond d'étoiles dans la couleur du thème actuel. Les étoiles ont la forme de
+   * l'icône des cellules (donc il faut attendre qu'elle soit chargée).
+   */
+  private refreshConstellation(): void {
+    const { pack } = this.design;
+    if (pack.background.style !== 'constellation' || !this.iconReady || this.currentTheme === null) {
+      this.renderer.constellation = null;
+      return;
+    }
+    this.constellation ??= new Constellation(this.icon, pack.background.density);
+    this.constellation.rebuild(pack.themes[this.currentTheme].cells.stars);
+    this.renderer.constellation = this.constellation;
+    this.invalidate();
   }
 
   /** Ce qui change entre le mode nuit et le mode jour. */
@@ -123,8 +157,14 @@ export class DesignRuntime {
     }
     body.dataset.title = titleUrl ? 'image' : 'text';
 
+    // Fond d'étoiles dessiné par le site (si la DA le demande).
+    this.currentTheme = theme;
+    this.refreshConstellation();
+
     // Image de fond de la grille.
-    if (current.backgroundImage) {
+    if (pack.background.style === 'constellation') {
+      this.renderer.backgroundImage = null;
+    } else if (current.backgroundImage) {
       void this.loadImage(current.backgroundImage).then((loaded) => {
         // La personne a peut-être changé de thème entre-temps : on ne pose que l'image du thème actuel.
         if (body.dataset.theme === theme || body.dataset.theme === undefined) {

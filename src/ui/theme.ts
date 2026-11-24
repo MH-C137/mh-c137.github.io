@@ -94,6 +94,7 @@ export class ThemeManager extends Emitter<{ change: ThemeName }> {
     style.setProperty('--cell-newborn', palette.newborn);
     style.setProperty('--cell-alive', palette.alive);
     style.setProperty('--cell-trace', palette.trace);
+    style.setProperty('--cell-fade', palette.fade);
     style.setProperty('--cell-dead', palette.background);
     document.body.dataset.theme = this.current;
     this.design.applyTheme(this.current); // couleurs de l'interface, titre et fond de la DA

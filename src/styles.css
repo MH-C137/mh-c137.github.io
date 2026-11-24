@@ -77,6 +77,8 @@ body {
     calc(var(--px) * -1) 0 0 0 var(--line-soft), var(--px) 0 0 0 var(--line-soft);
   --notch-accent: 0 calc(var(--px) * -1) 0 0 var(--accent), 0 var(--px) 0 0 var(--accent),
     calc(var(--px) * -1) 0 0 0 var(--accent), var(--px) 0 0 0 var(--accent);
+  --notch-title: 0 calc(var(--px) * -1) 0 0 var(--title-line), 0 var(--px) 0 0 var(--title-line),
+    calc(var(--px) * -1) 0 0 0 var(--title-line), var(--px) 0 0 0 var(--title-line);
   --notch-danger: 0 calc(var(--px) * -1) 0 0 var(--danger), 0 var(--px) 0 0 var(--danger),
     calc(var(--px) * -1) 0 0 0 var(--danger), var(--px) 0 0 0 var(--danger);
   --drop-shadow: calc(var(--px) * 3) calc(var(--px) * 3) 0 0 var(--drop);
@@ -87,6 +89,7 @@ body[data-frame='flat'] {
   --notch-line: 0 0 0 var(--px) var(--line);
   --notch-soft: 0 0 0 var(--px) var(--line-soft);
   --notch-accent: 0 0 0 var(--px) var(--accent);
+  --notch-title: 0 0 0 var(--px) var(--title-line);
   --notch-danger: 0 0 0 var(--px) var(--danger);
   --drop-shadow: 0 0 0 0 transparent;
 }
@@ -378,6 +381,10 @@ body[data-theme='day'] .icon-sun {
 }
 
 .title-bar {
+  /* Le bloc du titre a ses propres couleurs (la DA peut le vouloir sombre avec un titre clair). */
+  background: var(--title-bg, var(--surface));
+  color: var(--title-fg, var(--fg));
+  box-shadow: var(--notch-title), var(--drop-shadow);
   position: fixed;
   top: var(--gap);
   left: calc(var(--gap) + var(--px) + 46px + var(--gap));
@@ -417,7 +424,7 @@ body[data-title='image'] .title-text {
   margin: 0;
   padding: 0;
   list-style: none;
-  color: var(--muted);
+  color: var(--title-fg, var(--muted));
 }
 
 .legend li {
@@ -427,43 +434,94 @@ body[data-title='image'] .title-text {
   white-space: nowrap;
 }
 
+/* Pastille de couleur (légende, didacticiel) : sa couleur est dans --swatch. */
 .swatch {
   display: inline-block;
   width: 12px;
   height: 12px;
+  background: var(--swatch);
 }
 
 .swatch-newborn {
-  background: var(--cell-newborn);
+  --swatch: var(--cell-newborn);
 }
 
 .swatch-alive {
-  background: var(--cell-alive);
+  --swatch: var(--cell-alive);
 }
 
 .swatch-trace {
-  background: var(--cell-trace);
+  --swatch: var(--cell-trace);
   outline: 2px solid var(--line-soft);
+  outline-offset: -2px;
+}
+
+.swatch-fade {
+  --swatch: transparent;
+  outline: 2px solid var(--cell-fade);
   outline-offset: -2px;
 }
 
 .swatch-dead {
-  background: var(--cell-dead);
+  --swatch: var(--cell-dead);
   outline: 2px solid var(--line-soft);
   outline-offset: -2px;
 }
 
-/* DA à cellules en icône (étoiles…) : les carrés de la légende et du didacticiel prennent la même forme. */
+/* « S'éteint » (mort depuis deux générations) : seulement pour les DA qui l'activent. */
+.legend-fade {
+  display: none !important;
+}
+
+body[data-fade='on'] .legend-fade {
+  display: flex !important;
+}
+
+/*
+ * DA à cellules en icône (étoiles…) : les pastilles prennent la même forme. Chaque pastille est
+ * faite de DEUX étoiles empilées : une un peu plus grande à la couleur du texte du bloc (le liseré,
+ * pour qu'une pastille bleu nuit reste visible sur un bloc bleu nuit), puis l'étoile de couleur.
+ * (Un simple filtre ne marcherait pas : le masque en forme d'étoile couperait le liseré.)
+ */
 body[data-cell-shape='icon'] .swatch {
+  position: relative;
   width: 18px;
   height: 18px;
+  background: none;
   outline: none;
+}
+
+body[data-cell-shape='icon'] .swatch::before,
+body[data-cell-shape='icon'] .swatch::after {
+  content: '';
+  position: absolute;
+  inset: 0;
   -webkit-mask: var(--cell-icon) center / contain no-repeat;
   mask: var(--cell-icon) center / contain no-repeat;
 }
 
+body[data-cell-shape='icon'] .swatch::before {
+  background: var(--title-fg, transparent);
+  transform: scale(1.3);
+}
+
+body[data-cell-shape='icon'] .swatch::after {
+  background: var(--swatch);
+}
+
+body[data-cell-shape='icon'] .swatch-fade {
+  --swatch: var(--cell-fade);
+}
+
+body[data-cell-shape='icon'] .swatch-fade {
+  opacity: 0.75;
+}
+
 body[data-cell-shape='icon'] .swatch-dead {
-  background: var(--line-soft);
+  --swatch: var(--line-soft);
+}
+
+body[data-cell-shape='icon'] .swatch-dead {
   opacity: 0.4;
 }
 
