@@ -48,14 +48,31 @@
           <span>Options avancées</span>
           <output id="opt-advanced-state">masquées</output>
         </button>
-        <!-- Visible seulement quand « Options avancées » est activé -->
-        <div id="opt-colors" class="menu-colors" hidden>
-          <span class="menu-colors-title">Couleurs des cellules</span>
-          <label class="color-pick"><input id="color-newborn" type="color" aria-label="Couleur des cellules nées" /><span>Née</span></label>
-          <label class="color-pick"><input id="color-alive" type="color" aria-label="Couleur des cellules vivantes" /><span>Vivante</span></label>
-          <button id="color-reset" class="link-btn" type="button">Remettre</button>
-        </div>
+        <!-- Visible seulement quand « Options avancées » est activé : ouvre le panneau de personnalisation (src/ui/daconfig.ts) -->
+        <button id="opt-da" class="menu-item" type="button" aria-controls="da-config" hidden>
+          <svg viewBox="0 0 12 12" aria-hidden="true"><path d="M1 1h4v4h-4zM7 1h4v4h-4zM1 7h4v4h-4zM7 7h4v4h-4z" /></svg>
+          <span>Config DA : couleurs et styles</span>
+        </button>
       </div>
+      <!-- Panneau « Config DA » : personnaliser couleurs et styles (nuit / jour séparés), voir src/ui/daconfig.ts -->
+      <section id="da-config" class="panel da-config" aria-label="Config DA" hidden>
+        <div class="da-header">
+          <h2>Config DA</h2>
+          <button id="da-close" class="icon-btn small" type="button" aria-label="Fermer la config DA" title="Fermer">
+            <svg viewBox="0 0 12 12" aria-hidden="true"><path d="M1 1h2v1h-2zM9 1h2v1h-2zM2 2h2v1h-2zM8 2h2v1h-2zM3 3h2v1h-2zM7 3h2v1h-2zM4 4h4v1h-4zM5 5h2v2h-2zM4 7h4v1h-4zM3 8h2v1h-2zM7 8h2v1h-2zM2 9h2v1h-2zM8 9h2v1h-2zM1 10h2v1h-2zM9 10h2v1h-2z" /></svg>
+          </button>
+        </div>
+        <div class="da-tabs" role="group" aria-label="Thème à personnaliser">
+          <button id="da-tab-night" class="text-btn" type="button">Mode nuit</button>
+          <button id="da-tab-day" class="text-btn" type="button">Mode jour</button>
+        </div>
+        <div id="da-body" class="da-body"></div>
+        <div class="da-actions">
+          <button id="da-copy" class="text-btn" type="button" title="Copie les réglages au format da.json, pour les garder">Copier la config</button>
+          <button id="da-reset" class="text-btn" type="button">Remettre ce thème</button>
+        </div>
+      </section>
+
       <!-- En haut : titre et légende des 4 couleurs -->
       <header id="title-bar" class="panel title-bar">
         <h1><span id="title-text" class="title-text">Jeu de la vie</span><img id="title-image" class="title-image" alt="" hidden /></h1>
@@ -188,20 +205,22 @@
           <p class="hint">Glisse une structure sur la grille, ou clique dessus puis clique sur la grille. <kbd>R</kbd> pour tourner.</p>
           <div id="pattern-list"></div>
 
-          <h2 class="images-title">Images</h2>
-          <p class="hint">Le crayon et les structures utilisent l'image choisie. Tu peux aussi déposer des images sur la page.</p>
-          <h3 id="alive-images-title" hidden>Image des cellules vivantes</h3>
-          <div id="image-list" class="image-list"></div>
-          <button id="image-add" class="text-btn" type="button">
-            <svg viewBox="0 0 12 12" aria-hidden="true"><path d="M1 1h10v1h-10zM1 2h1v1h-1zM10 2h1v1h-1zM1 3h1v1h-1zM3 3h2v1h-2zM10 3h1v1h-1zM1 4h1v1h-1zM3 4h2v1h-2zM10 4h1v1h-1zM1 5h1v1h-1zM10 5h1v1h-1zM1 6h1v1h-1zM5 6h2v1h-2zM10 6h1v1h-1zM1 7h1v1h-1zM4 7h4v1h-4zM10 7h1v1h-1zM1 8h1v1h-1zM3 8h6v1h-6zM10 8h1v1h-1zM1 9h1v1h-1zM10 9h1v1h-1zM1 10h10v1h-10z" /></svg>
-            <span>Importer des images</span>
-          </button>
-          <input id="image-input" type="file" accept="image/*" multiple hidden />
-          <!-- Options avancées : une image pour les cellules qui viennent de mourir -->
-          <div id="dead-images" hidden>
-            <h3>Image des cellules mortes</h3>
-            <p class="hint">Elle apparaît, un peu transparente, quand une cellule vient de mourir.</p>
-            <div id="dead-image-list" class="image-list"></div>
+          <!-- Options avancées : tout ce qui concerne les images (voir src/ui/library.ts) -->
+          <div id="images-section" hidden>
+            <h2 class="images-title">Images</h2>
+            <p class="hint">Remplace les cellules par tes images : importe-les ou dépose-les sur la page.</p>
+            <h3>Cellules vivantes</h3>
+            <div id="image-list" class="image-list"></div>
+            <button id="image-add" class="text-btn" type="button">
+              <svg viewBox="0 0 12 12" aria-hidden="true"><path d="M1 1h10v1h-10zM1 2h1v1h-1zM10 2h1v1h-1zM1 3h1v1h-1zM3 3h2v1h-2zM10 3h1v1h-1zM1 4h1v1h-1zM3 4h2v1h-2zM10 4h1v1h-1zM1 5h1v1h-1zM10 5h1v1h-1zM1 6h1v1h-1zM5 6h2v1h-2zM10 6h1v1h-1zM1 7h1v1h-1zM4 7h4v1h-4zM10 7h1v1h-1zM1 8h1v1h-1zM3 8h6v1h-6zM10 8h1v1h-1zM1 9h1v1h-1zM10 9h1v1h-1zM1 10h10v1h-10z" /></svg>
+              <span>Importer des images</span>
+            </button>
+            <input id="image-input" type="file" accept="image/*" multiple hidden />
+            <div id="dead-images">
+              <h3>Cellules mortes</h3>
+              <p class="hint">Image affichée quand une cellule vient de mourir.</p>
+              <div id="dead-image-list" class="image-list"></div>
+            </div>
           </div>
         </div>
       </aside>

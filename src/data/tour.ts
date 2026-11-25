@@ -50,7 +50,7 @@ export const TOUR_STEPS: readonly TourStep[] = [
     intro: 'Ici, tu dessines des cellules et tu regardes ce qu\'elles deviennent. Il n\'y a que 3 règles :',
     items: [
       { text: 'Une cellule qui a 2 ou 3 voisines survit.' },
-      { text: 'Une case vide qui a exactement 3 voisines : une cellule naît.' },
+      { text: 'Une case vide qui a exactement 3 voisines : une cellule naît à la prochaine génération.' },
       { text: 'Sinon, la cellule meurt.' },
     ],
     target: null,
@@ -71,10 +71,10 @@ export const TOUR_STEPS: readonly TourStep[] = [
   {
     title: 'Dessiner',
     items: [
-      { label: 'Crayon', text: 'fait naître des cellules. Survole-le pour choisir son épaisseur.' },
+      { label: 'Crayon', text: 'permet de placer des cellules sur la grille. Survole-le pour choisir son épaisseur.' },
       { label: 'Gomme', text: 'les efface. Survole-la pour régler sa taille.' },
       { label: 'Main', text: 'déplace la vue.' },
-      { label: 'Sélection', text: 'entoure une zone à copier.' },
+      { label: 'Sélection', text: 'entoure une zone pour la copier, l\'effacer ou la sauvegarder.' },
     ],
     target: '#toolbar',
     sides: ['right', 'bottom'],
@@ -105,21 +105,10 @@ export const TOUR_STEPS: readonly TourStep[] = [
     title: 'Options et aide',
     items: [
       { label: 'Trois barres', text: 'ouvrent les options : grille, aide, options avancées.' },
-      { label: 'Options avancées', text: 'ajoutent Annuler / Rétablir, des types de trait, des couleurs…' },
+      { label: 'Options avancées', text: 'ajoutent Annuler / Rétablir, des types de trait, des images et la personnalisation du style.' },
     ],
     target: '#menu-toggle',
     sides: ['bottom', 'right'],
-  },
-  {
-    title: 'Images',
-    intro: 'Remplace les cellules par tes propres images :',
-    items: [
-      { label: 'Importer', text: 'des images depuis ton ordinateur (ou dépose-les sur la page).' },
-      { label: 'Clique', text: 'une image pour l\'utiliser avec le crayon et les structures.' },
-    ],
-    target: ['.images-title', '#image-add'],
-    sides: ['left', 'bottom'],
-    scroll: { container: '.library-body', to: 'bottom' },
   },
   {
     title: 'Jour, nuit et interface',

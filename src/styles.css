@@ -695,6 +695,114 @@ input[type='color']::-moz-color-swatch {
   color: var(--accent);
 }
 
+/* ── Panneau « Config DA » : personnalisation des couleurs et des styles ── */
+
+.da-config {
+  position: fixed;
+  left: calc(var(--gap) + var(--px) + 86px);
+  top: calc(var(--gap) + var(--bar-h) + 16px);
+  z-index: 14;
+  width: min(360px, calc(100% - 2 * var(--gap) - 2 * var(--px)));
+  max-height: calc(100% - var(--bar-h) - 130px);
+  display: flex;
+  flex-direction: column;
+}
+
+.da-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 6px 6px 6px 14px;
+  border-bottom: var(--px) solid var(--line);
+}
+
+.da-header h2 {
+  margin: 0;
+  font-size: calc(30px * var(--text-scale));
+  color: var(--accent);
+}
+
+.da-tabs,
+.da-actions {
+  flex: none;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 10px 14px;
+}
+
+.da-tabs .text-btn {
+  flex: 1;
+  justify-content: center;
+}
+
+/* Un bouton « choisi » (onglet, style de quadrillage…) : plein, comme un outil actif. */
+.text-btn[aria-pressed='true'] {
+  background: var(--accent-fill);
+  color: var(--on-accent);
+  box-shadow: var(--notch-accent);
+}
+
+.da-body {
+  flex: 1 1 auto;
+  min-height: 0; /* sans ça, la liste ne rétrécit pas et défile mal dans le panneau */
+  overflow-y: auto;
+  padding: 0 14px 6px;
+}
+
+.da-section {
+  padding: 6px 0;
+  border-top: 1px solid var(--line-soft);
+}
+
+.da-section summary {
+  padding: 4px 0;
+  color: var(--accent);
+  cursor: pointer;
+}
+
+.da-row,
+.da-choice {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 4px 0;
+}
+
+.da-choice-buttons {
+  display: flex;
+  gap: 6px;
+}
+
+.da-choice .text-btn {
+  height: 32px;
+  padding: 0 10px;
+}
+
+.da-slider {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.da-slider input {
+  width: 110px;
+}
+
+.da-slider output {
+  min-width: 4ch;
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+  color: var(--muted);
+}
+
+@media (max-width: 560px) {
+  .da-config {
+    left: var(--gap);
+  }
+}
+
 /* ── Infobulle des boutons : petite et discrète ────────────────────────── */
 
 .tooltip {
@@ -727,40 +835,46 @@ input[type='color']::-moz-color-swatch {
   box-shadow: var(--notch-accent), var(--drop-shadow);
 }
 
+/* Le texte du didacticiel peut être sélectionné et copié (le reste du site ne le peut pas). */
+.tour {
+  user-select: text;
+  -webkit-user-select: text;
+}
+
 .tour h2 {
   margin: 24px 0 8px;
   font-size: calc(32px * var(--text-scale));
   color: var(--accent);
 }
 
-/* La liste du didacticiel : une idée par ligne, avec un carré devant. */
+/* La liste du didacticiel : une idée par ligne. Deux colonnes : l'icône (24 px) puis le texte, centrés
+   l'un par rapport à l'autre ; tous les textes commencent donc au même endroit, avec une puce ou une pastille. */
 .tour-list {
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 8px;
   margin: 0 0 10px;
   padding: 0;
   list-style: none;
 }
 
 .tour-list li {
-  display: flex;
-  align-items: flex-start;
-  gap: 10px;
+  display: grid;
+  grid-template-columns: 24px 1fr;
+  column-gap: 10px;
+  align-items: center;
   line-height: 1.25;
 }
 
-/* Carrés de couleur et puces : alignés sur la première ligne de texte. */
 .tour-list .swatch,
 .tour-list .tour-bullet {
-  margin-top: 6px;
-  width: 14px;
-  height: 14px;
+  justify-self: center;
 }
 
 .tour-bullet {
+  width: 8px;
+  height: 8px;
   background: var(--accent);
-  transform: scale(0.5);
 }
 
 .tour-list b {

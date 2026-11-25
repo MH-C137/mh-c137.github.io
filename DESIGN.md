@@ -28,7 +28,7 @@ Pixel art sur une grille de 12 × 12 (SVG de rectangles, `shape-rendering: crisp
 - **Boutons du haut** : Options (gauche) ; jour / nuit puis œil (droite). L'œil reste visible quand l'interface est masquée.
 - **Outils** : dans l'ordre crayon, gomme, main, sélection (le plus utile en haut, pour des enfants).
 - **Réglages au survol** : crayon (épaisseur, et type de trait en avancé) et gomme (taille) ouvrent un petit panneau à droite de leur icône.
-- **Options avancées** : un interrupteur du menu Options ; elles ajoutent Annuler / Rétablir.
+- **Options avancées** : un interrupteur du menu Options ; elles ajoutent Annuler / Rétablir, les types de trait, la section Images et l'outil Config DA.
 - **Grille** : lignes visibles dès 5 px par case ; désactivable dans Options.
 
 ## Mouvement

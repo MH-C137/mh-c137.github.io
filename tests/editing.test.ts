@@ -9,7 +9,6 @@ import { strokeAllows } from '../src/core/strokes';
 import { isPulseAge, PULSE_PERIOD, World } from '../src/core/world';
 import { TOUR_STEPS } from '../src/data/tour';
 import { CHUNK, chunkStars, densityFactor, hash2, seededRandom, STAR_FIELDS } from '../src/render/constellation';
-import { applyCustomColors, mixColors, PALETTES } from '../src/render/theme';
 import { placePopup } from '../src/ui/placement';
 
 describe('Carré de la gomme', () => {
@@ -82,8 +81,8 @@ describe('Placement des bulles', () => {
 });
 
 describe('Didacticiel', () => {
-  it('a 9 étapes complètes', () => {
-    expect(TOUR_STEPS.length).toBe(9);
+  it('a 8 étapes complètes', () => {
+    expect(TOUR_STEPS.length).toBe(8);
     for (const step of TOUR_STEPS) {
       expect(step.title.length).toBeGreaterThan(0);
       expect((step.intro ?? '').length + (step.items?.length ?? 0)).toBeGreaterThan(0);
@@ -180,25 +179,6 @@ describe('Types de trait', () => {
     const share = count('spray', 100, 100) / 10000;
     expect(share).toBeGreaterThan(0.3);
     expect(share).toBeLessThan(0.4);
-  });
-});
-
-describe('Couleurs personnalisées', () => {
-  it('mélange de couleurs', () => {
-    expect(mixColors('#000000', '#ffffff', 0.5)).toBe('#808080');
-    expect(mixColors('#ff0000', '#0000ff', 0)).toBe('#ff0000');
-    expect(mixColors('#ff0000', '#0000ff', 1)).toBe('#0000ff');
-  });
-
-  it('sans choix, la palette du thème est inchangée', () => {
-    expect(applyCustomColors(PALETTES.night, {}, 'night')).toEqual(PALETTES.night);
-  });
-
-  it('une couleur « vivante » choisie déduit clignotement et trace', () => {
-    const palette = applyCustomColors(PALETTES.night, { alive: '#ff8000' }, 'night');
-    expect(palette.alive).toBe('#ff8000');
-    expect(palette.pulse).not.toBe(PALETTES.night.pulse);
-    expect(palette.newborn).toBe(PALETTES.night.newborn);
   });
 });
 

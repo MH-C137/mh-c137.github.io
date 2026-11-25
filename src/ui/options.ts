@@ -6,8 +6,8 @@
  * Contenu pour l'instant :
  *   - « Grille » : affiche ou masque les lignes de la grille ;
  *   - « Aide » (?) : relance le didacticiel ;
- *   - « Options avancées » : affiche en plus le choix des couleurs des cellules ici,
- *     et ailleurs Annuler / Rétablir, les types de trait et l'image des cellules mortes.
+ *   - « Options avancées » : affiche en plus « Config DA » (voir daconfig.ts) ici, et ailleurs
+ *     Annuler / Rétablir, les types de trait et les images.
  *
  * Le menu se ferme quand on clique ailleurs, avec Échap, ou quand on masque
  * l'interface avec l'œil. Comme partout, le bouton « Grille » APPELLE
@@ -16,17 +16,18 @@
 
 import type { App } from '../app';
 import { byId } from './dom';
+import type { DaConfig } from './daconfig';
 import type { Tutorial } from './tutorial';
 
-export function setupOptions(app: App, tutorial: Tutorial): void {
+export function setupOptions(app: App, tutorial: Tutorial, daConfig: DaConfig): void {
   const button = byId<HTMLButtonElement>('menu-toggle');
   const menu = byId('options-menu');
   const gridItem = byId<HTMLButtonElement>('opt-grid');
   const gridState = byId('opt-grid-state');
   const helpItem = byId<HTMLButtonElement>('opt-help');
+  const daItem = byId<HTMLButtonElement>('opt-da');
   const advancedItem = byId<HTMLButtonElement>('opt-advanced');
   const advancedState = byId('opt-advanced-state');
-  const colors = byId('opt-colors');
 
   const setOpen = (open: boolean) => {
     menu.hidden = !open;
@@ -36,6 +37,10 @@ export function setupOptions(app: App, tutorial: Tutorial): void {
   button.addEventListener('click', () => setOpen(menu.hidden === true));
   gridItem.addEventListener('click', () => app.viewSettings.toggleGrid());
   advancedItem.addEventListener('click', () => app.viewSettings.toggleAdvanced());
+  daItem.addEventListener('click', () => {
+    setOpen(false);
+    daConfig.toggle();
+  });
   helpItem.addEventListener('click', () => {
     setOpen(false);
     tutorial.start();
@@ -64,29 +69,13 @@ export function setupOptions(app: App, tutorial: Tutorial): void {
   app.viewSettings.on('change', renderGrid);
   renderGrid();
 
-  // Options avancées : texte de l'interrupteur, et affichage des sélecteurs de couleur.
+  // Options avancées : texte de l'interrupteur, et affichage du bouton « Config DA ».
   const renderAdvanced = () => {
     const visible = app.viewSettings.advancedVisible;
     advancedItem.setAttribute('aria-checked', String(visible));
     advancedState.textContent = visible ? 'affichées' : 'masquées';
-    colors.hidden = !visible;
+    daItem.hidden = !visible;
   };
   app.viewSettings.on('change', renderAdvanced);
   renderAdvanced();
-
-  // Couleurs des cellules (options avancées) : deux sélecteurs de couleur + « Remettre ».
-  const newbornPicker = byId<HTMLInputElement>('color-newborn');
-  const alivePicker = byId<HTMLInputElement>('color-alive');
-  const resetColors = byId<HTMLButtonElement>('color-reset');
-  newbornPicker.addEventListener('input', () => app.theme.setColor('newborn', newbornPicker.value));
-  alivePicker.addEventListener('input', () => app.theme.setColor('alive', alivePicker.value));
-  resetColors.addEventListener('click', () => app.theme.resetColors());
-  const renderColors = () => {
-    // Les sélecteurs montrent les couleurs réellement utilisées (thème + choix).
-    newbornPicker.value = app.theme.palette.newborn;
-    alivePicker.value = app.theme.palette.alive;
-    resetColors.disabled = !app.theme.hasCustomColors;
-  };
-  app.theme.on('change', renderColors);
-  renderColors();
 }

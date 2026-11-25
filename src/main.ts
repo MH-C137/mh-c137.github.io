@@ -34,6 +34,7 @@ import { byId, measureUiInsets, releaseFocusAfterClick } from './ui/dom';
 import { setupLibrary } from './ui/library';
 import { setupShortcuts } from './ui/shortcuts';
 import { ThemeManager } from './ui/theme';
+import { setupDaConfig } from './ui/daconfig';
 import { setupOptions } from './ui/options';
 import { setupMenu, setupToolbar, setupToolOptions } from './ui/toolbar';
 import { setupTooltips } from './ui/tooltips';
@@ -65,7 +66,7 @@ design.applyStatic();
 const theme = new ThemeManager(renderer, design);
 const notify = createNotifier(byId('toast'), byId('dock'));
 const viewSettings = new ViewSettings(renderer);
-const app: App = { world, simulation, camera, images, library, editor, renderer, theme, viewSettings, invalidate, notify };
+const app: App = { world, simulation, camera, images, library, editor, renderer, theme, design, viewSettings, invalidate, notify };
 
 // ── 2. Les branchements ────────────────────────────────────────────────────
 new InputController(canvas, editor);
@@ -77,7 +78,8 @@ setupLibrary(app);
 setupActionBars(app);
 const menu = setupMenu(app);
 const tutorial = setupTutorial(app, menu);
-setupOptions(app, tutorial);
+const daConfig = setupDaConfig(app);
+setupOptions(app, tutorial, daConfig);
 setupShortcuts(app, menu, tutorial);
 setupTooltips();
 releaseFocusAfterClick(document.body);

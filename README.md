@@ -63,13 +63,14 @@ La DA d'origine est en **arcade pixel** : coins carrés partout, cadres en escal
 - **4 couleurs** : née (cyan), vivante (violet), vient de mourir (trace sombre), morte (fond).
 - **Mode nuit (néon) / mode jour** (bouton en haut à droite, à gauche de l'œil) et un bouton **œil** pour masquer toute l'interface.
 - **Grille vide au départ** : on arrive sur une page vierge, en pause. La grille est bien visible et se masque dans le menu **Options** (bouton à trois barres, en haut à gauche).
-- **Didacticiel** : à la première visite, un parcours en 9 bulles (Suivant / Précédent, compteur `1/9`, « Passer le didacticiel »). Pour le revoir : Options → Aide (?), ou la touche `?`.
+- **Didacticiel** : à la première visite, un parcours en 8 bulles (Suivant / Précédent, compteur `1/8`, « Passer le didacticiel »). Pour le revoir : Options → Aide (?), ou la touche `?`.
 - **Épaisseur du crayon** (1 à 15) : survole le crayon, un slider apparaît. Le crayon pose plusieurs cellules d'un coup (il ne grossit pas les cellules).
 - **Options avancées** (menu Options, interrupteur) : ajoutent
   - **Annuler / Rétablir** sous les outils (`Ctrl+Z`, `Ctrl+Maj+Z`) : défait un trait, une structure posée, « Effacer »… ;
   - le **type de trait** du crayon : plein, damier, points, lignes, colonnes, spray ;
-  - le choix des **couleurs** des cellules nées et vivantes (retenu séparément pour le mode jour et le mode nuit) ;
-  - une **image pour les cellules mortes** (celles qui viennent de mourir), en plus de l'image des cellules vivantes.
+  - la section **Images** du panneau de droite : importer des images, choisir l'image des cellules vivantes et celle des cellules mortes ;
+  - **Config DA** : un outil de personnalisation complet (voir ci-dessous).
+- **Config DA** (options avancées) : essaie des couleurs et des styles directement dans le site, **séparément pour le mode nuit et le mode jour** : quadrillage (lignes ou croix), fond (aucun, constellation, image des artistes recolorée), couleur des étoiles, vitre, cellules, panneaux, boutons, légende, textes, bordures… Les réglages sont retenus dans le navigateur ; **« Copier la config »** les donne au format `da.json` pour les garder dans la DA.
 - **Structures énormes** : Breeder 1 (une usine à usines de canons), le Cordership à 10 moteurs et le Remplisseur, tirés de la collection LifeWiki.
 - **Infobulles** : survole n'importe quel bouton pour savoir ce qu'il fait.
 - Bouton **Effacer** en deux clics, pour éviter les accidents.
