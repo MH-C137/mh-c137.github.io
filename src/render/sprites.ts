@@ -7,35 +7,43 @@
  * cellules. Seule la silhouette (la partie non transparente) compte : la couleur vient de
  * l'état de la cellule, comme pour les carrés.
  *
- * Comment : au chargement, on fabrique UNE petite image par état. Ensuite, dessiner une
- * cellule = copier la bonne petite image (drawImage), ce qui reste rapide pour des
+ * Comment : au chargement, on fabrique UNE petite image par état, en deux tailles (une
+ * petite pour les cases réduites, une grande pour les gros zooms : elles restent nettes).
+ * Dessiner une cellule = copier la bonne image (drawImage), ce qui reste rapide pour des
  * milliers de cellules. On refait les images quand les couleurs changent.
  *
- * Trois techniques de dessin sur un canvas, toutes basées sur la silhouette :
+ * Techniques de dessin sur un canvas, toutes basées sur la silhouette :
  *   - TEINTER : on dessine l'icône, puis on remplit avec `source-in`, qui ne colore QUE
  *     les pixels déjà dessinés (la silhouette) ;
- *   - CONTOUR : on « épaissit » la silhouette en la dessinant 16 fois, légèrement décalée
- *     dans toutes les directions (comme un tampon qui bave), puis on dessine l'icône
- *     normale par-dessus : il reste un liseré tout autour ;
- *   - CREUX (le « reflet ») : même épaississement, puis on EFFACE la silhouette d'origine
- *     avec `destination-out` : il ne reste que le liseré, l'étoile est vide.
- * Le clignotement peut aussi avoir un halo : une copie plus large, très transparente.
+ *   - ÉPAISSIR (halo du clignotement) : on dessine la silhouette 64 fois, décalée en cercle :
+ *     avec autant de copies, les bords restent parfaitement lisses (avec 16 copies, on voyait
+ *     des « marches d'escalier » sur les contours) ;
+ *   - CONTOUR INTÉRIEUR (la « trace » en étoile vide) : on prend l'étoile, on garde seulement
+ *     les pixels proches du bord. Pour cela : on épaissit le CONTRAIRE de l'étoile (tout ce qui
+ *     n'est pas l'étoile) de r pixels, puis on ne garde que la partie de l'étoile couverte
+ *     (`destination-in`). Il reste un liseré de largeur r, à l'intérieur de la forme : l'étoile
+ *     vide a donc exactement la même taille que l'étoile pleine.
  */
 
 import type { Palette } from './theme';
 
 /** Les sortes de cellules dessinées avec l'icône. */
-export type SpriteKind = 'fade' | 'trace' | 'alive' | 'pulse' | 'newborn';
+export type SpriteKind = 'trace' | 'alive' | 'pulse' | 'newborn';
 
-/** Côté (px) des petites images : assez grand pour rester net quand on zoome fort. */
-const SPRITE_SIZE = 128;
-/** Marge réservée autour de l'icône (contour, halo), en proportion du côté. */
+/** Côtés (px) des images : une petite pour les cases réduites, une grande pour les gros zooms. */
+const SMALL = 96;
+const LARGE = 256;
+/** À partir de cette taille d'affichage (px), on utilise la grande image. */
+const LARGE_FROM = 60;
+/** Marge réservée autour de l'icône (pour le halo), en proportion du côté. */
 const PAD_RATIO = 0.16;
-/** Nombre de décalages utilisés pour épaissir la silhouette. */
-const DILATION_STEPS = 16;
+/** Nombre de décalages utilisés pour épaissir une silhouette (assez pour des bords lisses). */
+const DILATION_STEPS = 64;
 
 export interface SpriteStyle {
-  /** Épaisseur du contour, en proportion de l'icône (0 = pas de contour). */
+  /** `outline` : la trace est dessinée en contour seulement (étoile vide). */
+  readonly traceStyle: 'filled' | 'outline';
+  /** Épaisseur du contour, en proportion de l'icône. */
   readonly outlineWidth: number;
   /** Vrai : le clignotement a un halo. */
   readonly pulseHalo: boolean;
@@ -43,65 +51,48 @@ export interface SpriteStyle {
 
 type Icon = CanvasImageSource & { width: number; height: number };
 
-export class CellSprites {
-  private readonly canvases = new Map<SpriteKind, HTMLCanvasElement>();
-  /** Côté de la zone réservée à l'icône elle-même (le reste est la marge du contour et du halo). */
+/** Une série d'images (une par état) à une taille donnée. */
+class SpriteSet {
+  readonly canvases = new Map<SpriteKind, HTMLCanvasElement>();
+  /** Côté de la zone réservée à l'icône elle-même (le reste est la marge du halo). */
   private readonly box: number;
-  /** Faut-il réserver une marge ? (seulement si un contour, un halo ou un reflet peut être dessiné). */
-  private readonly padded: boolean;
 
   constructor(
     private readonly icon: Icon,
-    /** Taille de l'icône dans sa case (1 = toute la case). */
-    readonly scale: number,
-    /** En dessous de cette taille de case (px), on dessine des carrés. */
-    readonly minZoom: number,
+    private readonly size: number,
     private readonly style: SpriteStyle,
     palette: Palette,
   ) {
-    this.padded = true;
-    this.box = Math.round(SPRITE_SIZE * (1 - 2 * PAD_RATIO));
-    this.retint(palette);
+    this.box = Math.round(size * (1 - 2 * PAD_RATIO));
+    this.build(palette);
   }
 
-  /** Refait les images avec les couleurs de la palette. */
-  retint(palette: Palette): void {
-    const fills: Record<Exclude<SpriteKind, 'fade'>, string> = {
+  private build(palette: Palette): void {
+    const ring = Math.max(1, this.box * this.style.outlineWidth);
+    const fills: Record<SpriteKind, string> = {
       trace: palette.trace,
       alive: palette.alive,
       pulse: palette.pulse,
       newborn: palette.newborn,
     };
-    const ring = Math.max(1.5, this.box * Math.max(this.style.outlineWidth, 0.05));
-
-    for (const kind of Object.keys(fills) as Array<keyof typeof fills>) {
+    for (const kind of Object.keys(fills) as SpriteKind[]) {
       const canvas = this.blank();
       const context = canvas.getContext('2d') as CanvasRenderingContext2D;
       if (kind === 'pulse' && this.style.pulseHalo) {
         context.globalAlpha = 0.35;
-        context.drawImage(this.dilated(fills.pulse, ring * 2.4), 0, 0);
+        context.drawImage(this.dilate(this.tinted(fills.pulse), this.box * 0.12), 0, 0);
         context.globalAlpha = 1;
       }
-      if (this.style.outlineWidth > 0) {
-        context.drawImage(this.dilated(palette.outline, this.box * this.style.outlineWidth), 0, 0);
-      }
-      context.drawImage(this.tinted(fills[kind]), 0, 0);
+      const hollow = kind === 'trace' && this.style.traceStyle === 'outline';
+      context.drawImage(hollow ? this.hollow(fills.trace, ring) : this.tinted(fills[kind]), 0, 0);
       this.canvases.set(kind, canvas);
     }
-
-    // Le reflet : un liseré tout seul, étoile vide.
-    const hollow = this.blank();
-    const hollowContext = hollow.getContext('2d') as CanvasRenderingContext2D;
-    hollowContext.drawImage(this.dilated(palette.fade, ring), 0, 0);
-    hollowContext.globalCompositeOperation = 'destination-out';
-    hollowContext.drawImage(this.tinted('#000000'), 0, 0);
-    this.canvases.set('fade', hollow);
   }
 
   private blank(): HTMLCanvasElement {
     const canvas = document.createElement('canvas');
-    canvas.width = SPRITE_SIZE;
-    canvas.height = SPRITE_SIZE;
+    canvas.width = this.size;
+    canvas.height = this.size;
     return canvas;
   }
 
@@ -109,19 +100,19 @@ export class CellSprites {
   private tinted(color: string): HTMLCanvasElement {
     const canvas = this.blank();
     const context = canvas.getContext('2d') as CanvasRenderingContext2D;
+    context.imageSmoothingQuality = 'high';
     const ratio = Math.min(this.box / this.icon.width, this.box / this.icon.height);
     const width = this.icon.width * ratio;
     const height = this.icon.height * ratio;
-    context.drawImage(this.icon, (SPRITE_SIZE - width) / 2, (SPRITE_SIZE - height) / 2, width, height);
+    context.drawImage(this.icon, (this.size - width) / 2, (this.size - height) / 2, width, height);
     context.globalCompositeOperation = 'source-in'; // ne colore que la silhouette
     context.fillStyle = color;
-    context.fillRect(0, 0, SPRITE_SIZE, SPRITE_SIZE);
+    context.fillRect(0, 0, this.size, this.size);
     return canvas;
   }
 
-  /** La silhouette épaissie de `radius` pixels (16 copies décalées en cercle), remplie d'une couleur. */
-  private dilated(color: string, radius: number): HTMLCanvasElement {
-    const base = this.tinted(color);
+  /** Une forme épaissie de `radius` pixels : 64 copies décalées en cercle. */
+  private dilate(base: HTMLCanvasElement, radius: number): HTMLCanvasElement {
     const canvas = this.blank();
     const context = canvas.getContext('2d') as CanvasRenderingContext2D;
     for (let step = 0; step < DILATION_STEPS; step++) {
@@ -132,12 +123,59 @@ export class CellSprites {
     return canvas;
   }
 
+  /** L'étoile vide : seulement un liseré de `ring` pixels le long du bord, à l'INTÉRIEUR de la forme. */
+  private hollow(color: string, ring: number): HTMLCanvasElement {
+    const star = this.tinted('#000000');
+    // Le contraire de l'étoile : tout est opaque, sauf l'étoile.
+    const outside = this.blank();
+    const outsideContext = outside.getContext('2d') as CanvasRenderingContext2D;
+    outsideContext.fillRect(0, 0, this.size, this.size);
+    outsideContext.globalCompositeOperation = 'destination-out';
+    outsideContext.drawImage(star, 0, 0);
+    // On épaissit ce contraire : il « mord » de `ring` pixels dans l'étoile.
+    const bitten = this.dilate(outside, ring);
+    // On ne garde de l'étoile colorée que la partie mordue : le liseré.
+    const result = this.tinted(color);
+    const context = result.getContext('2d') as CanvasRenderingContext2D;
+    context.globalCompositeOperation = 'destination-in';
+    context.drawImage(bitten, 0, 0);
+    return result;
+  }
+}
+
+export class CellSprites {
+  private small: SpriteSet;
+  private large: SpriteSet;
+
+  constructor(
+    private readonly icon: Icon,
+    /** Taille de l'icône dans sa case (1 = toute la case). */
+    readonly scale: number,
+    /** En dessous de cette taille de case (px), on dessine des carrés. */
+    readonly minZoom: number,
+    private readonly style: SpriteStyle,
+    palette: Palette,
+  ) {
+    this.small = new SpriteSet(icon, SMALL, style, palette);
+    this.large = new SpriteSet(icon, LARGE, style, palette);
+  }
+
+  /** Refait les images avec les couleurs de la palette. */
+  retint(palette: Palette): void {
+    this.small = new SpriteSet(this.icon, SMALL, this.style, palette);
+    this.large = new SpriteSet(this.icon, LARGE, this.style, palette);
+  }
+
   /** Dessine une cellule de cette sorte, dans la case dont le coin haut-gauche est (x, y) et le côté `zoom`. */
   draw(context: CanvasRenderingContext2D, kind: SpriteKind, x: number, y: number, zoom: number): void {
-    const sprite = this.canvases.get(kind);
-    if (!sprite) return;
-    // L'icône elle-même doit occuper `scale` × la case : la marge du contour déborde donc un peu.
-    const size = (zoom * this.scale) / (this.padded ? 1 - 2 * PAD_RATIO : 1);
-    context.drawImage(sprite, x + (zoom - size) / 2, y + (zoom - size) / 2, size, size);
+    // L'icône elle-même doit occuper `scale` × la case : la marge (halo) déborde donc un peu.
+    const size = (zoom * this.scale) / (1 - 2 * PAD_RATIO);
+    const sprite = (size >= LARGE_FROM ? this.large : this.small).canvases.get(kind);
+    if (sprite) context.drawImage(sprite, x + (zoom - size) / 2, y + (zoom - size) / 2, size, size);
+  }
+
+  /** L'image d'un état sous forme d'adresse (data:), pour la légende et le didacticiel : elle montre EXACTEMENT ce qui sera dessiné. */
+  dataUrl(kind: SpriteKind): string {
+    return this.small.canvases.get(kind)?.toDataURL('image/png') ?? '';
   }
 }

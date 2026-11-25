@@ -35,10 +35,6 @@ export interface Palette {
   readonly selectionFill: string;
   /** Contour de la case survolée par la gomme. */
   readonly erase: string;
-  /** Cellule morte depuis deux générations : seul son contour est dessiné (DA qui l'active). */
-  readonly fade: string;
-  /** Contour dessiné autour des cellules en forme d'icône (DA qui l'active). */
-  readonly outline: string;
   /** La « vitre » : teinte posée entre l'image de fond et la grille, pour que le fond reste derrière. */
   readonly glass: string;
   /** Couleur des étoiles de la constellation de fond. */
@@ -57,8 +53,6 @@ export const PALETTES: Record<ThemeName, Palette> = {
     selectionStroke: '#3cf2ff',
     selectionFill: 'rgba(60, 242, 255, 0.08)',
     erase: '#ff4d8d',
-    fade: 'rgba(0, 0, 0, 0)',
-    outline: 'rgba(0, 0, 0, 0)',
     glass: 'rgba(0, 0, 0, 0)',
     stars: 'rgba(0, 0, 0, 0)',
   },
@@ -73,8 +67,6 @@ export const PALETTES: Record<ThemeName, Palette> = {
     selectionStroke: '#008ca6',
     selectionFill: 'rgba(0, 140, 166, 0.08)',
     erase: '#d6336c',
-    fade: 'rgba(0, 0, 0, 0)',
-    outline: 'rgba(0, 0, 0, 0)',
     glass: 'rgba(0, 0, 0, 0)',
     stars: 'rgba(0, 0, 0, 0)',
   },

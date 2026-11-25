@@ -8,7 +8,7 @@ import { EditHistory } from '../src/core/edithistory';
 import { strokeAllows } from '../src/core/strokes';
 import { isPulseAge, PULSE_PERIOD, World } from '../src/core/world';
 import { TOUR_STEPS } from '../src/data/tour';
-import { scatterStars, seededRandom, wrappedPositions } from '../src/render/constellation';
+import { CHUNK, chunkStars, densityFactor, hash2, seededRandom, STAR_FIELDS } from '../src/render/constellation';
 import { applyCustomColors, mixColors, PALETTES } from '../src/render/theme';
 import { placePopup } from '../src/ui/placement';
 
@@ -202,44 +202,68 @@ describe('Couleurs personnalisées', () => {
   });
 });
 
-// ── Constellation (fond d'étoiles) ──────────────────────────────────────────
+// ── Constellation (fond d'étoiles fixe dans le monde) ───────────────────────
 describe('Constellation', () => {
-  it('le même hasard donne toujours le même fond', () => {
-    expect(scatterStars(500, 1, 42)).toEqual(scatterStars(500, 1, 42));
-    expect(scatterStars(500, 1, 42)).not.toEqual(scatterStars(500, 1, 43));
+  const chunks = (n: number) =>
+    Array.from({ length: n * n }, (_, k) => [Math.floor(k / n) - n / 2, (k % n) - n / 2] as const);
+
+  it('un carré du ciel est toujours le même (même place = mêmes étoiles)', () => {
+    expect(chunkStars(3, -2, 1, 7)).toEqual(chunkStars(3, -2, 1, 7));
+    expect(chunkStars(3, -2, 1, 7)).not.toEqual(chunkStars(4, -2, 1, 7));
+    expect(chunkStars(3, -2, 1, 7)).not.toEqual(chunkStars(3, -2, 1, 8)); // une autre graine = un autre ciel
+    expect(hash2(5, 9, 1)).toBe(hash2(5, 9, 1));
+    expect(hash2(5, 9, 1)).not.toBe(hash2(9, 5, 1));
     const random = seededRandom(7);
-    const values = Array.from({ length: 1000 }, random);
-    expect(values.every((v) => v >= 0 && v < 1)).toBe(true);
+    expect(Array.from({ length: 1000 }, random).every((v) => v >= 0 && v < 1)).toBe(true);
   });
 
-  it('toutes les étoiles sont dans la tuile', () => {
-    for (const star of scatterStars(800, 1.5, 5)) {
-      expect(star.x).toBeGreaterThanOrEqual(0);
-      expect(star.x).toBeLessThan(800);
-      expect(star.y).toBeGreaterThanOrEqual(0);
-      expect(star.y).toBeLessThan(800);
+  it('toutes les étoiles d\'un carré sont dans ce carré (aucune couture)', () => {
+    for (const [cx, cy] of [[0, 0], [-1, -1], [5, -3]] as const) {
+      const stars = chunkStars(cx, cy, 1.5, 11);
+      for (let i = 0; i < stars.length; i += STAR_FIELDS) {
+        expect(stars[i]!).toBeGreaterThanOrEqual(cx * CHUNK);
+        expect(stars[i]!).toBeLessThan((cx + 1) * CHUNK);
+        expect(stars[i + 1]!).toBeGreaterThanOrEqual(cy * CHUNK);
+        expect(stars[i + 1]!).toBeLessThan((cy + 1) * CHUNK);
+      }
     }
   });
 
   it('la densité règle la quantité d\'étoiles', () => {
-    const normal = scatterStars(1000, 1, 1).length;
-    expect(normal).toBe(625); // 1000² / 1600
-    expect(scatterStars(1000, 2, 1).length).toBe(1250);
+    for (const [cx, cy] of [[0, 0], [2, 7], [-4, 3]] as const) {
+      const one = chunkStars(cx, cy, 1, 5).length / STAR_FIELDS;
+      const two = chunkStars(cx, cy, 2, 5).length / STAR_FIELDS;
+      expect(Math.abs(two - 2 * one)).toBeLessThanOrEqual(1); // à l'arrondi près
+    }
+  });
+
+  it('il y a des amas et des vides, avec des transitions douces', () => {
+    const factors = chunks(20).map(([cx, cy]) => densityFactor(cx, cy, 2024));
+    expect(Math.min(...factors)).toBeLessThan(0.6); // des zones presque vides
+    expect(Math.max(...factors)).toBeGreaterThan(1.6); // des amas
+    const mean = factors.reduce((a, b) => a + b, 0) / factors.length;
+    expect(mean).toBeGreaterThan(0.6);
+    expect(mean).toBeLessThan(1.4);
+    // Deux carrés voisins se ressemblent (bruit lisse, pas du hasard pur) : écart moyen faible.
+    let gap = 0;
+    for (let cx = 0; cx < 30; cx++) gap += Math.abs(densityFactor(cx + 1, 0, 2024) - densityFactor(cx, 0, 2024));
+    expect(gap / 30).toBeLessThan(0.6);
   });
 
   it('beaucoup de poussière, peu de grosses étoiles', () => {
-    const stars = scatterStars(1400, 1, 7919);
-    const big = stars.filter((s) => s.radius >= 11).length;
-    const dust = stars.filter((s) => s.radius < 2.5).length;
-    expect(dust).toBeGreaterThan(stars.length * 0.6);
+    let dust = 0;
+    let big = 0;
+    let total = 0;
+    for (const [cx, cy] of chunks(10)) {
+      const stars = chunkStars(cx, cy, 1, 2024);
+      for (let i = 0; i < stars.length; i += STAR_FIELDS) {
+        total++;
+        if (stars[i + 2]! < 0.12) dust++;
+        if (stars[i + 2]! >= 0.55) big++;
+      }
+    }
+    expect(dust / total).toBeGreaterThan(0.6);
     expect(big).toBeGreaterThan(0);
-    expect(big).toBeLessThan(stars.length * 0.08);
-  });
-
-  it('une étoile au bord est recollée de l\'autre côté (pas de couture)', () => {
-    const star = { x: 5, y: 500, radius: 10, angle: 0, alpha: 1 };
-    expect(wrappedPositions(star, 1000)).toEqual([[5, 500], [1005, 500]]);
-    expect(wrappedPositions({ x: 500, y: 500, radius: 10, angle: 0, alpha: 1 }, 1000)).toEqual([[500, 500]]);
-    expect(wrappedPositions({ x: 995, y: 4, radius: 10, angle: 0, alpha: 1 }, 1000).length).toBe(4); // dans un coin : 4 copies
+    expect(big / total).toBeLessThan(0.08);
   });
 });

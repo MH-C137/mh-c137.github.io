@@ -456,73 +456,46 @@ body[data-title='image'] .title-text {
   outline-offset: -2px;
 }
 
-.swatch-fade {
-  --swatch: transparent;
-  outline: 2px solid var(--cell-fade);
-  outline-offset: -2px;
-}
-
 .swatch-dead {
   --swatch: var(--cell-dead);
   outline: 2px solid var(--line-soft);
   outline-offset: -2px;
 }
 
-/* « S'éteint » (mort depuis deux générations) : seulement pour les DA qui l'activent. */
-.legend-fade {
-  display: none !important;
-}
-
-body[data-fade='on'] .legend-fade {
-  display: flex !important;
-}
-
 /*
- * DA à cellules en icône (étoiles…) : les pastilles prennent la même forme. Chaque pastille est
- * faite de DEUX étoiles empilées : une un peu plus grande à la couleur du texte du bloc (le liseré,
- * pour qu'une pastille bleu nuit reste visible sur un bloc bleu nuit), puis l'étoile de couleur.
- * (Un simple filtre ne marcherait pas : le masque en forme d'étoile couperait le liseré.)
+ * DA à cellules en icône (étoiles…) : les pastilles sont les VRAIES images des cellules (étoile
+ * pleine, étoile vide…), fabriquées par le rendu aux couleurs actuelles (voir DesignRuntime
+ * .publishSwatches). Chacune est posée sur une petite tuile de la couleur du fond de la grille :
+ * on voit la cellule comme sur le plateau (une étoile bleu nuit reste visible, même sur un bloc
+ * bleu nuit). Une case morte n'a rien à montrer : un tout petit point.
  */
 body[data-cell-shape='icon'] .swatch {
-  position: relative;
-  width: 18px;
-  height: 18px;
-  background: none;
+  width: 24px;
+  height: 24px;
+  background: center / 78% no-repeat, var(--cell-dead);
   outline: none;
 }
 
-body[data-cell-shape='icon'] .swatch::before,
-body[data-cell-shape='icon'] .swatch::after {
-  content: '';
-  position: absolute;
-  inset: 0;
-  -webkit-mask: var(--cell-icon) center / contain no-repeat;
-  mask: var(--cell-icon) center / contain no-repeat;
+body[data-cell-shape='icon'] .swatch-newborn {
+  background-image: var(--sprite-newborn);
 }
 
-body[data-cell-shape='icon'] .swatch::before {
-  background: var(--title-fg, transparent);
-  transform: scale(1.3);
+body[data-cell-shape='icon'] .swatch-alive {
+  background-image: var(--sprite-alive);
 }
 
-body[data-cell-shape='icon'] .swatch::after {
-  background: var(--swatch);
-}
-
-body[data-cell-shape='icon'] .swatch-fade {
-  --swatch: var(--cell-fade);
-}
-
-body[data-cell-shape='icon'] .swatch-fade {
-  opacity: 0.75;
+body[data-cell-shape='icon'] .swatch-trace {
+  background-image: var(--sprite-trace);
 }
 
 body[data-cell-shape='icon'] .swatch-dead {
-  --swatch: var(--line-soft);
+  background-image: radial-gradient(circle, var(--line-soft) 0 2px, transparent 3px);
+  background-size: auto;
 }
 
-body[data-cell-shape='icon'] .swatch-dead {
-  opacity: 0.4;
+/* Miniatures des structures : même tuile (couleur du fond de la grille), pour que les cellules y soient lisibles. */
+body[data-cell-shape='icon'] .pattern-thumb {
+  background: var(--cell-dead);
 }
 
 /* ── À gauche : barre d'outils ─────────────────────────────────────────── */

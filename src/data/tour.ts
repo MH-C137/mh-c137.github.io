@@ -15,15 +15,13 @@
 import type { Side } from '../ui/placement';
 
 /** Les 4 états d'une cellule : sert à dessiner le carré de couleur devant la ligne. */
-export type TourSwatch = 'newborn' | 'alive' | 'trace' | 'fade' | 'dead';
+export type TourSwatch = 'newborn' | 'alive' | 'trace' | 'dead';
 
 /** Une ligne de liste : soit un carré de couleur, soit un mot en avant (`label`), puis le texte. */
 export interface TourItem {
   readonly text: string;
   readonly label?: string;
   readonly swatch?: TourSwatch;
-  /** Ligne affichée seulement si la DA active a ce réglage (`fade` : le reflet des cellules mortes). */
-  readonly only?: 'fade';
 }
 
 export interface TourStep {
@@ -64,7 +62,6 @@ export const TOUR_STEPS: readonly TourStep[] = [
       { swatch: 'newborn', text: 'Elle vient de naître : elle s\'allume.' },
       { swatch: 'alive', text: 'Elle vit depuis longtemps.' },
       { swatch: 'trace', text: 'Elle vient de mourir : elle s\'éteint.' },
-      { swatch: 'fade', text: 'Morte depuis un moment : il ne reste que son contour.', only: 'fade' },
       { swatch: 'dead', text: 'Case vide : rien n\'y vit.' },
     ],
     outro: 'Une cellule qui survit clignote toutes les 3 générations.',

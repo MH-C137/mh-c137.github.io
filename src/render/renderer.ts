@@ -82,8 +82,6 @@ export class Renderer {
   backgroundOpacity = 1;
   /** Fond d'étoiles dessiné par le site (DA « constellation »), ou null. Remplace l'image de fond. */
   constellation: Constellation | null = null;
-  /** Part du déplacement de la grille suivie par la constellation (voir constellation.ts). */
-  backgroundParallax = 0.3;
   /** Cellules en forme d'icône (étoiles…), si la DA en fournit une ; null = carrés. */
   private sprites: CellSprites | null = null;
 
@@ -97,15 +95,22 @@ export class Renderer {
     this.sprites?.retint(palette);
   }
 
-  /** Vrai : les cellules mortes depuis deux générations restent visibles, en contour (choix de la DA). */
-  fadeTrail = false;
+  /**
+   * Images (adresses « data: ») des cellules en icône, une par état, pour la légende et le didacticiel :
+   * elles montrent EXACTEMENT ce que le rendu dessine (étoile pleine, étoile vide…). null s'il n'y a pas d'icône.
+   */
+  swatchUrls(): Record<'newborn' | 'alive' | 'trace', string> | null {
+    const sprites = this.sprites;
+    if (!sprites) return null;
+    return { newborn: sprites.dataUrl('newborn'), alive: sprites.dataUrl('alive'), trace: sprites.dataUrl('trace') };
+  }
 
   /** Donne (ou retire, avec null) une icône qui sert de forme aux cellules. */
   setCellIcon(
     icon: (CanvasImageSource & { width: number; height: number }) | null,
     scale: number,
     minZoom: number,
-    style: SpriteStyle = { outlineWidth: 0, pulseHalo: false },
+    style: SpriteStyle = { traceStyle: 'filled', outlineWidth: 0.07, pulseHalo: false },
   ): void {
     this.sprites = icon ? new CellSprites(icon, scale, minZoom, style, this._palette) : null;
   }
@@ -152,22 +157,21 @@ export class Renderer {
   }
 
   /**
-   * La constellation : un champ d'étoiles qui défile derrière la grille, moins vite qu'elle
-   * (effet de profondeur). On lui donne la position de la caméra en pixels écran.
+   * La constellation : un ciel d'étoiles FIXE dans le monde, derrière la grille. Il suit
+   * exactement le zoom et le déplacement de la vue (voir constellation.ts).
    */
   private drawConstellation(): void {
     if (!this.constellation) return;
     const { camera, context } = this;
-    context.globalAlpha = this.backgroundOpacity;
     this.constellation.draw(
       context,
       camera.width,
       camera.height,
-      camera.centerX * camera.zoom,
-      camera.centerY * camera.zoom,
-      this.backgroundParallax,
+      camera.centerX,
+      camera.centerY,
+      camera.zoom,
+      this.backgroundOpacity,
     );
-    context.globalAlpha = 1;
   }
 
   /**
@@ -302,23 +306,12 @@ export class Renderer {
     const sprites = this.sprites;
     const useIcons = sprites !== null && geometry.shapes && zoom >= sprites.minZoom;
     /** Positions (x, y, x, y…) des cellules à dessiner avec l'icône, par sorte. */
-    const icons: Record<SpriteKind, number[]> = { fade: [], trace: [], alive: [], pulse: [], newborn: [] };
-    /** Reflets sans icône : de simples carrés vides (contour seulement). */
-    const fadeSquares = new Path2D();
+    const icons: Record<SpriteKind, number[]> = { trace: [], alive: [], pulse: [], newborn: [] };
     /** Note une cellule : un carré ajouté à son chemin, ou sa position pour l'icône. */
     const mark = (kind: SpriteKind, path: Path2D, sx: number, sy: number) => {
       if (useIcons) icons[kind].push(sx, sy);
       else addCellShape(path, sx, sy, geometry);
     };
-
-    // Le reflet (morte depuis deux générations) : contour seulement, si la DA l'a activé.
-    if (this.fadeTrail) {
-      world.forEachFade((x, y) => {
-        if (!isVisible(x, y)) return;
-        if (useIcons) icons.fade.push(screenX(x), screenY(y));
-        else if (geometry.shapes) fadeSquares.rect(screenX(x) + geometry.inset, screenY(y) + geometry.inset, geometry.size, geometry.size);
-      });
-    }
 
     // Cellules qui viennent de mourir : couleur de trace, ou l'image choisie pour les « mortes »
     // (vue de près seulement ; de loin, la couleur de trace reste plus lisible).
@@ -356,11 +349,6 @@ export class Renderer {
       else mark('alive', alivePath, sx, sy);
     });
 
-    if (this.fadeTrail && !useIcons) {
-      context.lineWidth = Math.max(1, zoom * 0.08);
-      context.strokeStyle = palette.fade;
-      context.stroke(fadeSquares);
-    }
     context.fillStyle = palette.trace;
     context.fill(tracePath);
     if (deadImage && deadTiles.length > 0) {
@@ -383,7 +371,7 @@ export class Renderer {
 
     // Cellules en icône : trace, puis vivantes, clignotantes, nées (la dernière est dessus).
     if (sprites && useIcons) {
-      for (const kind of ['fade', 'trace', 'alive', 'pulse', 'newborn'] as const) {
+      for (const kind of ['trace', 'alive', 'pulse', 'newborn'] as const) {
         const positions = icons[kind];
         for (let i = 0; i < positions.length; i += 2) sprites.draw(context, kind, positions[i]!, positions[i + 1]!, zoom);
       }

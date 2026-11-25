@@ -54,7 +54,7 @@ Patrons en place (garde-les cohérents) :
   - un **test sur un résultat connu** (une valeur documentée sur LifeWiki par exemple).
 - Couleurs : uniquement dans les `da.json` des DA (`src/da/<nom>/da.json`), dans `render/theme.ts` (palette de secours et couleurs déduites) et dans les variables CSS de `styles.css`. Ne jamais coder une couleur en dur ailleurs. **Ne jamais mettre une couleur, une police ou une image de DA directement dans le code** : elle va dans le `da.json`.
 - Interface : pas de `border-radius`. Les cadres utilisent les variables `--notch-*` et `--drop-shadow` de `styles.css`. Les icônes sont du pixel art 12 × 12 (voir `DESIGN.md`).
-- Les 4 états de cellule ont un sens fixe : née (âge 0), vivante (âge ≥ 1), vient de mourir (trace), morte. Ne change pas cette sémantique. Une DA peut en plus afficher le « reflet » (`cells.fadeTrail` : cellule morte depuis DEUX générations, dessinée en contour) : c'est une option d'affichage, la règle du jeu ne change pas.
+- Les 4 états de cellule ont un sens fixe : née (âge 0), vivante (âge ≥ 1), vient de mourir (trace), morte. Ne change pas cette sémantique.
 - Tout accès à `localStorage` / `IndexedDB` est entouré de `try / catch` (le site peut tourner dans une iframe où le stockage est refusé).
 - Garde `base: './'` dans `vite.config.ts` (le site doit marcher dans un sous-dossier du site de l'école).
 
