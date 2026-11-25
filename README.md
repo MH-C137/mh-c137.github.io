@@ -44,7 +44,7 @@ Les structures énormes (`src/data/rle/*.rle`) viennent de la collection de moti
 
 ## Style et DA (direction artistique)
 
-Tout ce qui touche à l'apparence est regroupé dans une **DA** : un dossier `src/da/<nom>/` avec un fichier `da.json` (couleurs, polices, forme des cellules, quadrillage, fond, titre) et ses images. **Changer de DA = changer un mot** dans `src/da/active.ts` (`'nova'` : la DA de l'équipe artistique, étoiles et quadrillage à croix ; `'pixel'` : la DA d'origine), ou ajouter `?da=pixel` à l'adresse pour essayer. Mode d'emploi complet pour les artistes : [`docs/DA.md`](docs/DA.md).
+Tout ce qui touche à l'apparence est regroupé dans une **DA** : un dossier `src/da/<nom>/` avec un fichier `da.json` (couleurs, polices, forme des cellules, quadrillage, fond, titre) et ses images. Le fond peut être une **constellation quasi infinie** posée derrière une « vitre » (la grille et les cellules restent nettes au premier plan), et les cellules peuvent être des étoiles avec contour. **Changer de DA = changer un mot** dans `src/da/active.ts` (`'nova'` : la DA de l'équipe artistique, étoiles et quadrillage à croix ; `'pixel'` : la DA d'origine), ou ajouter `?da=pixel` à l'adresse pour essayer. Mode d'emploi complet pour les artistes : [`docs/DA.md`](docs/DA.md).
 
 La DA d'origine est en **arcade pixel** : coins carrés partout, cadres en escalier, icônes en pixel art, police Jersey 10 (embarquée, licence OFL, dans `src/da/pixel/assets/fonts/`). Les règles sont dans `DESIGN.md`. Pour redonner des coins arrondis aux cellules, il suffit de changer `CORNER_RATIO` dans `src/render/images.ts`.
 

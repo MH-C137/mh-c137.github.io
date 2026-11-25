@@ -34,19 +34,28 @@ forme des cellules, quadrillage, fond, titre, style des cadres. Le code du jeu n
 | `fonts` | Les polices à charger : `{ "family": "Nom", "file": "assets/fonts/x.woff2", "weight": "400" }`. |
 | `ui` | `fontFamily` (police de l'interface), `textScale` (1 = tailles d'origine ; 0,68 pour une police plus grande), `frame` (`"notched"` = cadres en escalier + ombre dure, `"flat"` = simple contour), `borderWidth` (épaisseur des contours, en pixels). |
 | `title` | `text` : le titre (affiché s'il n'y a pas d'image, lu par les lecteurs d'écran sinon, et nom de l'onglet). `imageHeight` : hauteur de l'image du titre. |
-| `cells` | `icon` : image dont la **silhouette** sert de forme aux cellules (ex. une étoile) ; `null` = carrés. `scale` : taille dans la case. `iconMinZoom` : sous cette taille de case (px), on dessine des carrés. |
+| `cells` | `icon` : image dont la **silhouette** sert de forme aux cellules (ex. une étoile) ; `null` = carrés. `scale` : taille dans la case. `iconMinZoom` : sous cette taille de case (px), on dessine des carrés. `outlineWidth` : épaisseur du contour des étoiles (0 = aucun, ex. 0,05). `fadeTrail` : `true` = une cellule morte depuis 2 générations reste en **contour vide**. `pulseHalo` : `true` = la cellule qui clignote a un **halo**. |
 | `grid` | `style` : `"lines"` (lignes) ou `"crosses"` (lignes fines + une croix épaisse à chaque croisement). |
-| `background` | `opacity` : transparence de l'image de fond (0 à 1). |
-| `themes.night` et `themes.day` | Pour chaque thème : `colors` (fond, grille, cellules née / vivante / qui clignote / qui vient de mourir, sélection, gomme), `interface` (couleurs des boutons, panneaux, textes), `titleImage` et `backgroundImage` (chemins d'images, ou `null`). |
+| `background` | `style` : `"image"` (l'image du thème, fixe) ou `"constellation"` (un champ d'étoiles dessiné par le site, quasi infini : voir plus bas). `opacity` : transparence (0 à 1). `density` : quantité d'étoiles de la constellation (1 = normal). `parallax` : vitesse du fond quand on déplace la grille (0 = fixe, 1 = comme la grille ; plus c'est petit, plus il paraît loin). |
+| `themes.night` et `themes.day` | Pour chaque thème : `colors` (fond, grille, `newborn` née, `alive` vivante, `pulse` clignote, `trace` vient de mourir, `fade` contour du reflet, `outline` contour des étoiles, `glass` la vitre, `stars` couleur des étoiles du fond, sélection, gomme), `interface` (couleurs des boutons, panneaux, textes, et `titleBg` / `titleFg` / `titleLine` pour le bloc du titre), `titleImage` et `backgroundImage` (chemins d'images, ou `null`). |
 
 Les couleurs s'écrivent `#rrggbb` ou `rgba(r, g, b, a)`. Les chemins sont **relatifs au dossier de la DA**
 (`assets/etoile.png`).
+
+### La vitre et la constellation
+
+Avec `"style": "constellation"`, le fond est un ciel d'étoiles **généré** (même forme que les cellules), qui défile moins
+vite que la grille et se recolle sans couture : l'impression d'infini. Pour qu'on ne confonde jamais le fond avec la grille
+et les cellules, le site pose entre les deux une **vitre** : une teinte translucide (`colors.glass`) qui estompe le fond.
+Pour une vitre plus claire ou plus opaque, change la dernière valeur de `glass` (ex. `rgba(37, 49, 101, 0.62)` → `0.8`).
 
 ### Les couleurs des cellules
 
 - `newborn` : la cellule vient de naître · `alive` : elle vit depuis longtemps · `pulse` : elle clignote
   (toutes les 3 générations) · `trace` : elle vient de mourir. Avec des étoiles, **la forme est toujours la même,
   seule la couleur change** : c'est pourquoi il suffit d'une seule image d'étoile.
+- Avec `fadeTrail`, il y a un 5e état : **mort depuis deux générations** (`fade`), dessiné en contour vide.
+- Les couleurs de la DA Nova (nuit) : jaune = vient de naître, blanc = vit, blanc + halo = clignote, violet = vient de mourir, contour violet = mort depuis un moment, rien = éteint.
 
 ## Les images du « DOSSIER RESSOURCES » : lesquelles utiliser ?
 
@@ -62,7 +71,7 @@ Il y a 16 fichiers, mais **très peu de choses différentes** : c'est la même i
 | Quadrillage | `Quadrillage` | Sert de **modèle** : le site dessine lui-même ce style (`"style": "crosses"`) à toutes les échelles, sans image. |
 | Palette | `Palette de couleur` | Les 4 couleurs : `#548ebc` `#cbc737` `#253165` `#6f5ca4`. |
 
-La DA `nova` utilise : titre bleu nuit (jour) et jaune (nuit) ; fond bleu clair (jour) et blanc (nuit) ; l'étoile blanche.
+La DA `nova` utilise : le titre jaune (`titre 2 jaune`, sur un bloc bleu nuit) et l'étoile blanche. Son fond d'étoiles est maintenant **généré** (constellation) ; les images `background …` restent utilisables par une DA en mode `"image"`.
 Pour changer une couleur, il suffit de recopier un autre fichier et de changer son nom dans `da.json`.
 
 ### Préparer une image (rogner les marges)

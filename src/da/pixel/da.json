@@ -2,26 +2,40 @@
   "name": "Arcade pixel",
   "description": "La DA d'origine : style console d'arcade, cyan et violet sur fond noir, coins carrés, police pixel.",
   "defaultTheme": "night",
-
   "fonts": [
-    { "family": "Jersey 10", "file": "assets/fonts/jersey-10-latin-400-normal.woff2", "weight": "400" }
+    {
+      "family": "Jersey 10",
+      "file": "assets/fonts/jersey-10-latin-400-normal.woff2",
+      "weight": "400"
+    }
   ],
-
   "ui": {
     "fontFamily": "'Jersey 10', ui-monospace, 'SFMono-Regular', Menlo, Consolas, monospace",
     "textScale": 1,
     "frame": "notched",
     "borderWidth": 3
   },
-
-  "title": { "text": "Jeu de la vie", "imageHeight": 46 },
-
-  "cells": { "icon": null, "scale": 1, "iconMinZoom": 6 },
-
-  "grid": { "style": "lines" },
-
-  "background": { "opacity": 1 },
-
+  "title": {
+    "text": "Jeu de la vie",
+    "imageHeight": 46
+  },
+  "cells": {
+    "icon": null,
+    "scale": 1,
+    "iconMinZoom": 6,
+    "outlineWidth": 0,
+    "fadeTrail": false,
+    "pulseHalo": false
+  },
+  "grid": {
+    "style": "lines"
+  },
+  "background": {
+    "style": "image",
+    "opacity": 1,
+    "density": 1,
+    "parallax": 0.3
+  },
   "themes": {
     "night": {
       "colors": {
@@ -33,14 +47,30 @@
         "pulse": "#dcc2ff",
         "trace": "#2d1b4e",
         "selection": "#3cf2ff",
-        "erase": "#ff4d8d"
+        "erase": "#ff4d8d",
+        "fade": "rgba(0, 0, 0, 0)",
+        "outline": "rgba(0, 0, 0, 0)",
+        "glass": "rgba(0, 0, 0, 0)",
+        "stars": "rgba(0, 0, 0, 0)"
       },
       "interface": {
-        "bg": "#05050b", "fg": "#e8e6ff", "muted": "#a3a0d0",
-        "surface": "#0e0d20", "surface2": "#181633", "hover": "#26224d",
-        "line": "#5b46b8", "lineSoft": "#3b3282", "drop": "#000000",
-        "accent": "#3cf2ff", "accentFill": "#3cf2ff", "onAccent": "#05050b", "accentSoft": "#123e4d",
-        "danger": "#ff4d8d"
+        "bg": "#05050b",
+        "fg": "#e8e6ff",
+        "muted": "#a3a0d0",
+        "surface": "#0e0d20",
+        "surface2": "#181633",
+        "hover": "#26224d",
+        "line": "#5b46b8",
+        "lineSoft": "#3b3282",
+        "drop": "#000000",
+        "accent": "#3cf2ff",
+        "accentFill": "#3cf2ff",
+        "onAccent": "#05050b",
+        "accentSoft": "#123e4d",
+        "danger": "#ff4d8d",
+        "titleBg": "#0e0d20",
+        "titleFg": "#a3a0d0",
+        "titleLine": "#5b46b8"
       },
       "titleImage": null,
       "backgroundImage": null
@@ -55,14 +85,30 @@
         "pulse": "#3a0f8f",
         "trace": "#dccdf2",
         "selection": "#008ca6",
-        "erase": "#d6336c"
+        "erase": "#d6336c",
+        "fade": "rgba(0, 0, 0, 0)",
+        "outline": "rgba(0, 0, 0, 0)",
+        "glass": "rgba(0, 0, 0, 0)",
+        "stars": "rgba(0, 0, 0, 0)"
       },
       "interface": {
-        "bg": "#f3f0e8", "fg": "#1e1b30", "muted": "#5a5580",
-        "surface": "#fffdf6", "surface2": "#ece7d8", "hover": "#ddd5ee",
-        "line": "#2a1f5c", "lineSoft": "#8f86b8", "drop": "#c4bbdc",
-        "accent": "#006f86", "accentFill": "#00788f", "onAccent": "#ffffff", "accentSoft": "#cdeaf0",
-        "danger": "#c4204f"
+        "bg": "#f3f0e8",
+        "fg": "#1e1b30",
+        "muted": "#5a5580",
+        "surface": "#fffdf6",
+        "surface2": "#ece7d8",
+        "hover": "#ddd5ee",
+        "line": "#2a1f5c",
+        "lineSoft": "#8f86b8",
+        "drop": "#c4bbdc",
+        "accent": "#006f86",
+        "accentFill": "#00788f",
+        "onAccent": "#ffffff",
+        "accentSoft": "#cdeaf0",
+        "danger": "#c4204f",
+        "titleBg": "#fffdf6",
+        "titleFg": "#5a5580",
+        "titleLine": "#2a1f5c"
       },
       "titleImage": null,
       "backgroundImage": null

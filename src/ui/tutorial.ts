@@ -172,7 +172,9 @@ function renderStep(step: TourStep): HTMLElement[] {
   const blocks: HTMLElement[] = [];
   if (step.intro) blocks.push(el('p', {}, [step.intro]));
   if (step.items) {
-    const lines = step.items.map((item) => {
+    // Une ligne « only: fade » n'apparaît que si la DA active dessine le reflet.
+    const shown = step.items.filter((item) => item.only !== 'fade' || document.body.dataset.fade === 'on');
+    const lines = shown.map((item) => {
       const marker = item.swatch
         ? el('span', { class: `swatch swatch-${item.swatch}`, 'aria-hidden': 'true' })
         : el('span', { class: 'tour-bullet', 'aria-hidden': 'true' });
