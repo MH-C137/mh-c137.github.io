@@ -42,6 +42,10 @@ export interface Overlay {
   hover: { x: number; y: number; mode: 'draw' | 'erase'; size: number } | null;
 }
 
+/** Proportions des croix du quadrillage (en cases), mesurées sur la ressource des artistes : bras de 10 px et trait de 3 px sur une case de 54 px. */
+const CROSS_ARM = 10 / 54.3;
+const CROSS_THICKNESS = 3 / 54.3;
+
 /** En dessous de cette taille de case (en px), on dessine des carrés simples. */
 const SHAPES_MIN_ZOOM = 4;
 /** En dessous de cette taille de case, les images sont remplacées par leur couleur moyenne. */
@@ -77,6 +81,8 @@ export class Renderer {
   gridVisible = true;
   /** Style du quadrillage, choisi par la DA : lignes simples, ou lignes + croix aux croisements. */
   gridStyle: 'lines' | 'crosses' = 'lines';
+  /** Épaisseur des lignes de la grille, en pixels CSS (0 = 1 pixel de l'écran, le plus fin possible). */
+  gridLineWidth = 0;
   /** Image de fond (derrière la grille, fixe à l'écran), choisie par la DA et le thème ; null = fond uni. */
   backgroundImage: CanvasImageSource & { width: number; height: number } | null = null;
   backgroundOpacity = 1;
@@ -221,44 +227,51 @@ export class Renderer {
     const majorAlpha = clamp01((zoom - 2) / 3);
     if (majorAlpha === 0) return;
 
-    // Aligne une coordonnée sur un pixel physique pour des lignes nettes de 1 pixel.
+    // Aligne une coordonnée sur un pixel physique pour des lignes nettes.
     const crisp = (value: number) =>
       (Math.round(value * this.pixelRatio) + 0.5) / this.pixelRatio;
+    // Style « croix » : toutes les lignes sont pareilles (comme sur la ressource des artistes) ; sinon, une ligne
+    // sur 10 est plus marquée, pour compter plus facilement.
+    const uniform = this.gridStyle === 'crosses';
     const minor = new Path2D();
     const major = new Path2D();
     for (let x = view.x0; x <= view.x1 + 1; x++) {
       const sx = crisp(camera.worldToScreenX(x));
-      const path = x % 10 === 0 ? major : minor;
+      const path = x % 10 === 0 && !uniform ? major : minor;
       path.moveTo(sx, 0);
       path.lineTo(sx, camera.height);
     }
     for (let y = view.y0; y <= view.y1 + 1; y++) {
       const sy = crisp(camera.worldToScreenY(y));
-      const path = y % 10 === 0 ? major : minor;
+      const path = y % 10 === 0 && !uniform ? major : minor;
       path.moveTo(0, sy);
       path.lineTo(camera.width, sy);
     }
-    context.lineWidth = 1 / this.pixelRatio;
+    // Épaisseur : celle de la DA en pixels CSS, ou 1 pixel de l'écran (le plus fin) si elle ne dit rien.
+    context.lineWidth = this.gridLineWidth > 0 ? this.gridLineWidth : 1 / this.pixelRatio;
     if (minorAlpha > 0) {
-      context.globalAlpha = minorAlpha;
+      context.globalAlpha = uniform ? majorAlpha : minorAlpha;
       context.strokeStyle = palette.grid;
       context.stroke(minor);
     }
     context.globalAlpha = majorAlpha;
     context.strokeStyle = palette.gridMajor;
     context.stroke(major);
-    if (this.gridStyle === 'crosses' && zoom >= 8) this.drawGridCrosses(view, crisp);
+    if (uniform && zoom >= 8) this.drawGridCrosses(view, crisp);
     context.globalAlpha = 1;
   }
 
   /**
-   * Style « croix » : une petite croix épaisse à chaque croisement de lignes, par-dessus le
-   * quadrillage fin. Toutes les croix sont regroupées dans un seul chemin (un seul ordre de
-   * dessin) et apparaissent progressivement quand on zoome, comme les lignes.
+   * Style « croix » : une croix épaisse à chaque croisement de lignes, par-dessus le quadrillage fin.
+   * Les proportions sont MESURÉES sur la ressource des artistes (Quadrillage.png) : sur une case de
+   * 54 px, chaque bras mesure 10 px depuis le centre (0,185 case) et 3 px d'épaisseur (0,06 case).
+   * Elles suivent donc le zoom (une case deux fois plus grande, des croix deux fois plus grandes).
+   * Toutes les croix sont regroupées dans un seul chemin (un seul ordre de dessin) et apparaissent
+   * progressivement quand on zoome, comme les lignes.
    */
   private drawGridCrosses(view: { x0: number; x1: number; y0: number; y1: number }, crisp: (value: number) => number): void {
     const { camera, context, palette } = this;
-    const arm = Math.min(camera.zoom * 0.14, 7); // longueur d'un bras de la croix
+    const arm = camera.zoom * CROSS_ARM; // longueur d'un bras, depuis le centre
     const crosses = new Path2D();
     for (let x = view.x0; x <= view.x1 + 1; x++) {
       const sx = crisp(camera.worldToScreenX(x));
@@ -270,8 +283,8 @@ export class Renderer {
         crosses.lineTo(sx, sy + arm);
       }
     }
-    context.globalAlpha = clamp01((camera.zoom - 6) / 4) * 0.7; // un peu plus discrètes que les lignes principales
-    context.lineWidth = Math.max(2, camera.zoom * 0.06);
+    context.globalAlpha = clamp01((camera.zoom - 6) / 4);
+    context.lineWidth = Math.max(1.5, camera.zoom * CROSS_THICKNESS);
     context.strokeStyle = palette.gridMajor;
     context.stroke(crosses);
   }

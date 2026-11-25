@@ -121,6 +121,8 @@ export interface DesignPack {
     readonly pulseHalo: boolean;
   };
   readonly grid: {
+    /** Épaisseur des lignes, en pixels CSS (0 = le plus fin possible : 1 pixel de l'écran). Sur écran Retina, 1 donne des lignes nettement visibles. */
+    readonly lineWidth: number;
     /** `lines` : quadrillage. `crosses` : quadrillage fin + une croix épaisse à chaque croisement. */
     readonly style: GridStyle;
   };
@@ -305,7 +307,10 @@ export function parseDesign(raw: unknown, fallback: DesignPack): ParsedDesign {
       outlineWidth: number(cells.outlineWidth, fallback.cells.outlineWidth, 0.02, 0.3, 'cells.outlineWidth'),
       pulseHalo: flag(cells.pulseHalo, fallback.cells.pulseHalo, 'cells.pulseHalo'),
     },
-    grid: { style: choice(grid.style, GRID_STYLES, fallback.grid.style, 'grid.style') },
+    grid: {
+      style: choice(grid.style, GRID_STYLES, fallback.grid.style, 'grid.style'),
+      lineWidth: number(grid.lineWidth, fallback.grid.lineWidth, 0, 4, 'grid.lineWidth'),
+    },
     background: {
       style: choice(background.style, BACKGROUND_STYLES, fallback.background.style, 'background.style'),
       opacity: number(background.opacity, fallback.background.opacity, 0, 1, 'background.opacity'),
@@ -373,7 +378,7 @@ export const BLANK_DESIGN: DesignPack = (() => {
     ui: { fontFamily: 'sans-serif', textScale: 1, frame: 'notched', borderWidth: 3 },
     title: { text: 'Jeu de la vie', imageHeight: 46 },
     cells: { icon: null, scale: 1, iconMinZoom: 6, traceStyle: 'filled', outlineWidth: 0.07, pulseHalo: false },
-    grid: { style: 'lines' },
+    grid: { style: 'lines', lineWidth: 0 },
     background: { style: 'image', opacity: 1, density: 1 },
     themes: { night: theme, day: theme },
   };
