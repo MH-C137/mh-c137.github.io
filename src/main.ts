@@ -35,6 +35,7 @@ import { setupLibrary } from './ui/library';
 import { setupShortcuts } from './ui/shortcuts';
 import { ThemeManager } from './ui/theme';
 import { setupDaConfig } from './ui/daconfig';
+import { listenForErrors } from './ui/diagnostic';
 import { setupOptions } from './ui/options';
 import { setupMenu, setupToolbar, setupToolOptions } from './ui/toolbar';
 import { setupTooltips } from './ui/tooltips';
@@ -43,6 +44,8 @@ import { ViewSettings } from './ui/viewsettings';
 import { chooseDesign } from './da/registry';
 import { DesignRuntime } from './da/runtime';
 import { setupTransport, setupZoom } from './ui/transport';
+
+listenForErrors(); // garde les erreurs du navigateur pour le « diagnostic » (Config DA)
 
 // ── 1. Les objets du programme ─────────────────────────────────────────────
 const canvas = byId<HTMLCanvasElement>('world');

@@ -26,6 +26,7 @@ import type { App } from '../app';
 import { alphaOf, colorWithAlpha, hexOf, recolor } from '../da/overrides';
 import type { BackgroundStyle, CellColorKey, GridStyle, RoleKey, UiColorKey } from '../da/schema';
 import type { ThemeName } from '../render/theme';
+import { collectDiagnostic } from './diagnostic';
 import { byId, el } from './dom';
 
 export interface DaConfig {
@@ -119,9 +120,11 @@ const ROLE_ROWS: ReadonlyArray<{ title: string; roles: ReadonlyArray<readonly [R
 /** « Aucune couleur » (transparente) : la pastille « Aucun » du carré derrière les pastilles. */
 const NO_COLOR = 'rgba(0, 0, 0, 0)';
 
-const GRID_CHOICES: ReadonlyArray<readonly [GridStyle, string]> = [
+/** Les choix du quadrillage : deux styles, ou « Masqué » (le même réglage que « Grille » dans Options). */
+const GRID_CHOICES: ReadonlyArray<readonly [GridStyle | 'hidden', string]> = [
   ['lines', 'Lignes'],
   ['crosses', 'Croix'],
+  ['hidden', 'Masqué'],
 ];
 const BACKGROUND_CHOICES: ReadonlyArray<readonly [BackgroundStyle, string]> = [
   ['none', 'Aucun'],
@@ -233,7 +236,16 @@ export function setupDaConfig(app: App): DaConfig {
     section(
       'Quadrillage et fond',
       [
-        choiceRow('Quadrillage', GRID_CHOICES, () => design.gridStyleOf(theme.name), (style) => design.setGridStyle(theme.name, style)),
+        choiceRow(
+          'Quadrillage',
+          GRID_CHOICES,
+          () => (app.viewSettings.gridVisible ? design.gridStyleOf(theme.name) : 'hidden'),
+          (choice) => {
+            // « Masqué » = l'interrupteur « Grille » des Options ; un style choisi réaffiche la grille.
+            if (choice === 'hidden' ? app.viewSettings.gridVisible : !app.viewSettings.gridVisible) app.viewSettings.toggleGrid();
+            if (choice !== 'hidden') design.setGridStyle(theme.name, choice);
+          },
+        ),
         choiceRow(
           'Fond',
           BACKGROUND_CHOICES,
@@ -284,26 +296,33 @@ export function setupDaConfig(app: App): DaConfig {
   resetButton.addEventListener('click', () => design.resetTheme(theme.name));
   resetAllButton.addEventListener('click', () => design.resetAll());
 
-  // « Copier la config » : le texte au format de da.json (à recopier dans le fichier de la DA pour garder les réglages).
-  copyButton.addEventListener('click', () => {
-    const json = design.exportJson();
-    const done = () => app.notify('Config copiée : colle-la dans un message pour la garder');
+  /** Copie un texte dans le presse-papiers (avec un repli pour les navigateurs qui le refusent) puis affiche un message. */
+  const copyText = (text: string, doneMessage: string) => {
+    const done = () => app.notify(doneMessage);
     const fallback = () => {
       // Vieux navigateur ou iframe sans accès au presse-papiers : copie via un champ texte caché.
       const area = el('textarea', { 'aria-hidden': 'true' });
-      area.value = json;
+      area.value = text;
       document.body.append(area);
       area.select();
       const ok = document.execCommand('copy');
       area.remove();
       if (ok) done();
       else {
-        console.log(json);
-        app.notify('Copie impossible : la config est dans la console (F12)');
+        console.log(text);
+        app.notify('Copie impossible : le texte est dans la console (F12)');
       }
     };
-    if (navigator.clipboard?.writeText) navigator.clipboard.writeText(json).then(done, fallback);
+    if (navigator.clipboard?.writeText) navigator.clipboard.writeText(text).then(done, fallback);
     else fallback();
+  };
+
+  // « Copier la config » : le texte au format de da.json (à recopier dans le fichier de la DA pour garder les réglages).
+  copyButton.addEventListener('click', () => copyText(design.exportJson(), 'Config copiée : colle-la dans un message pour la garder'));
+
+  // « Copier le diagnostic » : l'état du site et du navigateur, pour comprendre un problème d'affichage.
+  byId('da-diag').addEventListener('click', () => {
+    void collectDiagnostic(app).then((text) => copyText(text, 'Diagnostic copié : colle-le dans un message'));
   });
 
   // ── Ouvrir / fermer ──
@@ -318,6 +337,7 @@ export function setupDaConfig(app: App): DaConfig {
   // Options avancées coupées : le panneau se ferme (les réglages déjà faits restent appliqués).
   app.viewSettings.on('change', () => {
     if (!app.viewSettings.advancedVisible) setOpen(false);
+    refresh(); // « Grille » a pu être changée depuis les Options
   });
 
   return { toggle: () => setOpen(panel.hidden === true) };

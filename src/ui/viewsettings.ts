@@ -16,7 +16,9 @@
 import { Emitter } from '../core/events';
 import type { Renderer } from '../render/renderer';
 
-const GRID_KEY = 'jeu-de-la-vie:grille';
+// Clé versionnée (« :v2 ») : une ancienne valeur « grille masquée » mémorisée par une version précédente n'est plus relue,
+// la grille est donc visible pour tout le monde après cette mise à jour.
+const GRID_KEY = 'jeu-de-la-vie:grille:v2';
 const ADVANCED_KEY = 'jeu-de-la-vie:avance';
 
 export class ViewSettings extends Emitter<{ change: void }> {

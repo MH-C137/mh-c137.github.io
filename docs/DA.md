@@ -60,6 +60,8 @@ confonde jamais le fond avec la grille et les cellules, le site pose entre les d
 
 ## L'outil « Config DA » : essayer sans toucher aux fichiers
 
+> Le bouton **« Copier le diagnostic »** copie un rapport (navigateur, résolution, grille, couleurs, erreurs) à coller dans un message quand un affichage pose problème.
+
 Dans le site : **Options → Options avancées → Config DA**. Les onglets **Mode nuit / Mode jour** règlent chaque thème
 séparément (et changent aussi le thème affiché, pour voir l'effet tout de suite).
 
