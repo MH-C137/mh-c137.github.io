@@ -5,7 +5,8 @@
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { describe, expect, it } from 'vitest';
-import { bestOn, contrastRatio, deriveFromRoles, isDark, luminance, mix, nudge, readableOn, roleBaseColor } from '../src/da/derive';
+import { bestOn, contrastRatio, deriveFromRoles, isDark, luminance, mix, nudge, readableOn, roleBaseColor, visibleGridColors } from '../src/da/derive';
+import { alphaOf, hexOf } from '../src/da/overrides';
 import { BLANK_DESIGN, parseDesign } from '../src/da/schema';
 
 const read = (id: string) => JSON.parse(readFileSync(join(__dirname, '..', 'src', 'da', id, 'da.json'), 'utf8'));
@@ -111,5 +112,22 @@ describe('Fond toujours visible', () => {
 
   it('si on choisit aussi les étoiles, ce choix est respecté', () => {
     expect(deriveFromRoles(night, { page: BLEU_NUIT, stars: JAUNE }, palette).cells.stars).toBe(JAUNE);
+  });
+});
+
+describe('Garde-fou de la grille', () => {
+  it('une grille déjà visible n\'est pas modifiée (les valeurs des DA passent)', () => {
+    for (const pack of [nova, pixel]) {
+      for (const theme of [pack.themes.night, pack.themes.day]) {
+        const { grid, gridMajor, background } = theme.cells;
+        expect(visibleGridColors({ grid, gridMajor }, background, palette)).toEqual({ grid, gridMajor });
+      }
+    }
+  });
+
+  it('une grille de la couleur de la page est remplacée par une couleur qui contraste', () => {
+    const fixed = visibleGridColors({ grid: 'rgba(37, 49, 101, 0.2)', gridMajor: '#253165' }, BLEU_NUIT, palette);
+    expect(contrastRatio(mix(BLEU_NUIT, hexOf(fixed.grid), alphaOf(fixed.grid)), BLEU_NUIT)).toBeGreaterThan(1.12);
+    expect(fixed.grid).not.toBe('rgba(37, 49, 101, 0.2)');
   });
 });

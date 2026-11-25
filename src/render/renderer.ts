@@ -131,7 +131,9 @@ export class Renderer {
   resize(): void {
     const width = this.canvas.clientWidth;
     const height = this.canvas.clientHeight;
-    this.pixelRatio = Math.min(window.devicePixelRatio || 1, 2);
+    // Résolution EXACTE de l'écran (jusqu'à 3×) : avec un zoom de page ou un écran à échelle non entière (ex. 2,2×), un
+    // canvas à 2× est ré-étiré par le navigateur, et les lignes fines d'un pixel deviennent floues, voire invisibles.
+    this.pixelRatio = Math.min(window.devicePixelRatio || 1, 3);
     this.canvas.width = Math.round(width * this.pixelRatio);
     this.canvas.height = Math.round(height * this.pixelRatio);
     this.camera.setViewport(width, height);

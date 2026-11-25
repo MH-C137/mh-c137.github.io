@@ -21,7 +21,7 @@ import type { Renderer } from '../render/renderer';
 import type { Palette, ThemeName } from '../render/theme';
 import type { LoadedDesign } from './registry';
 import { alphaOf } from './overrides';
-import { deriveFromRoles, paletteExtremes, readableOn, roleBaseColor } from './derive';
+import { deriveFromRoles, paletteExtremes, readableOn, roleBaseColor, visibleGridColors } from './derive';
 import {
   applyOverrides,
   effectiveBackground,
@@ -202,7 +202,11 @@ export class DesignRuntime extends Emitter<{ change: void }> {
 
   /** Palette des cellules et de la grille pour un thème (celle du da.json, avec les réglages par-dessus). */
   palette(theme: ThemeName): Palette {
-    return paletteOf(this.effective(theme));
+    const t = this.effective(theme);
+    const palette = paletteOf(t);
+    // Garde-fou : jamais de grille invisible (voir visibleGridColors).
+    const candidates = [...this.design.pack.palette.map((entry) => entry.color), t.interface.fg, t.interface.bg];
+    return { ...palette, ...visibleGridColors(palette, palette.background, candidates) };
   }
 
   /** Charge une image du dossier de la DA (null si elle est introuvable : le site continue sans). */
