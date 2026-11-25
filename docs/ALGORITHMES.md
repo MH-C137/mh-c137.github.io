@@ -243,6 +243,8 @@ Côté réglages : le choix « Grille activée / masquée » est mémorisé sous
 
 Les **croix** du quadrillage ont les proportions mesurées sur la ressource des artistes (`Quadrillage.png`, cases de 54 px) : bras de 0,18 case de chaque côté, épaisseur 0,055 case (au moins 1,5 px), lignes fines de 1 px. Elles sont donc proportionnelles au zoom. Le curseur « Opacité du quadrillage » (Config DA) règle l'opacité des lignes principales et des croix ; les lignes fines gardent la proportion de la DA par rapport à elles.
 
+L'image du **titre** est une silhouette d'une seule couleur : changer le rôle « Titre » (`interface.titleInk`) la recolore comme le fond (`tint()` : on redessine l'image puis `source-in` la remplit de la nouvelle couleur, qui devient l'adresse de l'image). Quand on change le fond de la légende sans choisir le titre, sa couleur est éclaircie ou assombrie (`readableOn`, contraste ≥ 3) pour rester lisible.
+
 ## 10 octies. La vitre — `Renderer.drawGlass()`
 
 Pour qu'on ne confonde jamais le fond avec la grille ou les cellules : après le fond et AVANT la grille, on pose une teinte translucide (`colors.glass`, ex. bleu nuit à 62 %) et un très léger reflet en diagonale (dégradé blanc presque transparent). Le fond est estompé et paraît loin ; la grille et les cellules, nettes et opaques, paraissent au premier plan, « derrière la vitre » le ciel. Ordre de dessin : fond → vitre → grille → cellules.

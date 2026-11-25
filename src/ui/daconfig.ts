@@ -85,6 +85,7 @@ const SECTIONS: ReadonlyArray<{ title: string; colors: readonly ColorSpec[] }> =
       { block: 'interface', key: 'titleBg', label: 'Fond de la légende' },
       { block: 'interface', key: 'titleFg', label: 'Écriture de la légende' },
       { block: 'interface', key: 'titleLine', label: 'Bord de la légende' },
+      { block: 'interface', key: 'titleInk', label: 'Couleur du titre' },
     ],
   },
   {
@@ -100,7 +101,8 @@ const ROLE_ROWS: ReadonlyArray<{ title: string; roles: ReadonlyArray<readonly [R
     roles: [
       ['page', 'Fond de la page'],
       ['panels', 'Panneaux et boutons'],
-      ['legend', 'Légende et titre'],
+      ['legend', 'Fond de la légende'],
+      ['title', 'Titre (« Nova »)'],
       ['text', 'Écriture'],
       ['details', 'Détails (titres, bouton actif)'],
       ['borders', 'Bords'],

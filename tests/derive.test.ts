@@ -96,6 +96,21 @@ describe('Rôles → nuances', () => {
   it('le choix actuel d\'un rôle sans réglage est la couleur de la DA', () => {
     expect(roleBaseColor(night, 'panels')).toBe(night.interface.surface);
     expect(roleBaseColor(night, 'tile')).toBe(night.cells.tile);
+    expect(roleBaseColor(night, 'title')).toBe(night.interface.titleInk);
+  });
+
+  it('« title » : seule la couleur de l\'image du titre change', () => {
+    const { cells, interface: ui } = deriveFromRoles(night, { title: BLEU_CLAIR }, palette);
+    expect(ui.titleInk).toBe(BLEU_CLAIR);
+    expect(Object.keys(ui)).toEqual(['titleInk']);
+    expect(Object.keys(cells)).toHaveLength(0);
+  });
+
+  it('une nouvelle légende garde le titre lisible dessus (contraste d\'au moins 3)', () => {
+    for (const legend of palette) {
+      const { interface: ui } = deriveFromRoles(night, { legend }, palette);
+      expect(contrastRatio(ui.titleInk ?? night.interface.titleInk, legend)).toBeGreaterThanOrEqual(3);
+    }
   });
 });
 

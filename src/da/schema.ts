@@ -26,6 +26,8 @@ export const UI_COLOR_KEYS = [
   'accent', 'accentFill', 'onAccent', 'accentSoft', 'danger',
   // Le bloc du titre (en haut à gauche) peut avoir ses propres couleurs (ex. titre jaune sur fond bleu nuit).
   'titleBg', 'titleFg', 'titleLine',
+  // Couleur de l'image du titre (l'image est une silhouette d'une seule couleur : le site la recolore si on change cette valeur).
+  'titleInk',
 ] as const;
 export type UiColorKey = (typeof UI_COLOR_KEYS)[number];
 export type UiColors = Record<UiColorKey, string>;
@@ -57,7 +59,7 @@ export interface DesignTheme {
  * et les nuances qui en dépendent sont déduites (voir derive.ts).
  */
 export const ROLE_KEYS = [
-  'page', 'panels', 'legend', 'text', 'details', 'borders', 'newborn', 'alive', 'stars', 'tile',
+  'page', 'panels', 'legend', 'title', 'text', 'details', 'borders', 'newborn', 'alive', 'stars', 'tile',
 ] as const;
 export type RoleKey = (typeof ROLE_KEYS)[number];
 export type Roles = Partial<Record<RoleKey, string>>;

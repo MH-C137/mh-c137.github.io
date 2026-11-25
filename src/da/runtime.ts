@@ -356,6 +356,16 @@ export class DesignRuntime extends Emitter<{ change: void }> {
     if (image) {
       image.hidden = !titleUrl;
       if (titleUrl) image.src = titleUrl;
+      // Couleur du titre changée (Config DA) : l'image, d'une seule couleur, est recolorée par le site.
+      if (current.titleImage && current.interface.titleInk !== this.design.pack.themes[theme].interface.titleInk) {
+        const path = current.titleImage;
+        const ink = current.interface.titleInk;
+        void this.loadImage(path).then((loaded) => {
+          // Le thème ou la couleur a pu changer entre-temps : on ne pose que le résultat à jour.
+          const still = this.currentTheme === theme && this.effective(theme).interface.titleInk === ink;
+          if (loaded && still) image.src = tint(loaded, ink).toDataURL();
+        });
+      }
     }
     body.dataset.title = titleUrl ? 'image' : 'text';
 
