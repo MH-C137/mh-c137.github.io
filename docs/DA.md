@@ -30,7 +30,7 @@ forme des cellules, quadrillage, fond, titre, style des cadres. Le code du jeu n
 
 | Bloc | Rôle |
 |---|---|
-| `palette` | Les couleurs de la DA (liste `["#548ebc", …]`), proposées par l'outil Config DA. |
+| `palette` | Les couleurs de la DA, avec leur nom : `[{ "name": "Bleu nuit", "color": "#253165" }, …]`. Ce sont les seules couleurs proposées par l'outil Config DA. |
 | `name`, `description`, `defaultTheme` | Nom, description, et thème montré à la première visite (`"day"` ou `"night"`). |
 | `fonts` | Les polices à charger : `{ "family": "Nom", "file": "assets/fonts/x.woff2", "weight": "400" }`. |
 | `ui` | `fontFamily` (police de l'interface), `textScale` (1 = tailles d'origine ; 0,68 pour une police plus grande), `frame` (`"notched"` = cadres en escalier + ombre dure, `"flat"` = simple contour), `borderWidth` (épaisseur des contours, en pixels). |
@@ -38,7 +38,7 @@ forme des cellules, quadrillage, fond, titre, style des cadres. Le code du jeu n
 | `cells` | `icon` : image dont la **silhouette** sert de forme aux cellules (ex. une étoile) ; `null` = carrés. `scale` : taille dans la case. `iconMinZoom` : sous cette taille de case (px), on dessine des carrés. `traceStyle` : `"filled"` (la cellule qui vient de mourir est pleine) ou `"outline"` (seulement son **contour**, étoile vide). `outlineWidth` : épaisseur de ce contour (ex. 0,08). `pulseHalo` : `true` = la cellule qui clignote a un **halo**. |
 | `grid` | `style` : `"lines"` (lignes) ou `"crosses"` (lignes fines + une croix épaisse à chaque croisement). |
 | `background` | `style` : `"image"` (l'image du thème, fixe) ou `"constellation"` (un ciel d'étoiles généré par le site, **fixe dans le monde** et sans fin : voir plus bas). `opacity` : transparence (0 à 1). `density` : quantité d'étoiles de la constellation (1 = normal). |
-| `themes.night` et `themes.day` | Pour chaque thème : `colors` (fond, grille, `newborn` née, `alive` vivante, `pulse` clignote, `trace` vient de mourir, `glass` la vitre, `stars` couleur des étoiles du fond, sélection, gomme), `interface` (couleurs des boutons, panneaux, textes, et `titleBg` / `titleFg` / `titleLine` pour le bloc du titre), `titleImage` et `backgroundImage` (chemins d'images, ou `null`), et si besoin `gridStyle` / `backgroundStyle` (`"none"`, `"image"`, `"constellation"`) pour un style propre à ce thème. |
+| `themes.night` et `themes.day` | Pour chaque thème : `colors` (fond, grille, `newborn` née, `alive` vivante, `pulse` clignote, `trace` vient de mourir, `glass` la vitre, `stars` couleur des étoiles du fond, `tile` fond des pastilles et miniatures, sélection, gomme), `interface` (couleurs des boutons, panneaux, textes, et `titleBg` / `titleFg` / `titleLine` pour le bloc du titre), `titleImage` et `backgroundImage` (chemins d'images, ou `null`), et si besoin `gridStyle` / `backgroundStyle` (`"none"`, `"image"`, `"constellation"`) pour un style propre à ce thème. |
 
 Les couleurs s'écrivent `#rrggbb` ou `rgba(r, g, b, a)`. Les chemins sont **relatifs au dossier de la DA**
 (`assets/etoile.png`).
@@ -60,15 +60,33 @@ confonde jamais le fond avec la grille et les cellules, le site pose entre les d
 
 ## L'outil « Config DA » : essayer sans toucher aux fichiers
 
-Dans le site : **Options → Options avancées → Config DA**. Le panneau permet de changer, **séparément pour le mode nuit et le
-mode jour** (les onglets changent aussi le thème affiché) : le style du quadrillage, le fond (aucun, constellation, image),
-les couleurs du fond, des étoiles et de la « vitre », des cellules, des panneaux, des boutons, de la légende, des textes et
-des bordures. Les couleurs de la palette de la DA (`palette` dans `da.json`) sont proposées par les sélecteurs. Les réglages
-sont retenus dans le navigateur (ils restent après un rechargement, et même si on coupe les options avancées : « Remettre ce
-thème » les efface).
+Dans le site : **Options → Options avancées → Config DA**. Les onglets **Mode nuit / Mode jour** règlent chaque thème
+séparément (et changent aussi le thème affiché, pour voir l'effet tout de suite).
 
-**Pour garder ce qui plaît :** clique sur **« Copier la config »** et envoie le texte (c'est un bloc `themes` au format de
-`da.json`), ou recopie ses valeurs dans le `da.json` de la DA. Les réglages ne modifient jamais les fichiers.
+**On choisit des rôles, pas des dizaines de couleurs.** Pour chaque rôle, une rangée de pastilles : les couleurs de la
+**palette de la DA** (`palette` dans `da.json`), les seules proposées, puisqu'elles correspondent à de vraies couleurs de la
+charte. Le site **déduit les nuances** qui en dépendent :
+
+| Rôle | Ce qui est déduit |
+|---|---|
+| Fond de la page | fond de la grille, teinte de la vitre, couleur des lignes de la grille (la plus contrastée de la palette) |
+| Panneaux et boutons | boutons (un peu plus clairs si le panneau est sombre, plus sombres s'il est clair), boutons survolés, bords doux, rouge d'alerte rendu lisible |
+| Légende et titre | écriture de la légende (la couleur de la palette la plus lisible dessus) |
+| Écriture | écriture discrète (fondue dans le panneau) |
+| Détails | bouton actif, texte du bouton actif (le plus lisible), titres (éclaircis ou assombris jusqu'à être lisibles sur les panneaux), fond de l'image choisie, et les bords tant qu'on ne choisit pas de bords |
+| Bords | bords des panneaux et du bloc de titre |
+| Cellule qui vient de naître / vivante | la cellule vivante donne aussi sa couleur au clignotement et au contour de la trace |
+| Étoiles du fond | couleur des étoiles de la constellation et de l'image de fond |
+| **Fond des pastilles et miniatures** | **indépendant** : le fond derrière les étoiles de la légende et des miniatures de structures (couleur `tile`), sans lien avec le fond de la page |
+
+On règle aussi le style du **quadrillage** (lignes ou croix), le **fond** (aucun, constellation, image) et l'**opacité de la
+vitre**. Tout en bas, **« Réglages détaillés »** (replié) garde un sélecteur de couleur libre par élément pour les cas
+particuliers. Choisir un rôle efface les réglages détaillés des couleurs qu'il déduit : le dernier choix l'emporte.
+
+Les réglages sont retenus dans le navigateur (ils restent après un rechargement, et même si on coupe les options avancées :
+« Remettre le mode nuit / jour » les efface). **Pour garder ce qui plaît :** « Copier la config » donne un bloc `themes`
+au format de `da.json`, **couleurs déduites comprises** : envoie-le (ou recopie ses valeurs dans le `da.json` de la DA). Les
+réglages ne modifient jamais les fichiers.
 
 ## Les images du « DOSSIER RESSOURCES » : lesquelles utiliser ?
 

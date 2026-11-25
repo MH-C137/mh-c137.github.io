@@ -39,6 +39,8 @@ export interface Palette {
   readonly glass: string;
   /** Couleur des étoiles de la constellation de fond. */
   readonly stars: string;
+  /** Fond des pastilles de la légende et des miniatures de structures (indépendant du fond de la page). */
+  readonly tile: string;
 }
 
 export const PALETTES: Record<ThemeName, Palette> = {
@@ -55,6 +57,7 @@ export const PALETTES: Record<ThemeName, Palette> = {
     erase: '#ff4d8d',
     glass: 'rgba(0, 0, 0, 0)',
     stars: 'rgba(0, 0, 0, 0)',
+    tile: '#05050b',
   },
   day: {
     background: '#f3f0e8',
@@ -69,5 +72,6 @@ export const PALETTES: Record<ThemeName, Palette> = {
     erase: '#d6336c',
     glass: 'rgba(0, 0, 0, 0)',
     stars: 'rgba(0, 0, 0, 0)',
+    tile: '#f3f0e8',
   },
 };

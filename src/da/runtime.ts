@@ -20,6 +20,7 @@ import { Constellation } from '../render/constellation';
 import type { Renderer } from '../render/renderer';
 import type { Palette, ThemeName } from '../render/theme';
 import type { LoadedDesign } from './registry';
+import { deriveFromRoles, roleBaseColor } from './derive';
 import {
   applyOverrides,
   effectiveBackground,
@@ -30,7 +31,7 @@ import {
   type DesignOverrides,
   type ThemeOverrides,
 } from './overrides';
-import { paletteOf, UI_COLOR_KEYS, type BackgroundStyle, type CellColorKey, type DesignTheme, type GridStyle, type UiColorKey } from './schema';
+import { paletteOf, UI_COLOR_KEYS, type BackgroundStyle, type CellColorKey, type DesignTheme, type GridStyle, type RoleKey, type UiColorKey } from './schema';
 
 /** Délai (ms) avant d'appliquer un réglage : un sélecteur de couleur envoie des dizaines de valeurs par seconde, on attend la dernière. */
 const APPLY_DELAY_MS = 70;
@@ -84,9 +85,51 @@ export class DesignRuntime extends Emitter<{ change: void }> {
     }
   }
 
-  /** Le thème tel qu'il est utilisé : la DA, avec les réglages de la personne par-dessus. */
+  /**
+   * Les réglages d'un thème « mis à plat » : les couleurs déduites des rôles choisis, puis les
+   * réglages détaillés par-dessus (sans la liste des rôles). C'est ce qui est appliqué, et ce
+   * qu'on copie vers da.json.
+   */
+  private flattened(theme: ThemeName): ThemeOverrides {
+    const own = this.overrides[theme];
+    const palette = this.design.pack.palette.map((entry) => entry.color);
+    const derived = deriveFromRoles(this.design.pack.themes[theme], own.roles ?? {}, palette);
+    const flat: ThemeOverrides = {
+      cells: { ...derived.cells, ...own.cells },
+      interface: { ...derived.interface, ...own.interface },
+    };
+    if (own.gridStyle) flat.gridStyle = own.gridStyle;
+    if (own.backgroundStyle) flat.backgroundStyle = own.backgroundStyle;
+    return flat;
+  }
+
+  /** Le thème tel qu'il est utilisé : la DA, avec les rôles et les réglages de la personne par-dessus. */
   effective(theme: ThemeName): DesignTheme {
-    return applyOverrides(this.design.pack.themes[theme], this.overrides[theme]);
+    return applyOverrides(this.design.pack.themes[theme], this.flattened(theme));
+  }
+
+  /** La couleur actuelle d'un rôle : celle qui a été choisie, sinon celle de la DA. */
+  roleColor(theme: ThemeName, role: RoleKey): string {
+    return this.overrides[theme].roles?.[role] ?? roleBaseColor(this.design.pack.themes[theme], role);
+  }
+
+  /**
+   * Choisit la couleur d'un rôle (parmi la palette). Les nuances qui en dépendent sont déduites ; les
+   * réglages détaillés de ces nuances sont effacés : le dernier choix l'emporte.
+   */
+  setRole(theme: ThemeName, role: RoleKey, color: string): void {
+    const roles = { ...this.overrides[theme].roles, [role]: color };
+    const derived = deriveFromRoles(this.design.pack.themes[theme], roles, this.design.pack.palette.map((entry) => entry.color));
+    // Retire d'un bloc de réglages les couleurs que le rôle vient de déduire.
+    const without = <K extends string>(block: Partial<Record<K, string>> | undefined, remove: object): Partial<Record<K, string>> | undefined =>
+      block && (Object.fromEntries(Object.entries(block).filter(([key]) => !(key in remove))) as Partial<Record<K, string>>);
+    this.overrides[theme] = {
+      ...this.overrides[theme],
+      roles,
+      cells: without(this.overrides[theme].cells, derived.cells),
+      interface: without(this.overrides[theme].interface, derived.interface),
+    };
+    this.changed();
   }
 
   /** Les réglages faits pour ce thème (vide = rien de changé). */
@@ -140,7 +183,7 @@ export class DesignRuntime extends Emitter<{ change: void }> {
 
   /** Les réglages au format d'un morceau de `da.json`, pour les recopier dans le fichier de la DA. */
   exportJson(): string {
-    return overridesToJson(this.overrides);
+    return overridesToJson({ night: this.flattened('night'), day: this.flattened('day') });
   }
 
   /** Retient les réglages, puis prévient (avec un petit délai : on applique la dernière valeur d'un glissement). */

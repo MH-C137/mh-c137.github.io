@@ -10,11 +10,26 @@
     }
   ],
   "palette": [
-    "#3cf2ff",
-    "#a45cff",
-    "#05050b",
-    "#ffffff",
-    "#ff4d8d"
+    {
+      "name": "Cyan",
+      "color": "#3cf2ff"
+    },
+    {
+      "name": "Violet",
+      "color": "#a45cff"
+    },
+    {
+      "name": "Noir",
+      "color": "#05050b"
+    },
+    {
+      "name": "Blanc",
+      "color": "#ffffff"
+    },
+    {
+      "name": "Rose",
+      "color": "#ff4d8d"
+    }
   ],
   "ui": {
     "fontFamily": "'Jersey 10', ui-monospace, 'SFMono-Regular', Menlo, Consolas, monospace",
@@ -55,7 +70,8 @@
         "selection": "#3cf2ff",
         "erase": "#ff4d8d",
         "glass": "rgba(0, 0, 0, 0)",
-        "stars": "rgba(0, 0, 0, 0)"
+        "stars": "rgba(0, 0, 0, 0)",
+        "tile": "#05050b"
       },
       "interface": {
         "bg": "#05050b",
@@ -91,7 +107,8 @@
         "selection": "#008ca6",
         "erase": "#d6336c",
         "glass": "rgba(0, 0, 0, 0)",
-        "stars": "rgba(0, 0, 0, 0)"
+        "stars": "rgba(0, 0, 0, 0)",
+        "tile": "#f3f0e8"
       },
       "interface": {
         "bg": "#f3f0e8",

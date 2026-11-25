@@ -63,7 +63,7 @@ Patrons en place (garde-les cohérents) :
 - **Ajouter une structure** : une entrée dans `BUILTIN_DEFINITIONS` (`data/patterns.ts`), avec son RLE copié depuis LifeWiki, une catégorie et une description d'une ligne pour des collégiens. Ajoute un test si elle a une propriété connue (période, vitesse…).
 - **Ajouter un outil** : une classe qui implémente `Tool` (`input/tools.ts`), enregistrée dans le constructeur d'`Editor`. Ensuite, un bouton `data-tool="…"` dans `index.html` (avec `aria-label` et `title` incluant le raccourci) et une lettre dans `ui/shortcuts.ts`.
 - **Changer ou créer une DA** : voir `docs/DA.md` (copier un dossier de `src/da/`, modifier son `da.json`, changer le mot dans `src/da/active.ts`). Les images se rognent avec `tools/rogner_png.py`. `npm test` vérifie les fichiers de DA.
-- **Tester une apparence sans toucher aux fichiers** : l'outil « Config DA » (options avancées) ; ses réglages se copient au format `da.json`. Voir `docs/DA.md`.
+- **Tester une apparence sans toucher aux fichiers** : l'outil « Config DA » (options avancées) : on choisit des rôles parmi les couleurs de la `palette` de la DA et le site déduit les nuances (`src/da/derive.ts`) ; les réglages se copient au format `da.json`. Voir `docs/DA.md`.
 - **Ajouter une règle** : `RULE_PRESETS` existe déjà dans `core/rules.ts`. Il reste à créer un menu dans l'interface qui modifie `world.rule`, puis à appeler `simulation.markEdited()`.
 - **Ajouter ou changer une étape du didacticiel** : une entrée dans `TOUR_STEPS` (`data/tour.ts`) avec le sélecteur CSS de l'élément à expliquer. Le compteur et les boutons s'adaptent seuls.
 - **Infobulle** : mets simplement un attribut `title` sur le bouton (court, avec le raccourci). Pas de code à ajouter.

@@ -15,11 +15,26 @@
     }
   ],
   "palette": [
-    "#548ebc",
-    "#cbc737",
-    "#253165",
-    "#6f5ca4",
-    "#ffffff"
+    {
+      "name": "Bleu clair",
+      "color": "#548ebc"
+    },
+    {
+      "name": "Jaune",
+      "color": "#cbc737"
+    },
+    {
+      "name": "Bleu nuit",
+      "color": "#253165"
+    },
+    {
+      "name": "Violet",
+      "color": "#6f5ca4"
+    },
+    {
+      "name": "Blanc",
+      "color": "#ffffff"
+    }
   ],
   "ui": {
     "fontFamily": "'Space Grotesk', system-ui, 'Segoe UI', Helvetica, Arial, sans-serif",
@@ -60,7 +75,8 @@
         "selection": "#cbc737",
         "erase": "#ff7a9c",
         "glass": "rgba(37, 49, 101, 0.62)",
-        "stars": "#dfe8ff"
+        "stars": "#dfe8ff",
+        "tile": "#253165"
       },
       "interface": {
         "bg": "#253165",
@@ -96,7 +112,8 @@
         "selection": "#6f5ca4",
         "erase": "#d6336c",
         "glass": "rgba(255, 255, 255, 0.64)",
-        "stars": "#548ebc"
+        "stars": "#548ebc",
+        "tile": "#ffffff"
       },
       "interface": {
         "bg": "#ffffff",
