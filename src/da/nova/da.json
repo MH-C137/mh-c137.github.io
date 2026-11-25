@@ -55,8 +55,7 @@
     "pulseHalo": true
   },
   "grid": {
-    "style": "crosses",
-    "lineWidth": 1
+    "style": "crosses"
   },
   "background": {
     "style": "constellation",
@@ -67,8 +66,8 @@
     "night": {
       "colors": {
         "background": "#253165",
-        "grid": "rgba(255, 255, 255, 0.34)",
-        "gridMajor": "rgba(255, 255, 255, 0.62)",
+        "grid": "rgba(255, 255, 255, 0.2)",
+        "gridMajor": "rgba(255, 255, 255, 0.46)",
         "newborn": "#cbc737",
         "alive": "#ffffff",
         "pulse": "#ffffff",
@@ -104,8 +103,8 @@
     "day": {
       "colors": {
         "background": "#ffffff",
-        "grid": "rgba(37, 49, 101, 0.32)",
-        "gridMajor": "rgba(37, 49, 101, 0.6)",
+        "grid": "rgba(37, 49, 101, 0.2)",
+        "gridMajor": "rgba(37, 49, 101, 0.44)",
         "newborn": "#6f5ca4",
         "alive": "#253165",
         "pulse": "#253165",

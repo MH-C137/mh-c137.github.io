@@ -5,7 +5,6 @@
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { describe, expect, it } from 'vitest';
-import { alphaOf } from '../src/da/overrides';
 import { bestOn, contrastRatio, deriveFromRoles, isDark, luminance, mix, nudge, readableOn, roleBaseColor } from '../src/da/derive';
 import { BLANK_DESIGN, parseDesign } from '../src/da/schema';
 
@@ -90,8 +89,7 @@ describe('Rôles → nuances', () => {
   it('« page » : les lignes de la grille et la vitre s\'adaptent, en gardant leur transparence', () => {
     const { cells } = deriveFromRoles(night, { page: BLEU_CLAIR }, palette);
     expect(cells.glass).toMatch(/^rgba\(84, 142, 188, 0\.62\)$/);
-    // la transparence de la grille de la DA est conservée, seule la teinte change
-    expect(alphaOf(cells.grid!)).toBe(alphaOf(night.cells.grid));
+    expect(cells.grid).toMatch(/^rgba\(\d+, \d+, \d+, 0\.2\)$/);
   });
 
   it('le choix actuel d\'un rôle sans réglage est la couleur de la DA', () => {

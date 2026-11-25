@@ -258,7 +258,6 @@ export class DesignRuntime extends Emitter<{ change: void }> {
 
     // Quadrillage et forme des cellules.
     this.renderer.backgroundOpacity = pack.background.opacity;
-    this.renderer.gridLineWidth = pack.grid.lineWidth;
     if (pack.cells.icon) {
       const iconPath = pack.cells.icon;
       const url = this.design.url(iconPath);

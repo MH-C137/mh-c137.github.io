@@ -50,8 +50,7 @@
     "pulseHalo": false
   },
   "grid": {
-    "style": "lines",
-    "lineWidth": 0
+    "style": "lines"
   },
   "background": {
     "style": "image",
