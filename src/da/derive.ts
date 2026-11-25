@@ -24,7 +24,7 @@
  * Fichier pur (aucun navigateur) : tout est testé avec Node.
  */
 
-import { hexOf, parseCssColor, recolor, type Rgba } from './overrides';
+import { alphaOf, colorWithAlpha, hexOf, parseCssColor, recolor, type Rgba } from './overrides';
 import type { CellColors, DesignTheme, RoleKey, Roles, UiColors } from './schema';
 
 const toHex = (value: number) => Math.max(0, Math.min(255, Math.round(value))).toString(16).padStart(2, '0');
@@ -205,4 +205,28 @@ export function roleBaseColor(base: DesignTheme, role: RoleKey): string {
     case 'stars': return base.cells.stars;
     case 'tile': return base.cells.tile;
   }
+}
+
+/** Contraste minimal (entre la ligne telle qu'elle apparaît sur la page et la page) en dessous duquel la grille est jugée invisible. */
+const MIN_GRID_CONTRAST = 1.12;
+
+/**
+ * Garde-fou : la grille ne doit jamais devenir invisible. Si une ligne a presque la même couleur que
+ * la page (réglage malheureux, ancien réglage oublié…), on la remplace par la couleur de la palette qui
+ * contraste le plus avec la page, avec une opacité raisonnable. Une grille déjà visible n'est PAS modifiée.
+ *
+ * Comment mesurer ? Une ligne transparente se mélange à la page : on calcule la couleur « obtenue »
+ * (`mix(page, ligne, opacité)`) et on la compare à la page avec le contraste WCAG.
+ */
+export function visibleGridColors(
+  colors: { grid: string; gridMajor: string },
+  background: string,
+  candidates: readonly string[],
+): { grid: string; gridMajor: string } {
+  const fix = (line: string, minimumAlpha: number): string => {
+    const seen = mix(background, hexOf(line), alphaOf(line));
+    if (contrastRatio(seen, background) >= MIN_GRID_CONTRAST) return line;
+    return colorWithAlpha(bestOn(background, candidates), minimumAlpha);
+  };
+  return { grid: fix(colors.grid, 0.25), gridMajor: fix(colors.gridMajor, 0.45) };
 }
