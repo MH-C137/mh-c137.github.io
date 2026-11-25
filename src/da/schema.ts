@@ -33,7 +33,7 @@ export type UiColors = Record<UiColorKey, string>;
 /** Couleurs des cellules et de la grille : le nom des champs de `da.json` (→ `Palette` du rendu). */
 export const CELL_COLOR_KEYS = [
   'background', 'grid', 'gridMajor', 'newborn', 'alive', 'pulse', 'trace', 'selection', 'erase',
-  'fade', 'outline', 'glass', 'stars',
+  'glass', 'stars',
 ] as const;
 export type CellColorKey = (typeof CELL_COLOR_KEYS)[number];
 export type CellColors = Record<CellColorKey, string>;
@@ -85,10 +85,10 @@ export interface DesignPack {
     readonly scale: number;
     /** En dessous de cette taille de case (px), on dessine de simples carrés. */
     readonly iconMinZoom: number;
-    /** Épaisseur du contour des cellules-icônes (0 = aucun), en proportion de leur taille (ex. 0,06). */
+    /** Comment est dessinée une cellule qui vient de mourir : `filled` (pleine) ou `outline` (seulement son contour : étoile vide). */
+    readonly traceStyle: 'filled' | 'outline';
+    /** Épaisseur du contour quand la trace est en `outline`, en proportion de la cellule (ex. 0,07). */
     readonly outlineWidth: number;
-    /** Vrai : une cellule morte depuis deux générations reste visible, en contour seulement (couleur `fade`). */
-    readonly fadeTrail: boolean;
     /** Vrai : la cellule qui clignote est entourée d'un halo lumineux (utile quand elle est de la même couleur que les vivantes). */
     readonly pulseHalo: boolean;
   };
@@ -97,14 +97,12 @@ export interface DesignPack {
     readonly style: 'lines' | 'crosses';
   };
   readonly background: {
-    /** `image` : l'image du thème, fixe. `constellation` : un champ d'étoiles dessiné par le site, quasi infini. */
+    /** `image` : l'image du thème, fixe à l'écran. `constellation` : un ciel d'étoiles généré par le site, FIXE dans le monde (il suit le zoom et le déplacement de la grille) et sans fin. */
     readonly style: 'image' | 'constellation';
     /** Transparence du fond (0 à 1). */
     readonly opacity: number;
     /** Constellation : quantité d'étoiles (1 = normal). */
     readonly density: number;
-    /** Constellation : à quelle vitesse le fond suit le déplacement de la grille (0 = fixe, 1 = comme la grille ; plus c'est petit, plus il paraît loin). */
-    readonly parallax: number;
   };
   readonly themes: Record<ThemeName, DesignTheme>;
 }
@@ -253,8 +251,8 @@ export function parseDesign(raw: unknown, fallback: DesignPack): ParsedDesign {
       icon: path(cells.icon, null, 'cells.icon'),
       scale: number(cells.scale, fallback.cells.scale, 0.3, 1.3, 'cells.scale'),
       iconMinZoom: number(cells.iconMinZoom, fallback.cells.iconMinZoom, 2, 40, 'cells.iconMinZoom'),
-      outlineWidth: number(cells.outlineWidth, fallback.cells.outlineWidth, 0, 0.3, 'cells.outlineWidth'),
-      fadeTrail: flag(cells.fadeTrail, fallback.cells.fadeTrail, 'cells.fadeTrail'),
+      traceStyle: choice(cells.traceStyle, ['filled', 'outline'] as const, fallback.cells.traceStyle, 'cells.traceStyle'),
+      outlineWidth: number(cells.outlineWidth, fallback.cells.outlineWidth, 0.02, 0.3, 'cells.outlineWidth'),
       pulseHalo: flag(cells.pulseHalo, fallback.cells.pulseHalo, 'cells.pulseHalo'),
     },
     grid: { style: choice(grid.style, ['lines', 'crosses'] as const, fallback.grid.style, 'grid.style') },
@@ -262,7 +260,6 @@ export function parseDesign(raw: unknown, fallback: DesignPack): ParsedDesign {
       style: choice(background.style, ['image', 'constellation'] as const, fallback.background.style, 'background.style'),
       opacity: number(background.opacity, fallback.background.opacity, 0, 1, 'background.opacity'),
       density: number(background.density, fallback.background.density, 0.2, 4, 'background.density'),
-      parallax: number(background.parallax, fallback.background.parallax, 0, 1, 'background.parallax'),
     },
     themes: { night: readTheme('night'), day: readTheme('day') },
   };
@@ -303,8 +300,6 @@ export function paletteOf(theme: DesignTheme): Palette {
     selectionStroke: c.selection,
     selectionFill: withAlpha(c.selection, 0.1),
     erase: c.erase,
-    fade: c.fade,
-    outline: c.outline,
     glass: c.glass,
     stars: c.stars,
   };
@@ -325,9 +320,9 @@ export const BLANK_DESIGN: DesignPack = (() => {
     fonts: [],
     ui: { fontFamily: 'sans-serif', textScale: 1, frame: 'notched', borderWidth: 3 },
     title: { text: 'Jeu de la vie', imageHeight: 46 },
-    cells: { icon: null, scale: 1, iconMinZoom: 6, outlineWidth: 0, fadeTrail: false, pulseHalo: false },
+    cells: { icon: null, scale: 1, iconMinZoom: 6, traceStyle: 'filled', outlineWidth: 0.07, pulseHalo: false },
     grid: { style: 'lines' },
-    background: { style: 'image', opacity: 1, density: 1, parallax: 0.3 },
+    background: { style: 'image', opacity: 1, density: 1 },
     themes: { night: theme, day: theme },
   };
 })();

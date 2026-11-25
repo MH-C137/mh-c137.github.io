@@ -19,8 +19,6 @@
  *   - « vivante »        : vivante depuis au moins une génération (âge ≥ 1) ;
  *   - « vient de mourir » : vivante à la génération précédente, morte maintenant
  *                           (on garde leur liste : c'est la « trace ») ;
- *   - « fade »              : cellules mortes depuis DEUX générations (le reflet qui s'éteint :
- *                           certaines DA le dessinent en étoile vide, puis plus rien).
  *   - « morte »          : tout le reste (le fond).
  *
  * ─── Idée 3 : les habillages (images) ────────────────────────────────────────
@@ -57,13 +55,11 @@ export interface WorldSnapshot {
   readonly skins: Uint16Array | null;
   /** Clés des cellules mortes à la dernière génération (la « trace »). */
   readonly trace: Float64Array;
-  /** Clés des cellules mortes depuis deux générations (le « reflet »). Absent dans les photos plus anciennes. */
-  readonly fade?: Float64Array;
 }
 
 /** Nombre de cellules mémorisées dans une photo (sert à limiter la mémoire). */
 export function snapshotSize(snapshot: WorldSnapshot): number {
-  return snapshot.keys.length + snapshot.trace.length + (snapshot.fade?.length ?? 0);
+  return snapshot.keys.length + snapshot.trace.length;
 }
 
 /** Une cellule « clignote » toute les 3 générations passées en vie. */
@@ -86,8 +82,6 @@ export class World {
   private skins = new Map<number, number>();
   /** Cellules mortes lors du dernier passage de génération. */
   private trace: number[] = [];
-  /** Cellules mortes depuis deux générations (elles étaient dans `trace` à la génération d'avant). */
-  private fade: number[] = [];
   private _generation = 0;
 
   /** Règle d'évolution utilisée (patron Stratégie, voir rules.ts). */
@@ -132,11 +126,6 @@ export class World {
   /** Appelle `visit` pour chaque cellule « qui vient de mourir ». */
   forEachTrace(visit: (x: number, y: number) => void): void {
     for (const key of this.trace) visit(keyX(key), keyY(key));
-  }
-
-  /** Appelle `visit` pour chaque cellule morte depuis deux générations (le reflet qui s'éteint). */
-  forEachFade(visit: (x: number, y: number) => void): void {
-    for (const key of this.fade) visit(keyX(key), keyY(key));
   }
 
   /** Plus petit rectangle contenant toutes les cellules vivantes (null si le monde est vide). */
@@ -229,7 +218,6 @@ export class World {
       }
     }
     this.trace = this.trace.filter((key) => !inside(key));
-    this.fade = this.fade.filter((key) => !inside(key));
     return removed;
   }
 
@@ -238,7 +226,6 @@ export class World {
     this.ages.clear();
     this.skins.clear();
     this.trace = [];
-    this.fade = [];
     this._generation = 0;
   }
 
@@ -319,15 +306,9 @@ export class World {
       if (!nextAges.has(key)) trace.push(key);
     }
 
-    // Le reflet : les cellules de l'ancienne trace qui sont TOUJOURS mortes (une cellule
-    // de la trace qui est ressuscitée ne s'éteint pas : elle vit). Elles ne peuvent pas
-    // être dans la nouvelle trace (elles n'étaient pas vivantes à la génération d'avant).
-    const fade = this.trace.filter((key) => !nextAges.has(key));
-
     this.ages = nextAges;
     this.skins = nextSkins;
     this.trace = trace;
-    this.fade = fade;
     this._generation++;
   }
 
@@ -376,14 +357,7 @@ export class World {
       if (skins) skins[i] = this.skins.get(key) ?? 0;
       i++;
     }
-    return {
-      generation: this._generation,
-      keys,
-      ages,
-      skins,
-      trace: Float64Array.from(this.trace),
-      fade: Float64Array.from(this.fade),
-    };
+    return { generation: this._generation, keys, ages, skins, trace: Float64Array.from(this.trace) };
   }
 
   /** Remet le monde exactement dans l'état d'une photo. */
@@ -399,7 +373,6 @@ export class World {
     this.ages = ages;
     this.skins = skins;
     this.trace = Array.from(snapshot.trace);
-    this.fade = snapshot.fade ? Array.from(snapshot.fade) : [];
     this._generation = snapshot.generation;
   }
 }

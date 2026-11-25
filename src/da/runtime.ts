@@ -98,20 +98,19 @@ export class DesignRuntime {
     // Quadrillage et forme des cellules.
     this.renderer.gridStyle = pack.grid.style;
     this.renderer.backgroundOpacity = pack.background.opacity;
-    this.renderer.backgroundParallax = pack.background.parallax;
-    this.renderer.fadeTrail = pack.cells.fadeTrail;
-    body.dataset.fade = pack.cells.fadeTrail ? 'on' : 'off';
     if (pack.cells.icon) {
       const iconPath = pack.cells.icon;
       const url = this.design.url(iconPath);
       if (url) body.style.setProperty('--cell-icon', `url("${url}")`);
       void this.loadImage(iconPath).then((image) => {
         this.renderer.setCellIcon(image, pack.cells.scale, pack.cells.iconMinZoom, {
+          traceStyle: pack.cells.traceStyle,
           outlineWidth: pack.cells.outlineWidth,
           pulseHalo: pack.cells.pulseHalo,
         });
         this.icon = image;
         this.iconReady = true;
+        this.publishSwatches();
         this.refreshConstellation();
         this.invalidate();
       });
@@ -123,6 +122,19 @@ export class DesignRuntime {
   }
 
   private icon: HTMLImageElement | null = null;
+
+  /**
+   * Met à jour les pastilles de la légende et du didacticiel (variables CSS `--sprite-…`) avec les
+   * vraies images des cellules, aux couleurs actuelles : la légende est donc toujours fidèle au rendu.
+   */
+  private publishSwatches(): void {
+    const body = document.body;
+    const urls = this.renderer.swatchUrls();
+    for (const kind of ['newborn', 'alive', 'trace'] as const) {
+      if (urls) body.style.setProperty(`--sprite-${kind}`, `url("${urls[kind]}")`);
+      else body.style.removeProperty(`--sprite-${kind}`);
+    }
+  }
 
   /**
    * (Re)dessine le fond d'étoiles dans la couleur du thème actuel. Les étoiles ont la forme de
@@ -159,6 +171,7 @@ export class DesignRuntime {
 
     // Fond d'étoiles dessiné par le site (si la DA le demande).
     this.currentTheme = theme;
+    this.publishSwatches(); // la palette vient de changer : les images des cellules aussi
     this.refreshConstellation();
 
     // Image de fond de la grille.

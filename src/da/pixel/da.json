@@ -23,8 +23,8 @@
     "icon": null,
     "scale": 1,
     "iconMinZoom": 6,
-    "outlineWidth": 0,
-    "fadeTrail": false,
+    "traceStyle": "filled",
+    "outlineWidth": 0.07,
     "pulseHalo": false
   },
   "grid": {
@@ -33,8 +33,7 @@
   "background": {
     "style": "image",
     "opacity": 1,
-    "density": 1,
-    "parallax": 0.3
+    "density": 1
   },
   "themes": {
     "night": {
@@ -48,8 +47,6 @@
         "trace": "#2d1b4e",
         "selection": "#3cf2ff",
         "erase": "#ff4d8d",
-        "fade": "rgba(0, 0, 0, 0)",
-        "outline": "rgba(0, 0, 0, 0)",
         "glass": "rgba(0, 0, 0, 0)",
         "stars": "rgba(0, 0, 0, 0)"
       },
@@ -86,8 +83,6 @@
         "trace": "#dccdf2",
         "selection": "#008ca6",
         "erase": "#d6336c",
-        "fade": "rgba(0, 0, 0, 0)",
-        "outline": "rgba(0, 0, 0, 0)",
         "glass": "rgba(0, 0, 0, 0)",
         "stars": "rgba(0, 0, 0, 0)"
       },
