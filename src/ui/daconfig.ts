@@ -23,6 +23,7 @@
  */
 
 import type { App } from '../app';
+import { bestOn } from '../da/derive';
 import { alphaOf, colorWithAlpha, hexOf, recolor } from '../da/overrides';
 import type { BackgroundStyle, CellColorKey, GridStyle, RoleKey, UiColorKey } from '../da/schema';
 import type { ThemeName } from '../render/theme';
@@ -162,14 +163,31 @@ export function setupDaConfig(app: App): DaConfig {
       chip.addEventListener('click', () => design.setRole(theme.name, role, color));
       return { color, chip };
     });
+    // Première pastille : « Défaut » = la couleur de la DA. Elle permet de revenir en arrière après un choix.
+    const defaultColor = design.defaultRoleColor(theme.name, role);
+    const defaultNone = alphaOf(defaultColor) === 0;
+    const defaultChip = el('button', {
+      class: defaultNone ? 'da-chip da-chip-default da-chip-none' : 'da-chip da-chip-default',
+      type: 'button',
+      title: 'Revenir à la couleur de la DA',
+      'aria-label': `${label} : couleur par défaut`,
+    }, ['Défaut']);
+    if (!defaultNone) {
+      defaultChip.style.background = defaultColor;
+      defaultChip.style.color = bestOn(defaultColor, ['#ffffff', '#000000']); // écriture lisible sur cette couleur
+    }
+    defaultChip.addEventListener('click', () => design.clearRole(theme.name, role));
     refreshers.push(() => {
+      // Une seule pastille est entourée : « Défaut » tant que rien n'est choisi, sinon la couleur choisie.
+      const isSet = design.roleIsSet(theme.name, role);
+      defaultChip.setAttribute('aria-pressed', String(!isSet));
       const current = design.roleColor(theme.name, role).toLowerCase();
       const none = alphaOf(current) === 0; // une couleur sans opacité = « Aucun »
       for (const { color, chip } of chips) {
-        chip.setAttribute('aria-pressed', String(color === NO_COLOR ? none : !none && color.toLowerCase() === current));
+        chip.setAttribute('aria-pressed', String(isSet && (color === NO_COLOR ? none : !none && color.toLowerCase() === current)));
       }
     });
-    return el('div', { class: 'da-role' }, [el('span', {}, [label]), el('div', { class: 'da-chips' }, chips.map((c) => c.chip))]);
+    return el('div', { class: 'da-role' }, [el('span', {}, [label]), el('div', { class: 'da-chips' }, [defaultChip, ...chips.map((c) => c.chip)])]);
   };
 
   /** Une ligne « nom + sélecteur de couleur ». */

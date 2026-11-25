@@ -804,6 +804,14 @@ input[type='color']::-moz-color-swatch {
   cursor: pointer;
 }
 
+/* La pastille « Défaut » : plus large, avec son nom écrit dessus (sur la couleur de la DA). */
+.da-chip-default {
+  width: auto;
+  padding: 0 10px;
+  font-size: calc(20px * var(--text-scale));
+  line-height: 1;
+}
+
 /* La pastille « Aucun » : une case vide barrée. */
 .da-chip-none {
   background: linear-gradient(to top right, transparent calc(50% - 1px), var(--muted) 50%, transparent calc(50% + 1px)), var(--surface2);
