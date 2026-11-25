@@ -114,6 +114,36 @@ export class DesignRuntime extends Emitter<{ change: void }> {
     return this.overrides[theme].roles?.[role] ?? roleBaseColor(this.design.pack.themes[theme], role);
   }
 
+  /** Vrai si la personne a choisi une couleur pour ce rôle (sinon c'est celle de la DA : « par défaut »). */
+  roleIsSet(theme: ThemeName, role: RoleKey): boolean {
+    return this.overrides[theme].roles?.[role] !== undefined;
+  }
+
+  /** La couleur que la DA donne à ce rôle : celle de la pastille « Par défaut ». */
+  defaultRoleColor(theme: ThemeName, role: RoleKey): string {
+    return roleBaseColor(this.design.pack.themes[theme], role);
+  }
+
+  /**
+   * Revient à la couleur de la DA pour un rôle (pastille « Par défaut »). Comme pour setRole, les réglages
+   * détaillés des nuances qui dépendaient de ce rôle sont effacés, pour que la valeur de la DA réapparaisse.
+   * Les autres rôles choisis ne changent pas.
+   */
+  clearRole(theme: ThemeName, role: RoleKey): void {
+    const { [role]: _removed, ...roles } = this.overrides[theme].roles ?? {};
+    // Les couleurs que ce rôle déduisait (on le fait « choisir » sa propre valeur de la DA pour les lister).
+    const touched = deriveFromRoles(this.design.pack.themes[theme], { [role]: this.defaultRoleColor(theme, role) }, this.design.pack.palette.map((entry) => entry.color));
+    const without = <K extends string>(block: Partial<Record<K, string>> | undefined, remove: object): Partial<Record<K, string>> | undefined =>
+      block && (Object.fromEntries(Object.entries(block).filter(([key]) => !(key in remove))) as Partial<Record<K, string>>);
+    this.overrides[theme] = {
+      ...this.overrides[theme],
+      roles,
+      cells: without(this.overrides[theme].cells, touched.cells),
+      interface: without(this.overrides[theme].interface, touched.interface),
+    };
+    this.changed();
+  }
+
   /**
    * Choisit la couleur d'un rôle (parmi la palette). Les nuances qui en dépendent sont déduites ; les
    * réglages détaillés de ces nuances sont effacés : le dernier choix l'emporte.

@@ -245,6 +245,8 @@ Les **croix** du quadrillage ont les proportions mesurées sur la ressource des 
 
 L'image du **titre** est une silhouette d'une seule couleur : changer le rôle « Titre » (`interface.titleInk`) la recolore comme le fond (`tint()` : on redessine l'image puis `source-in` la remplit de la nouvelle couleur, qui devient l'adresse de l'image). Quand on change le fond de la légende sans choisir le titre, sa couleur est éclaircie ou assombrie (`readableOn`, contraste ≥ 3) pour rester lisible.
 
+Chaque rôle a une pastille « Défaut » (`DesignRuntime.clearRole`) : elle retire le rôle choisi ET les réglages détaillés qu'il avait déduits, pour que la valeur de la DA réapparaisse ; les autres rôles restent.
+
 ## 10 octies. La vitre — `Renderer.drawGlass()`
 
 Pour qu'on ne confonde jamais le fond avec la grille ou les cellules : après le fond et AVANT la grille, on pose une teinte translucide (`colors.glass`, ex. bleu nuit à 62 %) et un très léger reflet en diagonale (dégradé blanc presque transparent). Le fond est estompé et paraît loin ; la grille et les cellules, nettes et opaques, paraissent au premier plan, « derrière la vitre » le ciel. Ordre de dessin : fond → vitre → grille → cellules.
