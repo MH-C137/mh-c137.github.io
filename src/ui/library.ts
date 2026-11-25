@@ -94,7 +94,7 @@ export function setupLibrary(app: App): void {
 
   const redrawThumbnails = () => {
     for (const { canvas: thumbnail, entry } of thumbnails) {
-      drawPatternThumbnail(thumbnail, entry.pattern, app.theme.palette);
+      drawPatternThumbnail(thumbnail, entry.pattern, app.design.thumbnailColor(app.theme.name));
     }
   };
 

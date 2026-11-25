@@ -174,6 +174,17 @@ export class CellSprites {
     if (sprite) context.drawImage(sprite, x + (zoom - size) / 2, y + (zoom - size) / 2, size, size);
   }
 
+  /**
+   * Les images (adresses data:) des trois états principaux dans des couleurs données, pour la légende et le
+   * didacticiel. Elles ont la même forme que les cellules, mais leurs couleurs peuvent être adaptées au fond
+   * sur lequel elles sont posées (une étoile bleu nuit sur un bloc bleu nuit ne se verrait pas).
+   */
+  swatchUrls(palette: Palette): Record<'newborn' | 'alive' | 'trace', string> {
+    const set = new SpriteSet(this.icon, SMALL, this.style, palette);
+    const url = (kind: SpriteKind) => set.canvases.get(kind)?.toDataURL('image/png') ?? '';
+    return { newborn: url('newborn'), alive: url('alive'), trace: url('trace') };
+  }
+
   /** L'image d'un état sous forme d'adresse (data:), pour la légende et le didacticiel : elle montre EXACTEMENT ce qui sera dessiné. */
   dataUrl(kind: SpriteKind): string {
     return this.small.canvases.get(kind)?.toDataURL('image/png') ?? '';

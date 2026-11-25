@@ -97,3 +97,19 @@ describe('Rôles → nuances', () => {
     expect(roleBaseColor(night, 'tile')).toBe(night.cells.tile);
   });
 });
+
+describe('Fond toujours visible', () => {
+  it('quelle que soit la couleur de la page, les lignes de la grille et les étoiles restent visibles', () => {
+    for (const page of palette) {
+      const { cells } = deriveFromRoles(night, { page }, palette);
+      const lines = mix(page, bestOn(page, palette), 1); // la couleur de ligne choisie
+      expect(contrastRatio(lines, page)).toBeGreaterThanOrEqual(3);
+      expect(contrastRatio(cells.stars!, page)).toBeGreaterThan(1.5); // jamais confondues avec la page
+      expect(cells.stars).not.toBe(page);
+    }
+  });
+
+  it('si on choisit aussi les étoiles, ce choix est respecté', () => {
+    expect(deriveFromRoles(night, { page: BLEU_NUIT, stars: JAUNE }, palette).cells.stars).toBe(JAUNE);
+  });
+});

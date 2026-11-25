@@ -111,10 +111,13 @@ const ROLE_ROWS: ReadonlyArray<{ title: string; roles: ReadonlyArray<readonly [R
       ['newborn', 'Cellule qui vient de naître'],
       ['alive', 'Cellule vivante'],
       ['stars', 'Étoiles du fond'],
-      ['tile', 'Fond des pastilles et miniatures'],
+      ['tile', 'Carré derrière légende et miniatures'],
     ],
   },
 ];
+
+/** « Aucune couleur » (transparente) : la pastille « Aucun » du carré derrière les pastilles. */
+const NO_COLOR = 'rgba(0, 0, 0, 0)';
 
 const GRID_CHOICES: ReadonlyArray<readonly [GridStyle, string]> = [
   ['lines', 'Lignes'],
@@ -134,6 +137,7 @@ export function setupDaConfig(app: App): DaConfig {
   const tabDay = byId<HTMLButtonElement>('da-tab-day');
   const copyButton = byId<HTMLButtonElement>('da-copy');
   const resetButton = byId<HTMLButtonElement>('da-reset');
+  const resetAllButton = byId<HTMLButtonElement>('da-reset-all');
 
   /** Fonctions qui remettent chaque contrôle à jour (changement de thème, de réglage…). */
   const refreshers: Array<() => void> = [];
@@ -145,15 +149,20 @@ export function setupDaConfig(app: App): DaConfig {
    * choisie est entourée ; un clic choisit cette couleur pour le rôle (le site déduit le reste).
    */
   const roleRow = (role: RoleKey, label: string): HTMLElement => {
-    const chips = palette.map(({ name, color }) => {
-      const chip = el('button', { class: 'da-chip', type: 'button', title: name, 'aria-label': `${label} : ${name}` });
-      chip.style.background = color;
+    // Le carré derrière la légende et les miniatures est FACULTATIF : une première pastille « Aucun » (transparente).
+    const options = role === 'tile' ? [{ name: 'Aucun', color: NO_COLOR }, ...palette] : palette;
+    const chips = options.map(({ name, color }) => {
+      const chip = el('button', { class: color === NO_COLOR ? 'da-chip da-chip-none' : 'da-chip', type: 'button', title: name, 'aria-label': `${label} : ${name}` });
+      if (color !== NO_COLOR) chip.style.background = color;
       chip.addEventListener('click', () => design.setRole(theme.name, role, color));
       return { color, chip };
     });
     refreshers.push(() => {
       const current = design.roleColor(theme.name, role).toLowerCase();
-      for (const { color, chip } of chips) chip.setAttribute('aria-pressed', String(color.toLowerCase() === current));
+      const none = alphaOf(current) === 0; // une couleur sans opacité = « Aucun »
+      for (const { color, chip } of chips) {
+        chip.setAttribute('aria-pressed', String(color === NO_COLOR ? none : !none && color.toLowerCase() === current));
+      }
     });
     return el('div', { class: 'da-role' }, [el('span', {}, [label]), el('div', { class: 'da-chips' }, chips.map((c) => c.chip))]);
   };
@@ -265,6 +274,7 @@ export function setupDaConfig(app: App): DaConfig {
     tabDay.setAttribute('aria-pressed', String(theme.name === 'day'));
     resetButton.textContent = theme.name === 'night' ? 'Remettre le mode nuit' : 'Remettre le mode jour';
     resetButton.disabled = !design.hasOverrides(theme.name);
+    resetAllButton.disabled = !design.hasOverrides('night') && !design.hasOverrides('day');
     for (const refresher of refreshers) refresher();
   };
   theme.on('change', refresh);
@@ -272,6 +282,7 @@ export function setupDaConfig(app: App): DaConfig {
   refresh();
 
   resetButton.addEventListener('click', () => design.resetTheme(theme.name));
+  resetAllButton.addEventListener('click', () => design.resetAll());
 
   // « Copier la config » : le texte au format de da.json (à recopier dans le fichier de la DA pour garder les réglages).
   copyButton.addEventListener('click', () => {

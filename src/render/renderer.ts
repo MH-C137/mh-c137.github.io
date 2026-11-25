@@ -99,10 +99,8 @@ export class Renderer {
    * Images (adresses « data: ») des cellules en icône, une par état, pour la légende et le didacticiel :
    * elles montrent EXACTEMENT ce que le rendu dessine (étoile pleine, étoile vide…). null s'il n'y a pas d'icône.
    */
-  swatchUrls(): Record<'newborn' | 'alive' | 'trace', string> | null {
-    const sprites = this.sprites;
-    if (!sprites) return null;
-    return { newborn: sprites.dataUrl('newborn'), alive: sprites.dataUrl('alive'), trace: sprites.dataUrl('trace') };
+  swatchUrls(colors: Partial<Pick<Palette, 'newborn' | 'alive' | 'trace' | 'pulse'>> = {}): Record<'newborn' | 'alive' | 'trace', string> | null {
+    return this.sprites ? this.sprites.swatchUrls({ ...this._palette, ...colors }) : null;
   }
 
   /** Donne (ou retire, avec null) une icône qui sert de forme aux cellules. */
