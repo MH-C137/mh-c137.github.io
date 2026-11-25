@@ -57,7 +57,7 @@ export const PALETTES: Record<ThemeName, Palette> = {
     erase: '#ff4d8d',
     glass: 'rgba(0, 0, 0, 0)',
     stars: 'rgba(0, 0, 0, 0)',
-    tile: '#05050b',
+    tile: 'rgba(0, 0, 0, 0)',
   },
   day: {
     background: '#f3f0e8',
@@ -72,6 +72,6 @@ export const PALETTES: Record<ThemeName, Palette> = {
     erase: '#d6336c',
     glass: 'rgba(0, 0, 0, 0)',
     stars: 'rgba(0, 0, 0, 0)',
-    tile: '#f3f0e8',
+    tile: 'rgba(0, 0, 0, 0)',
   },
 };

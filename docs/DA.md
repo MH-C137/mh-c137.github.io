@@ -38,7 +38,7 @@ forme des cellules, quadrillage, fond, titre, style des cadres. Le code du jeu n
 | `cells` | `icon` : image dont la **silhouette** sert de forme aux cellules (ex. une étoile) ; `null` = carrés. `scale` : taille dans la case. `iconMinZoom` : sous cette taille de case (px), on dessine des carrés. `traceStyle` : `"filled"` (la cellule qui vient de mourir est pleine) ou `"outline"` (seulement son **contour**, étoile vide). `outlineWidth` : épaisseur de ce contour (ex. 0,08). `pulseHalo` : `true` = la cellule qui clignote a un **halo**. |
 | `grid` | `style` : `"lines"` (lignes) ou `"crosses"` (lignes fines + une croix épaisse à chaque croisement). |
 | `background` | `style` : `"image"` (l'image du thème, fixe) ou `"constellation"` (un ciel d'étoiles généré par le site, **fixe dans le monde** et sans fin : voir plus bas). `opacity` : transparence (0 à 1). `density` : quantité d'étoiles de la constellation (1 = normal). |
-| `themes.night` et `themes.day` | Pour chaque thème : `colors` (fond, grille, `newborn` née, `alive` vivante, `pulse` clignote, `trace` vient de mourir, `glass` la vitre, `stars` couleur des étoiles du fond, `tile` fond des pastilles et miniatures, sélection, gomme), `interface` (couleurs des boutons, panneaux, textes, et `titleBg` / `titleFg` / `titleLine` pour le bloc du titre), `titleImage` et `backgroundImage` (chemins d'images, ou `null`), et si besoin `gridStyle` / `backgroundStyle` (`"none"`, `"image"`, `"constellation"`) pour un style propre à ce thème. |
+| `themes.night` et `themes.day` | Pour chaque thème : `colors` (fond, grille, `newborn` née, `alive` vivante, `pulse` clignote, `trace` vient de mourir, `glass` la vitre, `stars` couleur des étoiles du fond, `tile` carré derrière la légende et les miniatures (`rgba(0, 0, 0, 0)` = aucun), sélection, gomme), `interface` (couleurs des boutons, panneaux, textes, et `titleBg` / `titleFg` / `titleLine` pour le bloc du titre), `titleImage` et `backgroundImage` (chemins d'images, ou `null`), et si besoin `gridStyle` / `backgroundStyle` (`"none"`, `"image"`, `"constellation"`) pour un style propre à ce thème. |
 
 Les couleurs s'écrivent `#rrggbb` ou `rgba(r, g, b, a)`. Les chemins sont **relatifs au dossier de la DA**
 (`assets/etoile.png`).
@@ -69,7 +69,7 @@ charte. Le site **déduit les nuances** qui en dépendent :
 
 | Rôle | Ce qui est déduit |
 |---|---|
-| Fond de la page | fond de la grille, teinte de la vitre, couleur des lignes de la grille (la plus contrastée de la palette) |
+| Fond de la page | fond de la grille, teinte de la vitre, couleur des lignes de la grille (la plus contrastée de la palette), couleur des étoiles du fond (une teinte entre la page et les lignes : toujours visibles) |
 | Panneaux et boutons | boutons (un peu plus clairs si le panneau est sombre, plus sombres s'il est clair), boutons survolés, bords doux, rouge d'alerte rendu lisible |
 | Légende et titre | écriture de la légende (la couleur de la palette la plus lisible dessus) |
 | Écriture | écriture discrète (fondue dans le panneau) |
@@ -77,14 +77,14 @@ charte. Le site **déduit les nuances** qui en dépendent :
 | Bords | bords des panneaux et du bloc de titre |
 | Cellule qui vient de naître / vivante | la cellule vivante donne aussi sa couleur au clignotement et au contour de la trace |
 | Étoiles du fond | couleur des étoiles de la constellation et de l'image de fond |
-| **Fond des pastilles et miniatures** | **indépendant** : le fond derrière les étoiles de la légende et des miniatures de structures (couleur `tile`), sans lien avec le fond de la page |
+| **Carré derrière légende et miniatures** | **facultatif et indépendant** (couleur `tile`, par défaut « Aucun » : pas de carré). Si on en choisit un, il apparaît derrière les étoiles de la légende et des miniatures de structures, sans lien avec le fond de la page. Sans carré, les miniatures et la légende s'adaptent seules : leur couleur est éclaircie ou assombrie pour rester lisible sur la carte ou le bloc du titre |
 
 On règle aussi le style du **quadrillage** (lignes ou croix), le **fond** (aucun, constellation, image) et l'**opacité de la
 vitre**. Tout en bas, **« Réglages détaillés »** (replié) garde un sélecteur de couleur libre par élément pour les cas
 particuliers. Choisir un rôle efface les réglages détaillés des couleurs qu'il déduit : le dernier choix l'emporte.
 
 Les réglages sont retenus dans le navigateur (ils restent après un rechargement, et même si on coupe les options avancées :
-« Remettre le mode nuit / jour » les efface). **Pour garder ce qui plaît :** « Copier la config » donne un bloc `themes`
+« Remettre le mode nuit / jour » ou « Tout remettre » les effacent). **Pour garder ce qui plaît :** « Copier la config » donne un bloc `themes`
 au format de `da.json`, **couleurs déduites comprises** : envoie-le (ou recopie ses valeurs dans le `da.json` de la DA). Les
 réglages ne modifient jamais les fichiers.
 

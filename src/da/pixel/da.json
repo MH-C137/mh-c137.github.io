@@ -71,7 +71,7 @@
         "erase": "#ff4d8d",
         "glass": "rgba(0, 0, 0, 0)",
         "stars": "rgba(0, 0, 0, 0)",
-        "tile": "#05050b"
+        "tile": "rgba(0, 0, 0, 0)"
       },
       "interface": {
         "bg": "#05050b",
@@ -108,7 +108,7 @@
         "erase": "#d6336c",
         "glass": "rgba(0, 0, 0, 0)",
         "stars": "rgba(0, 0, 0, 0)",
-        "tile": "#f3f0e8"
+        "tile": "rgba(0, 0, 0, 0)"
       },
       "interface": {
         "bg": "#f3f0e8",

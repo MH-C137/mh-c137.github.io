@@ -20,7 +20,8 @@ import { Constellation } from '../render/constellation';
 import type { Renderer } from '../render/renderer';
 import type { Palette, ThemeName } from '../render/theme';
 import type { LoadedDesign } from './registry';
-import { deriveFromRoles, roleBaseColor } from './derive';
+import { alphaOf } from './overrides';
+import { deriveFromRoles, paletteExtremes, readableOn, roleBaseColor } from './derive';
 import {
   applyOverrides,
   effectiveBackground,
@@ -181,6 +182,12 @@ export class DesignRuntime extends Emitter<{ change: void }> {
     this.changed();
   }
 
+  /** Efface les réglages des DEUX thèmes. */
+  resetAll(): void {
+    this.overrides = { night: {}, day: {} };
+    this.changed();
+  }
+
   /** Les réglages au format d'un morceau de `da.json`, pour les recopier dans le fichier de la DA. */
   exportJson(): string {
     return overridesToJson({ night: this.flattened('night'), day: this.flattened('day') });
@@ -282,11 +289,37 @@ export class DesignRuntime extends Emitter<{ change: void }> {
    */
   private publishSwatches(): void {
     const body = document.body;
-    const urls = this.renderer.swatchUrls();
+    const theme = this.currentTheme ?? this.design.pack.defaultTheme;
+    const t = this.effective(theme);
+    // Sans tuile derrière, les étoiles de la légende sont posées directement sur le bloc du titre : on adapte leur
+    // teinte pour qu'elles s'y voient (une étoile bleu nuit sur un bloc bleu nuit serait invisible).
+    const on = alphaOf(t.cells.tile) > 0 ? null : t.interface.titleBg;
+    const legible = (color: string) => (on ? readableOn(color, on, this.extremes(), 3) : color);
+    const urls = this.renderer.swatchUrls({
+      newborn: legible(t.cells.newborn),
+      alive: legible(t.cells.alive),
+      trace: legible(t.cells.trace),
+    });
     for (const kind of ['newborn', 'alive', 'trace'] as const) {
       if (urls) body.style.setProperty(`--sprite-${kind}`, `url("${urls[kind]}")`);
       else body.style.removeProperty(`--sprite-${kind}`);
     }
+  }
+
+  /** Les couleurs les plus claire et sombre de la palette de la DA (pour éclaircir ou assombrir en restant dans la charte). */
+  private extremes(): { light: string; dark: string } {
+    const t = this.design.pack.themes.night;
+    return paletteExtremes([...this.design.pack.palette.map((entry) => entry.color), t.interface.fg, t.interface.bg]);
+  }
+
+  /**
+   * Couleur des cellules des miniatures de structures. Avec une tuile derrière, c'est celle des cellules ; sans
+   * tuile (par défaut), les miniatures sont posées directement sur leur carte : on prend la couleur de la
+   * cellule, éclaircie ou assombrie si besoin pour rester lisible sur la carte.
+   */
+  thumbnailColor(theme: ThemeName): string {
+    const t = this.effective(theme);
+    return alphaOf(t.cells.tile) > 0 ? t.cells.newborn : readableOn(t.cells.newborn, t.interface.surface2, this.extremes(), 3);
   }
 
   /**

@@ -94,6 +94,15 @@ export function readableOn(color: string, background: string, extremes: { light:
   return result;
 }
 
+/**
+ * Les deux extrémités de la palette : la couleur la plus claire et la plus sombre. Elles servent
+ * à éclaircir ou assombrir (boutons, titres) en restant dans les couleurs de la DA.
+ * @param candidates les couleurs de la palette, plus des couleurs de secours (jamais vide)
+ */
+export function paletteExtremes(candidates: readonly string[]): { light: string; dark: string } {
+  return { light: bestOn('#000000', candidates), dark: bestOn('#ffffff', candidates) };
+}
+
 /** Ce que les rôles choisis modifient (uniquement les couleurs concernées). */
 export interface DerivedColors {
   cells: Partial<CellColors>;
@@ -126,10 +135,7 @@ export function deriveFromRoles(base: DesignTheme, roles: Roles, palette: readon
 
   // Les couleurs entre lesquelles choisir une écriture : la palette, plus les couleurs de la DA (jamais vide).
   const candidates = [...palette, b.fg, b.bg];
-  const extremes = {
-    light: bestOn('#000000', candidates), // la plus claire des candidates
-    dark: bestOn('#ffffff', candidates), // la plus sombre
-  };
+  const extremes = paletteExtremes(candidates);
 
   if (roles.page) {
     ui.bg = page;
@@ -138,6 +144,9 @@ export function deriveFromRoles(base: DesignTheme, roles: Roles, palette: readon
     const lines = bestOn(page, candidates); // lignes de la grille : la couleur qui contraste le plus avec la page
     cells.grid = recolor(base.cells.grid, lines);
     cells.gridMajor = recolor(base.cells.gridMajor, lines);
+    // Les étoiles du fond : une teinte entre la page et les lignes. Sans ça, une page de la couleur
+    // des étoiles les rendrait invisibles ; ici elles restent toujours discrètes mais visibles.
+    if (!roles.stars) cells.stars = mix(page, lines, 0.55);
   }
 
   if (roles.panels) {

@@ -10,9 +10,9 @@
 
 import type { Pattern } from '../core/pattern';
 import { CORNER_RATIO, roundedRectPath } from './images';
-import type { Palette } from './theme';
 
-export function drawPatternThumbnail(canvas: HTMLCanvasElement, pattern: Pattern, palette: Palette): void {
+/** @param color couleur des cellules de la miniature (choisie pour rester lisible sur la carte : voir DesignRuntime.thumbnailColor) */
+export function drawPatternThumbnail(canvas: HTMLCanvasElement, pattern: Pattern, color: string): void {
   const cssSize = canvas.clientWidth || 56;
   const ratio = Math.min(window.devicePixelRatio || 1, 2);
   canvas.width = Math.round(cssSize * ratio);
@@ -39,6 +39,6 @@ export function drawPatternThumbnail(canvas: HTMLCanvasElement, pattern: Pattern
     if (cell >= 4) roundedRectPath(path, sx, sy, size, size, size * CORNER_RATIO);
     else path.rect(sx, sy, size, size);
   }
-  context.fillStyle = palette.newborn;
+  context.fillStyle = color;
   context.fill(path);
 }
