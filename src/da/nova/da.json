@@ -14,6 +14,13 @@
       "weight": "700"
     }
   ],
+  "palette": [
+    "#548ebc",
+    "#cbc737",
+    "#253165",
+    "#6f5ca4",
+    "#ffffff"
+  ],
   "ui": {
     "fontFamily": "'Space Grotesk', system-ui, 'Segoe UI', Helvetica, Arial, sans-serif",
     "textScale": 0.68,
@@ -75,7 +82,7 @@
         "titleLine": "#6f5ca4"
       },
       "titleImage": "assets/titre-nuit.png",
-      "backgroundImage": null
+      "backgroundImage": "assets/fond.png"
     },
     "day": {
       "colors": {
@@ -111,7 +118,7 @@
         "titleLine": "#6f5ca4"
       },
       "titleImage": "assets/titre-jour.png",
-      "backgroundImage": null
+      "backgroundImage": "assets/fond.png"
     }
   }
 }

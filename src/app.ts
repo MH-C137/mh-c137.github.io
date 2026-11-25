@@ -16,6 +16,7 @@ import type { Camera } from './render/camera';
 import type { ImageLibrary } from './render/images';
 import type { Renderer } from './render/renderer';
 import type { Simulation } from './simulation/simulation';
+import type { DesignRuntime } from './da/runtime';
 import type { ThemeManager } from './ui/theme';
 import type { ViewSettings } from './ui/viewsettings';
 
@@ -28,6 +29,8 @@ export interface App {
   readonly editor: Editor;
   readonly renderer: Renderer;
   readonly theme: ThemeManager;
+  /** La DA active (couleurs, polices, forme des cellules…) et les réglages de l'outil « Config DA ». */
+  readonly design: DesignRuntime;
   readonly viewSettings: ViewSettings;
   /** Demande un nouveau dessin de la grille à la prochaine image. */
   readonly invalidate: () => void;

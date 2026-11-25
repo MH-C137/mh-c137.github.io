@@ -12,23 +12,20 @@
  *      (styles.css) choisit alors ses couleurs d'interface ;
  *   4. mémoriser le choix dans le navigateur (localStorage) pour la prochaine visite.
  *
- * Options avancées : on peut aussi choisir la couleur des cellules « nées » et
- * « vivantes ». Les choix sont gardés séparément pour le mode nuit et le mode jour
- * (une couleur claire est belle sur fond noir, invisible sur fond clair).
+ * Les réglages de l'outil « Config DA » (options avancées) sont gardés séparément pour le
+ * mode nuit et le mode jour : ils passent par la DA (src/da/runtime.ts), qui prévient ce
+ * gestionnaire quand l'un d'eux change.
  */
 
 import { Emitter } from '../core/events';
 import type { Renderer } from '../render/renderer';
 import type { DesignRuntime } from '../da/runtime';
-import { applyCustomColors, type CustomColors, type Palette, type ThemeName } from '../render/theme';
+import type { Palette, ThemeName } from '../render/theme';
 
 const STORAGE_KEY = 'jeu-de-la-vie:theme';
-const COLORS_KEY = 'jeu-de-la-vie:couleurs';
 
 export class ThemeManager extends Emitter<{ change: ThemeName }> {
   private current: ThemeName;
-  /** Couleurs choisies, pour chaque thème. */
-  private custom: Record<ThemeName, CustomColors> = { night: {}, day: {} };
 
   constructor(
     private readonly renderer: Renderer,
@@ -37,54 +34,34 @@ export class ThemeManager extends Emitter<{ change: ThemeName }> {
   ) {
     super();
     this.current = readSavedTheme() ?? design.design.pack.defaultTheme;
-    this.custom = readSavedColors();
     this.apply();
+    // Un réglage de l'outil « Config DA » : on réapplique tout (palette, variables CSS, fond…).
+    design.on('change', () => this.apply());
   }
 
   get name(): ThemeName {
     return this.current;
   }
 
-  /** Palette utilisée en ce moment : celle du thème, avec les couleurs choisies. */
+  /** Palette utilisée en ce moment : celle de la DA pour ce thème, avec les réglages de l'outil « Config DA ». */
   get palette(): Palette {
-    return applyCustomColors(this.design.palette(this.current), this.custom[this.current], this.current);
+    return this.design.palette(this.current);
   }
 
-  /** Vrai si au moins une couleur a été changée pour le thème actuel. */
-  get hasCustomColors(): boolean {
-    return Object.keys(this.custom[this.current]).length > 0;
-  }
-
-  /** Change la couleur des cellules « nées » ou « vivantes » (thème actuel) et la retient. */
-  setColor(kind: keyof CustomColors, hex: string): void {
-    this.custom[this.current] = { ...this.custom[this.current], [kind]: hex };
-    this.saveColors();
-    this.apply();
-  }
-
-  /** Remet les couleurs d'origine (thème actuel). */
-  resetColors(): void {
-    this.custom[this.current] = {};
-    this.saveColors();
-    this.apply();
-  }
-
-  private saveColors(): void {
-    try {
-      localStorage.setItem(COLORS_KEY, JSON.stringify(this.custom));
-    } catch {
-      // Stockage indisponible : les couleurs ne seront juste pas retenues.
-    }
-  }
-
-  toggle(): void {
-    this.current = this.current === 'night' ? 'day' : 'night';
+  /** Choisit le thème (nuit ou jour) et le retient. */
+  set(name: ThemeName): void {
+    if (name === this.current) return;
+    this.current = name;
     this.apply();
     try {
       localStorage.setItem(STORAGE_KEY, this.current);
     } catch {
       // Stockage indisponible (navigation privée, iframe…) : le choix ne sera juste pas retenu.
     }
+  }
+
+  toggle(): void {
+    this.set(this.current === 'night' ? 'day' : 'night');
   }
 
   private apply(): void {
@@ -108,21 +85,4 @@ function readSavedTheme(): ThemeName | null {
   } catch {
     return null;
   }
-}
-
-/** Relit les couleurs choisies (en vérifiant que ce sont bien des « #rrggbb » : le stockage peut contenir n'importe quoi). */
-function readSavedColors(): Record<ThemeName, CustomColors> {
-  const result: Record<ThemeName, CustomColors> = { night: {}, day: {} };
-  try {
-    const saved = JSON.parse(localStorage.getItem(COLORS_KEY) ?? '{}') as Record<string, Record<string, unknown>>;
-    for (const theme of ['night', 'day'] as const) {
-      for (const kind of ['newborn', 'alive'] as const) {
-        const value = saved[theme]?.[kind];
-        if (typeof value === 'string' && /^#[0-9a-f]{6}$/i.test(value)) result[theme][kind] = value.toLowerCase();
-      }
-    }
-  } catch {
-    // Stockage indisponible ou contenu illisible : couleurs d'origine.
-  }
-  return result;
 }

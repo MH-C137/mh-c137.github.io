@@ -9,6 +9,13 @@
       "weight": "400"
     }
   ],
+  "palette": [
+    "#3cf2ff",
+    "#a45cff",
+    "#05050b",
+    "#ffffff",
+    "#ff4d8d"
+  ],
   "ui": {
     "fontFamily": "'Jersey 10', ui-monospace, 'SFMono-Regular', Menlo, Consolas, monospace",
     "textScale": 1,

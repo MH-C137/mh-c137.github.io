@@ -63,10 +63,15 @@ Patrons en place (garde-les cohérents) :
 - **Ajouter une structure** : une entrée dans `BUILTIN_DEFINITIONS` (`data/patterns.ts`), avec son RLE copié depuis LifeWiki, une catégorie et une description d'une ligne pour des collégiens. Ajoute un test si elle a une propriété connue (période, vitesse…).
 - **Ajouter un outil** : une classe qui implémente `Tool` (`input/tools.ts`), enregistrée dans le constructeur d'`Editor`. Ensuite, un bouton `data-tool="…"` dans `index.html` (avec `aria-label` et `title` incluant le raccourci) et une lettre dans `ui/shortcuts.ts`.
 - **Changer ou créer une DA** : voir `docs/DA.md` (copier un dossier de `src/da/`, modifier son `da.json`, changer le mot dans `src/da/active.ts`). Les images se rognent avec `tools/rogner_png.py`. `npm test` vérifie les fichiers de DA.
+- **Tester une apparence sans toucher aux fichiers** : l'outil « Config DA » (options avancées) ; ses réglages se copient au format `da.json`. Voir `docs/DA.md`.
 - **Ajouter une règle** : `RULE_PRESETS` existe déjà dans `core/rules.ts`. Il reste à créer un menu dans l'interface qui modifie `world.rule`, puis à appeler `simulation.markEdited()`.
 - **Ajouter ou changer une étape du didacticiel** : une entrée dans `TOUR_STEPS` (`data/tour.ts`) avec le sélecteur CSS de l'élément à expliquer. Le compteur et les boutons s'adaptent seuls.
 - **Infobulle** : mets simplement un attribut `title` sur le bouton (court, avec le raccourci). Pas de code à ajouter.
 - **Ajouter un panneau** : son HTML dans `index.html` (dans `#ui`, pour qu'il se masque avec le menu), son style dans `styles.css`, et une fonction `setupXxx(app)` dans `src/ui/`, appelée depuis `main.ts`.
+
+## Livraison (consigne permanente du propriétaire)
+
+**À la fin de chaque tâche, crée la pull request et fusionne-la sur `main`** (le propriétaire l'a demandé explicitement, une fois pour toutes). Conditions : `npm run typecheck`, `npm test` et `npm run build` sont verts ; la PR suit le modèle du dépôt s'il y en a un ; tu travailles sur la branche de session, jamais directement sur `main`. Si un contrôle échoue, ne fusionne pas : explique pourquoi. La fusion met le site en ligne (GitHub Pages) : annonce-le au propriétaire dans ton résumé.
 
 ## Avant de dire « terminé »
 

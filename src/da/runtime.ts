@@ -15,33 +15,144 @@
  * à styles.css de s'adapter (cadres plats ou en escalier, titre en image ou en texte…).
  */
 
+import { Emitter } from '../core/events';
 import { Constellation } from '../render/constellation';
 import type { Renderer } from '../render/renderer';
 import type { Palette, ThemeName } from '../render/theme';
 import type { LoadedDesign } from './registry';
-import { paletteOf, UI_COLOR_KEYS } from './schema';
+import {
+  applyOverrides,
+  effectiveBackground,
+  effectiveGrid,
+  isEmptyOverrides,
+  overridesToJson,
+  parseOverrides,
+  type DesignOverrides,
+  type ThemeOverrides,
+} from './overrides';
+import { paletteOf, UI_COLOR_KEYS, type BackgroundStyle, type CellColorKey, type DesignTheme, type GridStyle, type UiColorKey } from './schema';
+
+/** Délai (ms) avant d'appliquer un réglage : un sélecteur de couleur envoie des dizaines de valeurs par seconde, on attend la dernière. */
+const APPLY_DELAY_MS = 70;
 
 /** `surface2` → `--surface-2`, `onAccent` → `--on-accent` (les noms des variables CSS). */
 function cssVariable(key: string): string {
   return `--${key.replace(/([A-Z])/g, '-$1').replace(/(\d)/, '-$1').toLowerCase()}`;
 }
 
-export class DesignRuntime {
+export class DesignRuntime extends Emitter<{ change: void }> {
   private readonly images = new Map<string, Promise<HTMLImageElement | null>>();
   /** Le fond d'étoiles (DA « constellation »), créé quand l'icône des cellules est chargée. */
   private constellation: Constellation | null = null;
   private iconReady = false;
   private currentTheme: ThemeName | null = null;
+  /** Les réglages de l'outil « Config DA » (par-dessus la DA), séparés pour la nuit et le jour. */
+  private overrides: DesignOverrides = { night: {}, day: {} };
+  private timer = 0;
 
   constructor(
     readonly design: LoadedDesign,
     private readonly renderer: Renderer,
     private readonly invalidate: () => void,
-  ) {}
+  ) {
+    super();
+    this.overrides = this.load();
+  }
 
-  /** Palette des cellules et de la grille pour un thème (celle du da.json). */
+  // ──────────────────────────────────────────────────────────────────────────
+  //  Réglages de l'outil « Config DA »
+  // ──────────────────────────────────────────────────────────────────────────
+
+  private get storageKey(): string {
+    return `jeu-de-la-vie:da:${this.design.id}`;
+  }
+
+  /** Relit les réglages retenus par le navigateur (avec vérification : le stockage peut contenir n'importe quoi). */
+  private load(): DesignOverrides {
+    try {
+      return parseOverrides(JSON.parse(localStorage.getItem(this.storageKey) ?? 'null'));
+    } catch {
+      return { night: {}, day: {} };
+    }
+  }
+
+  private save(): void {
+    try {
+      localStorage.setItem(this.storageKey, JSON.stringify(this.overrides));
+    } catch {
+      // Stockage indisponible (navigation privée, iframe…) : les réglages ne seront juste pas retenus.
+    }
+  }
+
+  /** Le thème tel qu'il est utilisé : la DA, avec les réglages de la personne par-dessus. */
+  effective(theme: ThemeName): DesignTheme {
+    return applyOverrides(this.design.pack.themes[theme], this.overrides[theme]);
+  }
+
+  /** Les réglages faits pour ce thème (vide = rien de changé). */
+  overridesFor(theme: ThemeName): ThemeOverrides {
+    return this.overrides[theme];
+  }
+
+  hasOverrides(theme: ThemeName): boolean {
+    return !isEmptyOverrides(this.overrides[theme]);
+  }
+
+  /** Style de quadrillage / de fond réellement utilisés pour un thème. */
+  gridStyleOf(theme: ThemeName): GridStyle {
+    return effectiveGrid(this.design.pack, this.effective(theme));
+  }
+
+  backgroundStyleOf(theme: ThemeName): BackgroundStyle {
+    return effectiveBackground(this.design.pack, this.effective(theme));
+  }
+
+  /** Vrai si la DA fournit une image de fond pour ce thème (sinon le choix « image » est impossible). */
+  hasBackgroundImage(theme: ThemeName): boolean {
+    return this.design.pack.themes[theme].backgroundImage !== null;
+  }
+
+  setCellColor(theme: ThemeName, key: CellColorKey, value: string): void {
+    this.overrides[theme] = { ...this.overrides[theme], cells: { ...this.overrides[theme].cells, [key]: value } };
+    this.changed();
+  }
+
+  setInterfaceColor(theme: ThemeName, key: UiColorKey, value: string): void {
+    this.overrides[theme] = { ...this.overrides[theme], interface: { ...this.overrides[theme].interface, [key]: value } };
+    this.changed();
+  }
+
+  setGridStyle(theme: ThemeName, style: GridStyle): void {
+    this.overrides[theme] = { ...this.overrides[theme], gridStyle: style };
+    this.changed();
+  }
+
+  setBackgroundStyle(theme: ThemeName, style: BackgroundStyle): void {
+    this.overrides[theme] = { ...this.overrides[theme], backgroundStyle: style };
+    this.changed();
+  }
+
+  /** Efface tous les réglages d'un thème : retour aux valeurs de la DA. */
+  resetTheme(theme: ThemeName): void {
+    this.overrides[theme] = {};
+    this.changed();
+  }
+
+  /** Les réglages au format d'un morceau de `da.json`, pour les recopier dans le fichier de la DA. */
+  exportJson(): string {
+    return overridesToJson(this.overrides);
+  }
+
+  /** Retient les réglages, puis prévient (avec un petit délai : on applique la dernière valeur d'un glissement). */
+  private changed(): void {
+    this.save();
+    window.clearTimeout(this.timer);
+    this.timer = window.setTimeout(() => this.emit('change', undefined), APPLY_DELAY_MS);
+  }
+
+  /** Palette des cellules et de la grille pour un thème (celle du da.json, avec les réglages par-dessus). */
   palette(theme: ThemeName): Palette {
-    return paletteOf(this.design.pack.themes[theme]);
+    return paletteOf(this.effective(theme));
   }
 
   /** Charge une image du dossier de la DA (null si elle est introuvable : le site continue sans). */
@@ -96,7 +207,6 @@ export class DesignRuntime {
     document.title = pack.title.text;
 
     // Quadrillage et forme des cellules.
-    this.renderer.gridStyle = pack.grid.style;
     this.renderer.backgroundOpacity = pack.background.opacity;
     if (pack.cells.icon) {
       const iconPath = pack.cells.icon;
@@ -142,21 +252,21 @@ export class DesignRuntime {
    */
   private refreshConstellation(): void {
     const { pack } = this.design;
-    if (pack.background.style !== 'constellation' || !this.iconReady || this.currentTheme === null) {
+    if (this.currentTheme === null || this.backgroundStyleOf(this.currentTheme) !== 'constellation' || !this.iconReady) {
       this.renderer.constellation = null;
       return;
     }
     this.constellation ??= new Constellation(this.icon, pack.background.density);
-    this.constellation.rebuild(pack.themes[this.currentTheme].cells.stars);
+    this.constellation.rebuild(this.effective(this.currentTheme).cells.stars);
     this.renderer.constellation = this.constellation;
     this.invalidate();
   }
 
-  /** Ce qui change entre le mode nuit et le mode jour. */
+  /** Ce qui change entre le mode nuit et le mode jour (et à chaque réglage de l'outil « Config DA »). */
   applyTheme(theme: ThemeName): void {
-    const { pack } = this.design;
-    const current = pack.themes[theme];
+    const current = this.effective(theme);
     const body = document.body;
+    this.currentTheme = theme;
 
     for (const key of UI_COLOR_KEYS) body.style.setProperty(cssVariable(key), current.interface[key]);
 
@@ -169,19 +279,20 @@ export class DesignRuntime {
     }
     body.dataset.title = titleUrl ? 'image' : 'text';
 
-    // Fond d'étoiles dessiné par le site (si la DA le demande).
-    this.currentTheme = theme;
-    this.publishSwatches(); // la palette vient de changer : les images des cellules aussi
-    this.refreshConstellation();
+    // Quadrillage (lignes ou croix).
+    this.renderer.gridStyle = this.gridStyleOf(theme);
 
-    // Image de fond de la grille.
-    if (pack.background.style === 'constellation') {
-      this.renderer.backgroundImage = null;
-    } else if (current.backgroundImage) {
+    // Les images des cellules viennent d'être refaites avec la nouvelle palette : on met la légende à jour.
+    this.publishSwatches();
+
+    // Fond : aucun, ciel d'étoiles généré, ou image de la DA recolorée.
+    const style = this.backgroundStyleOf(theme);
+    this.refreshConstellation();
+    if (style === 'image' && current.backgroundImage) {
       void this.loadImage(current.backgroundImage).then((loaded) => {
-        // La personne a peut-être changé de thème entre-temps : on ne pose que l'image du thème actuel.
-        if (body.dataset.theme === theme || body.dataset.theme === undefined) {
-          this.renderer.backgroundImage = loaded;
+        // La personne a peut-être changé de thème ou de fond entre-temps : on ne pose que le fond actuel.
+        if (this.currentTheme === theme && this.backgroundStyleOf(theme) === 'image') {
+          this.renderer.backgroundImage = loaded ? tint(loaded, this.effective(theme).cells.stars) : null;
           this.invalidate();
         }
       });
@@ -190,4 +301,21 @@ export class DesignRuntime {
       this.invalidate();
     }
   }
+}
+
+/**
+ * Recolore une image : seule sa silhouette (les pixels non transparents) compte, la couleur vient
+ * de `color`. C'est ainsi qu'UNE image de fond blanche donne un fond de n'importe quelle couleur
+ * (`source-in` ne colore que ce qui est déjà dessiné).
+ */
+function tint(image: HTMLImageElement, color: string): HTMLCanvasElement {
+  const canvas = document.createElement('canvas');
+  canvas.width = image.naturalWidth;
+  canvas.height = image.naturalHeight;
+  const context = canvas.getContext('2d') as CanvasRenderingContext2D;
+  context.drawImage(image, 0, 0);
+  context.globalCompositeOperation = 'source-in';
+  context.fillStyle = color;
+  context.fillRect(0, 0, canvas.width, canvas.height);
+  return canvas;
 }

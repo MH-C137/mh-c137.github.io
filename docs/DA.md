@@ -30,6 +30,7 @@ forme des cellules, quadrillage, fond, titre, style des cadres. Le code du jeu n
 
 | Bloc | Rôle |
 |---|---|
+| `palette` | Les couleurs de la DA (liste `["#548ebc", …]`), proposées par l'outil Config DA. |
 | `name`, `description`, `defaultTheme` | Nom, description, et thème montré à la première visite (`"day"` ou `"night"`). |
 | `fonts` | Les polices à charger : `{ "family": "Nom", "file": "assets/fonts/x.woff2", "weight": "400" }`. |
 | `ui` | `fontFamily` (police de l'interface), `textScale` (1 = tailles d'origine ; 0,68 pour une police plus grande), `frame` (`"notched"` = cadres en escalier + ombre dure, `"flat"` = simple contour), `borderWidth` (épaisseur des contours, en pixels). |
@@ -37,7 +38,7 @@ forme des cellules, quadrillage, fond, titre, style des cadres. Le code du jeu n
 | `cells` | `icon` : image dont la **silhouette** sert de forme aux cellules (ex. une étoile) ; `null` = carrés. `scale` : taille dans la case. `iconMinZoom` : sous cette taille de case (px), on dessine des carrés. `traceStyle` : `"filled"` (la cellule qui vient de mourir est pleine) ou `"outline"` (seulement son **contour**, étoile vide). `outlineWidth` : épaisseur de ce contour (ex. 0,08). `pulseHalo` : `true` = la cellule qui clignote a un **halo**. |
 | `grid` | `style` : `"lines"` (lignes) ou `"crosses"` (lignes fines + une croix épaisse à chaque croisement). |
 | `background` | `style` : `"image"` (l'image du thème, fixe) ou `"constellation"` (un ciel d'étoiles généré par le site, **fixe dans le monde** et sans fin : voir plus bas). `opacity` : transparence (0 à 1). `density` : quantité d'étoiles de la constellation (1 = normal). |
-| `themes.night` et `themes.day` | Pour chaque thème : `colors` (fond, grille, `newborn` née, `alive` vivante, `pulse` clignote, `trace` vient de mourir, `glass` la vitre, `stars` couleur des étoiles du fond, sélection, gomme), `interface` (couleurs des boutons, panneaux, textes, et `titleBg` / `titleFg` / `titleLine` pour le bloc du titre), `titleImage` et `backgroundImage` (chemins d'images, ou `null`). |
+| `themes.night` et `themes.day` | Pour chaque thème : `colors` (fond, grille, `newborn` née, `alive` vivante, `pulse` clignote, `trace` vient de mourir, `glass` la vitre, `stars` couleur des étoiles du fond, sélection, gomme), `interface` (couleurs des boutons, panneaux, textes, et `titleBg` / `titleFg` / `titleLine` pour le bloc du titre), `titleImage` et `backgroundImage` (chemins d'images, ou `null`), et si besoin `gridStyle` / `backgroundStyle` (`"none"`, `"image"`, `"constellation"`) pour un style propre à ce thème. |
 
 Les couleurs s'écrivent `#rrggbb` ou `rgba(r, g, b, a)`. Les chemins sont **relatifs au dossier de la DA**
 (`assets/etoile.png`).
@@ -57,6 +58,18 @@ confonde jamais le fond avec la grille et les cellules, le site pose entre les d
   seule la couleur change** : c'est pourquoi il suffit d'une seule image d'étoile.
 - La DA Nova n'utilise que **deux couleurs** de cellules, pour rester claire. Nuit : **jaune** = vient de naître, **blanc** = vit (et clignote en blanc, avec un halo), **contour blanc** = vient de mourir, rien = morte. Jour (le jaune est réservé à la nuit) : **violet** = vient de naître, **bleu nuit** = vit (et clignote, avec un halo), **contour bleu nuit** = vient de mourir.
 
+## L'outil « Config DA » : essayer sans toucher aux fichiers
+
+Dans le site : **Options → Options avancées → Config DA**. Le panneau permet de changer, **séparément pour le mode nuit et le
+mode jour** (les onglets changent aussi le thème affiché) : le style du quadrillage, le fond (aucun, constellation, image),
+les couleurs du fond, des étoiles et de la « vitre », des cellules, des panneaux, des boutons, de la légende, des textes et
+des bordures. Les couleurs de la palette de la DA (`palette` dans `da.json`) sont proposées par les sélecteurs. Les réglages
+sont retenus dans le navigateur (ils restent après un rechargement, et même si on coupe les options avancées : « Remettre ce
+thème » les efface).
+
+**Pour garder ce qui plaît :** clique sur **« Copier la config »** et envoie le texte (c'est un bloc `themes` au format de
+`da.json`), ou recopie ses valeurs dans le `da.json` de la DA. Les réglages ne modifient jamais les fichiers.
+
 ## Les images du « DOSSIER RESSOURCES » : lesquelles utiliser ?
 
 Il y a 16 fichiers, mais **très peu de choses différentes** : c'est la même image exportée dans les
@@ -71,7 +84,7 @@ Il y a 16 fichiers, mais **très peu de choses différentes** : c'est la même i
 | Quadrillage | `Quadrillage` | Sert de **modèle** : le site dessine lui-même ce style (`"style": "crosses"`) à toutes les échelles, sans image. |
 | Palette | `Palette de couleur` | Les 4 couleurs : `#548ebc` `#cbc737` `#253165` `#6f5ca4`. |
 
-La DA `nova` utilise : le titre jaune (`titre 2 jaune`) la nuit et le titre bleu clair (`titre 3 bleu clair`) le jour, tous deux sur un bloc bleu nuit, et l'étoile blanche. Son fond d'étoiles est **généré** (constellation) ; les images `background …` restent utilisables par une DA en mode `"image"`.
+La DA `nova` utilise : le titre jaune (`titre 2 jaune`) la nuit et le titre bleu clair (`titre 3 bleu clair`) le jour, tous deux sur un bloc bleu nuit, et l'étoile blanche. Son fond d'étoiles est **généré** (constellation) ; l'image de fond (`fond.png`, la version blanche) peut aussi être choisie dans la Config DA : le site la **recolore** à la demande (une seule image donne un fond de toutes les couleurs, il n'y a donc pas besoin de fichiers par couleur).
 Pour changer une couleur, il suffit de recopier un autre fichier et de changer son nom dans `da.json`.
 
 ### Préparer une image (rogner les marges)

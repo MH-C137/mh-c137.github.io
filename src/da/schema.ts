@@ -44,9 +44,19 @@ export interface DesignTheme {
   readonly interface: UiColors;
   /** Image du titre (chemin relatif au dossier de la DA), ou null pour le titre en texte. */
   readonly titleImage: string | null;
-  /** Image de fond de la grille, ou null. */
+  /** Image de fond de la grille (une silhouette blanche, recolorée par le site), ou null. */
   readonly backgroundImage: string | null;
+  /** Style du quadrillage propre à ce thème ; null = celui de la DA (`grid.style`). */
+  readonly gridStyle: GridStyle | null;
+  /** Style du fond propre à ce thème ; null = celui de la DA (`background.style`). */
+  readonly backgroundStyle: BackgroundStyle | null;
 }
+
+export type GridStyle = 'lines' | 'crosses';
+export const GRID_STYLES = ['lines', 'crosses'] as const;
+export const BACKGROUND_STYLES = ['none', 'image', 'constellation'] as const;
+/** `none` : fond uni. `image` : l'image de la DA. `constellation` : ciel généré, fixe dans le monde. */
+export type BackgroundStyle = 'none' | 'image' | 'constellation';
 
 export interface DesignFont {
   readonly family: string;
@@ -62,6 +72,8 @@ export interface DesignPack {
   /** Thème montré à la première visite. */
   readonly defaultTheme: ThemeName;
   readonly fonts: readonly DesignFont[];
+  /** Les couleurs de la palette de la DA, proposées par l'outil « Config DA ». */
+  readonly palette: readonly string[];
   readonly ui: {
     /** Valeur CSS de `font-family` pour toute l'interface. */
     readonly fontFamily: string;
@@ -94,11 +106,11 @@ export interface DesignPack {
   };
   readonly grid: {
     /** `lines` : quadrillage. `crosses` : quadrillage fin + une croix épaisse à chaque croisement. */
-    readonly style: 'lines' | 'crosses';
+    readonly style: GridStyle;
   };
   readonly background: {
     /** `image` : l'image du thème, fixe à l'écran. `constellation` : un ciel d'étoiles généré par le site, FIXE dans le monde (il suit le zoom et le déplacement de la grille) et sans fin. */
-    readonly style: 'image' | 'constellation';
+    readonly style: BackgroundStyle;
     /** Transparence du fond (0 à 1). */
     readonly opacity: number;
     /** Constellation : quantité d'étoiles (1 = normal). */
@@ -124,7 +136,7 @@ const isObject = (value: unknown): value is Json =>
   typeof value === 'object' && value !== null && !Array.isArray(value);
 
 /** Couleurs acceptées : #rgb, #rrggbb, #rrggbbaa, rgb(), rgba(), hsl(), hsla(). Rien d'autre (une valeur de ce fichier finit dans du CSS). */
-const COLOR = /^(#[0-9a-f]{3,8}|(rgb|hsl)a?\(\s*[-0-9.%\s,/]+\))$/i;
+export const COLOR = /^(#[0-9a-f]{3,8}|(rgb|hsl)a?\(\s*[-0-9.%\s,/]+\))$/i;
 
 /** Chemins acceptés : relatifs, sans `..`, sans `:` (pas d'adresse web), sans `\`. */
 const SAFE_PATH = /^(?!\/)(?!.*\.\.)(?!.*[:\\])[\w\-./ ]+$/;
@@ -203,6 +215,17 @@ export function parseDesign(raw: unknown, fallback: DesignPack): ParsedDesign {
     }
   }
 
+  // — Palette (couleurs proposées dans l'outil « Config DA ») —
+  let palette: readonly string[] = [];
+  if (root.palette !== undefined) {
+    if (Array.isArray(root.palette)) {
+      palette = root.palette.filter((c): c is string => typeof c === 'string' && COLOR.test(c.trim())).map((c) => c.trim());
+      if (palette.length !== root.palette.length) warnings.push('palette : couleurs attendues (ex. #548ebc).');
+    } else {
+      warnings.push('palette : liste [ … ] attendue.');
+    }
+  }
+
   // — Interface, titre, cellules, grille, fond —
   const ui = section(root.ui, 'ui');
   const title = section(root.title, 'title');
@@ -229,6 +252,9 @@ export function parseDesign(raw: unknown, fallback: DesignPack): ParsedDesign {
       // Pour les images, « absent » = rien (et non l'image de la DA de secours : un autre dossier).
       titleImage: path(t.titleImage, null, `themes.${name}.titleImage`),
       backgroundImage: path(t.backgroundImage, null, `themes.${name}.backgroundImage`),
+      gridStyle: t.gridStyle === undefined ? null : choice(t.gridStyle, GRID_STYLES, 'lines', `themes.${name}.gridStyle`),
+      backgroundStyle:
+        t.backgroundStyle === undefined ? null : choice(t.backgroundStyle, BACKGROUND_STYLES, 'none', `themes.${name}.backgroundStyle`),
     };
   };
 
@@ -237,6 +263,7 @@ export function parseDesign(raw: unknown, fallback: DesignPack): ParsedDesign {
     description: text(root.description, fallback.description, 'description'),
     defaultTheme: choice(root.defaultTheme, ['night', 'day'] as const, fallback.defaultTheme, 'defaultTheme'),
     fonts,
+    palette,
     ui: {
       fontFamily: text(ui.fontFamily, fallback.ui.fontFamily, 'ui.fontFamily'),
       textScale: number(ui.textScale, fallback.ui.textScale, 0.5, 2, 'ui.textScale'),
@@ -255,9 +282,9 @@ export function parseDesign(raw: unknown, fallback: DesignPack): ParsedDesign {
       outlineWidth: number(cells.outlineWidth, fallback.cells.outlineWidth, 0.02, 0.3, 'cells.outlineWidth'),
       pulseHalo: flag(cells.pulseHalo, fallback.cells.pulseHalo, 'cells.pulseHalo'),
     },
-    grid: { style: choice(grid.style, ['lines', 'crosses'] as const, fallback.grid.style, 'grid.style') },
+    grid: { style: choice(grid.style, GRID_STYLES, fallback.grid.style, 'grid.style') },
     background: {
-      style: choice(background.style, ['image', 'constellation'] as const, fallback.background.style, 'background.style'),
+      style: choice(background.style, BACKGROUND_STYLES, fallback.background.style, 'background.style'),
       opacity: number(background.opacity, fallback.background.opacity, 0, 1, 'background.opacity'),
       density: number(background.density, fallback.background.density, 0.2, 4, 'background.density'),
     },
@@ -312,12 +339,13 @@ export function paletteOf(theme: DesignTheme): Palette {
 export const BLANK_DESIGN: DesignPack = (() => {
   const colors = Object.fromEntries(CELL_COLOR_KEYS.map((key) => [key, '#000000'])) as CellColors;
   const ui = Object.fromEntries(UI_COLOR_KEYS.map((key) => [key, '#000000'])) as UiColors;
-  const theme: DesignTheme = { cells: colors, interface: ui, titleImage: null, backgroundImage: null };
+  const theme: DesignTheme = { cells: colors, interface: ui, titleImage: null, backgroundImage: null, gridStyle: null, backgroundStyle: null };
   return {
     name: 'vide',
     description: '',
     defaultTheme: 'night',
     fonts: [],
+    palette: [],
     ui: { fontFamily: 'sans-serif', textScale: 1, frame: 'notched', borderWidth: 3 },
     title: { text: 'Jeu de la vie', imageHeight: 46 },
     cells: { icon: null, scale: 1, iconMinZoom: 6, traceStyle: 'filled', outlineWidth: 0.07, pulseHalo: false },

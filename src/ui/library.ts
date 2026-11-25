@@ -122,9 +122,9 @@ export function setupLibrary(app: App): void {
 }
 
 /**
- * Section « Images » : importer, puis choisir l'image des cellules VIVANTES (utilisée par
- * le crayon et les structures). Avec les options avancées, on peut aussi choisir une
- * image pour les cellules MORTES (celles qui viennent de mourir).
+ * Section « Images » (visible seulement avec les options avancées) : importer, puis choisir
+ * l'image des cellules VIVANTES (utilisée par le crayon et les structures) et celle des
+ * cellules MORTES (celles qui viennent de mourir).
  */
 function setupImages(app: App): void {
   const input = byId<HTMLInputElement>('image-input');
@@ -167,12 +167,10 @@ function setupImages(app: App): void {
     app.images.deadImage = id;
   });
 
-  // Options avancées : titres et choix de l'image des cellules mortes.
-  const aliveTitle = byId('alive-images-title');
-  const deadBlock = byId('dead-images');
+  // Options avancées : toute la section « Images » n'apparaît que si elles sont activées.
+  const section = byId('images-section');
   const renderAdvanced = () => {
-    aliveTitle.hidden = !app.viewSettings.advancedVisible;
-    deadBlock.hidden = !app.viewSettings.advancedVisible;
+    section.hidden = !app.viewSettings.advancedVisible;
   };
   app.viewSettings.on('change', renderAdvanced);
   renderAdvanced();
