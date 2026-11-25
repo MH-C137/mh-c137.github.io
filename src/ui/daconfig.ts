@@ -85,6 +85,7 @@ const SECTIONS: ReadonlyArray<{ title: string; colors: readonly ColorSpec[] }> =
       { block: 'interface', key: 'titleBg', label: 'Fond de la légende' },
       { block: 'interface', key: 'titleFg', label: 'Écriture de la légende' },
       { block: 'interface', key: 'titleLine', label: 'Bord de la légende' },
+      { block: 'interface', key: 'titleInk', label: 'Couleur du titre' },
     ],
   },
   {
@@ -100,7 +101,8 @@ const ROLE_ROWS: ReadonlyArray<{ title: string; roles: ReadonlyArray<readonly [R
     roles: [
       ['page', 'Fond de la page'],
       ['panels', 'Panneaux et boutons'],
-      ['legend', 'Légende et titre'],
+      ['legend', 'Fond de la légende'],
+      ['title', 'Titre (« Nova »)'],
       ['text', 'Écriture'],
       ['details', 'Détails (titres, bouton actif)'],
       ['borders', 'Bords'],
@@ -208,22 +210,51 @@ export function setupDaConfig(app: App): DaConfig {
     return el('div', { class: 'da-choice' }, [el('span', {}, [label]), el('div', { class: 'da-choice-buttons' }, buttons.map((b) => b.button))]);
   };
 
-  /** Réglage de la transparence de la vitre (la teinte se règle avec le sélecteur de couleur). */
-  const glassOpacity = (): HTMLElement => {
-    const slider = el('input', { type: 'range', min: '0', max: '100', step: '1', 'aria-label': 'Opacité de la vitre' });
+  /**
+   * Un curseur d'opacité (en %). `read` donne la valeur actuelle (0 à 1), `write` l'applique.
+   * Le curseur se remet à jour tout seul quand les réglages changent (sauf pendant qu'on le glisse).
+   */
+  const opacitySlider = (label: string, min: number, read: () => number, write: (opacity: number) => void): HTMLElement => {
+    const slider = el('input', { type: 'range', min: String(min), max: '100', step: '1', 'aria-label': label });
     const value = el('output', {});
     slider.addEventListener('input', () => {
-      const glass = design.effective(theme.name).cells.glass;
-      design.setCellColor(theme.name, 'glass', colorWithAlpha(hexOf(glass), Number(slider.value) / 100));
+      value.textContent = `${slider.value} %`;
+      write(Number(slider.value) / 100);
     });
     refreshers.push(() => {
-      const percent = Math.round(alphaOf(design.effective(theme.name).cells.glass) * 100);
-      if (document.activeElement !== slider) slider.value = String(percent);
+      if (document.activeElement !== slider) slider.value = String(Math.max(min, Math.round(read() * 100)));
       value.textContent = `${slider.value} %`;
     });
-    slider.addEventListener('input', () => (value.textContent = `${slider.value} %`));
-    return el('label', { class: 'da-row' }, [el('span', {}, ['Opacité de la vitre']), el('span', { class: 'da-slider' }, [slider, value])]);
+    return el('label', { class: 'da-row' }, [el('span', {}, [label]), el('span', { class: 'da-slider' }, [slider, value])]);
   };
+
+  /** Transparence de la vitre (sa teinte se règle avec le sélecteur de couleur). */
+  const glassOpacity = (): HTMLElement =>
+    opacitySlider(
+      'Opacité de la vitre',
+      0,
+      () => alphaOf(design.effective(theme.name).cells.glass),
+      (opacity) => design.setCellColor(theme.name, 'glass', colorWithAlpha(hexOf(design.effective(theme.name).cells.glass), opacity)),
+    );
+
+  /**
+   * Opacité du quadrillage : celle des lignes principales (toutes les 10 cases) et des croix. Les lignes fines
+   * gardent, par rapport à elles, la proportion de la DA (ex. 0,2 contre 0,46), pour que l'allure ne change pas.
+   * Minimum 5 % : pour cacher la grille, il y a « Masqué ».
+   */
+  const gridOpacity = (): HTMLElement =>
+    opacitySlider(
+      'Opacité du quadrillage',
+      5,
+      () => alphaOf(design.effective(theme.name).cells.gridMajor),
+      (opacity) => {
+        const base = design.design.pack.themes[theme.name].cells;
+        const ratio = alphaOf(base.gridMajor) > 0 ? alphaOf(base.grid) / alphaOf(base.gridMajor) : 0.45;
+        const current = design.effective(theme.name).cells;
+        design.setCellColor(theme.name, 'gridMajor', colorWithAlpha(hexOf(current.gridMajor), opacity));
+        design.setCellColor(theme.name, 'grid', colorWithAlpha(hexOf(current.grid), Math.min(1, opacity * ratio)));
+      },
+    );
 
   /** Une section repliable. */
   const section = (title: string, rows: HTMLElement[], open = false): HTMLElement =>
@@ -253,6 +284,7 @@ export function setupDaConfig(app: App): DaConfig {
           (style) => design.setBackgroundStyle(theme.name, style),
           (style) => style !== 'image' || design.hasBackgroundImage(theme.name),
         ),
+        gridOpacity(),
         glassOpacity(),
       ],
       true,

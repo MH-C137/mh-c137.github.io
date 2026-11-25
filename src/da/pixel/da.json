@@ -90,7 +90,8 @@
         "danger": "#ff4d8d",
         "titleBg": "#0e0d20",
         "titleFg": "#a3a0d0",
-        "titleLine": "#5b46b8"
+        "titleLine": "#5b46b8",
+        "titleInk": "#a3a0d0"
       },
       "titleImage": null,
       "backgroundImage": null
@@ -127,7 +128,8 @@
         "danger": "#c4204f",
         "titleBg": "#fffdf6",
         "titleFg": "#5a5580",
-        "titleLine": "#2a1f5c"
+        "titleLine": "#2a1f5c",
+        "titleInk": "#5a5580"
       },
       "titleImage": null,
       "backgroundImage": null

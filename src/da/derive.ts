@@ -177,7 +177,10 @@ export function deriveFromRoles(base: DesignTheme, roles: Roles, palette: readon
   if (roles.legend) {
     ui.titleBg = legend;
     ui.titleFg = bestOn(legend, candidates);
+    // Le titre (image) doit rester lisible sur la nouvelle légende, sauf si on a choisi sa couleur.
+    if (!roles.title) ui.titleInk = readableOn(b.titleInk, legend, extremes, 3);
   }
+  if (roles.title) ui.titleInk = roles.title;
 
   if (roles.newborn) cells.newborn = roles.newborn;
   if (roles.alive) {
@@ -197,6 +200,7 @@ export function roleBaseColor(base: DesignTheme, role: RoleKey): string {
     case 'page': return base.interface.bg;
     case 'panels': return base.interface.surface;
     case 'legend': return base.interface.titleBg;
+    case 'title': return base.interface.titleInk;
     case 'text': return base.interface.fg;
     case 'details': return base.interface.accentFill;
     case 'borders': return base.interface.line;

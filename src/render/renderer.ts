@@ -255,12 +255,15 @@ export class Renderer {
 
   /**
    * Style « croix » : une petite croix épaisse à chaque croisement de lignes, par-dessus le
-   * quadrillage fin. Toutes les croix sont regroupées dans un seul chemin (un seul ordre de
-   * dessin) et apparaissent progressivement quand on zoome, comme les lignes.
+   * quadrillage fin. Les proportions sont MESURÉES sur la ressource des artistes (Quadrillage.png,
+   * cases de 54 px) : bras de 10 px de chaque côté (0,18 case), épaisseur 3 px (0,055 case), lignes
+   * fines de 1 px. Tout est donc proportionnel à la taille d'une case, avec un minimum d'épaisseur
+   * pour rester visible de loin. Toutes les croix sont regroupées dans un seul chemin (un seul
+   * ordre de dessin) et apparaissent progressivement quand on zoome, comme les lignes.
    */
   private drawGridCrosses(view: { x0: number; x1: number; y0: number; y1: number }, crisp: (value: number) => number): void {
     const { camera, context, palette } = this;
-    const arm = Math.min(camera.zoom * 0.14, 7); // longueur d'un bras de la croix
+    const arm = camera.zoom * 0.18; // longueur d'un bras de la croix
     const crosses = new Path2D();
     for (let x = view.x0; x <= view.x1 + 1; x++) {
       const sx = crisp(camera.worldToScreenX(x));
@@ -272,8 +275,8 @@ export class Renderer {
         crosses.lineTo(sx, sy + arm);
       }
     }
-    context.globalAlpha = clamp01((camera.zoom - 6) / 4) * 0.7; // un peu plus discrètes que les lignes principales
-    context.lineWidth = Math.max(2, camera.zoom * 0.06);
+    context.globalAlpha = clamp01((camera.zoom - 6) / 4);
+    context.lineWidth = Math.max(1.5, camera.zoom * 0.055);
     context.strokeStyle = palette.gridMajor;
     context.stroke(crosses);
   }
