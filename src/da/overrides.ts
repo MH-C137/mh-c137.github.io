@@ -19,7 +19,9 @@ import {
   CELL_COLOR_KEYS,
   COLOR,
   GRID_STYLES,
+  ROLE_KEYS,
   UI_COLOR_KEYS,
+  type Roles,
   type BackgroundStyle,
   type CellColors,
   type DesignPack,
@@ -30,6 +32,8 @@ import {
 
 /** Ce que la personne a changé pour UN thème (tout est facultatif : absent = valeur de la DA). */
 export interface ThemeOverrides {
+  /** Les rôles choisis (parmi les couleurs de la palette) : les nuances qui en dépendent sont déduites. */
+  roles?: Roles;
   cells?: Partial<CellColors>;
   interface?: Partial<UiColors>;
   gridStyle?: GridStyle;
@@ -43,6 +47,7 @@ export const NO_OVERRIDES: DesignOverrides = { night: {}, day: {} };
 /** Vrai s'il n'y a aucun réglage pour ce thème. */
 export function isEmptyOverrides(overrides: ThemeOverrides): boolean {
   return (
+    Object.keys(overrides.roles ?? {}).length === 0 &&
     Object.keys(overrides.cells ?? {}).length === 0 &&
     Object.keys(overrides.interface ?? {}).length === 0 &&
     overrides.gridStyle === undefined &&
@@ -71,6 +76,8 @@ export function parseOverrides(raw: unknown): DesignOverrides {
       }
       return out;
     };
+    const roles = pick(ROLE_KEYS, s.roles);
+    if (Object.keys(roles).length > 0) result[theme].roles = roles;
     const cells = pick(CELL_COLOR_KEYS, s.cells);
     const ui = pick(UI_COLOR_KEYS, s.interface);
     if (Object.keys(cells).length > 0) result[theme].cells = cells;

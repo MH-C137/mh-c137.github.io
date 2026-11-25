@@ -72,6 +72,7 @@ export class ThemeManager extends Emitter<{ change: ThemeName }> {
     style.setProperty('--cell-alive', palette.alive);
     style.setProperty('--cell-trace', palette.trace);
     style.setProperty('--cell-dead', palette.background);
+    style.setProperty('--tile', palette.tile); // fond des pastilles et miniatures (indépendant du fond de la page)
     document.body.dataset.theme = this.current;
     this.design.applyTheme(this.current); // couleurs de l'interface, titre et fond de la DA
     this.emit('change', this.current);

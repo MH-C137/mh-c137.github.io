@@ -3,17 +3,20 @@
  *  daconfig.ts — Le panneau « Config DA » : personnaliser l'apparence dans le site
  * ============================================================================
  *
- * Pour essayer des couleurs et des styles DIRECTEMENT dans le site (options avancées →
- * « Config DA »), séparément pour le mode nuit et le mode jour :
- *   - quadrillage : lignes ou croix, et leurs couleurs ;
- *   - fond : aucun, constellation (ciel d'étoiles fixe) ou image de la DA (recolorée), couleur
- *     des étoiles, couleur et transparence de la « vitre » ;
- *   - cellules : née, vivante, clignote, vient de mourir (+ sélection et gomme) ;
- *   - interface : fond, panneaux, boutons, légende, textes, bordures, détails…
+ * Pour essayer des styles DIRECTEMENT dans le site (options avancées → « Config DA »),
+ * séparément pour le mode nuit et le mode jour. Le panneau est volontairement SIMPLE :
+ *   - on choisit des RÔLES (page, panneaux, légende, écriture, détails, bords, cellules,
+ *     étoiles, fond des pastilles) parmi les couleurs de la PALETTE de la DA : ce sont les
+ *     seules proposées, elles correspondent à de vraies couleurs de la charte ;
+ *   - le site DÉDUIT les nuances qui en dépendent (boutons un peu plus clairs, texte lisible
+ *     sur le bouton actif, titres éclaircis…), voir src/da/derive.ts ;
+ *   - on choisit aussi le style du quadrillage, le fond et l'opacité de la « vitre » ;
+ *   - tout en bas, « Réglages détaillés » garde un sélecteur de couleur par élément, pour les
+ *     cas particuliers.
  *
- * Les réglages se posent PAR-DESSUS la DA (ils ne modifient pas da.json), sont retenus dans
- * le navigateur, et « Copier la config » les donne au format de da.json : on garde ainsi ce qui
- * plaît en le recopiant dans le fichier de la DA.
+ * Les réglages se posent PAR-DESSUS la DA (ils ne modifient pas da.json), sont retenus dans le
+ * navigateur, et « Copier la config » les donne au format de da.json (les couleurs déduites
+ * comprises) : on garde ainsi ce qui plaît en le recopiant dans le fichier de la DA.
  *
  * Comme partout : un contrôle APPELLE `design.setXxx(...)`, et l'affichage se met à jour en
  * ÉCOUTANT les événements (changement de thème, changement de réglage).
@@ -21,7 +24,7 @@
 
 import type { App } from '../app';
 import { alphaOf, colorWithAlpha, hexOf, recolor } from '../da/overrides';
-import type { BackgroundStyle, CellColorKey, GridStyle, UiColorKey } from '../da/schema';
+import type { BackgroundStyle, CellColorKey, GridStyle, RoleKey, UiColorKey } from '../da/schema';
 import type { ThemeName } from '../render/theme';
 import { byId, el } from './dom';
 
@@ -50,6 +53,7 @@ const SECTIONS: ReadonlyArray<{ title: string; colors: readonly ColorSpec[] }> =
       { block: 'cells', key: 'trace', label: 'Vient de mourir' },
       { block: 'cells', key: 'selection', label: 'Sélection' },
       { block: 'cells', key: 'erase', label: 'Contour de la gomme' },
+      { block: 'cells', key: 'tile', label: 'Fond des pastilles' },
     ],
   },
   {
@@ -88,6 +92,30 @@ const SECTIONS: ReadonlyArray<{ title: string; colors: readonly ColorSpec[] }> =
   },
 ];
 
+/** Les rôles proposés, dans l'ordre d'affichage (nom, explication courte). */
+const ROLE_ROWS: ReadonlyArray<{ title: string; roles: ReadonlyArray<readonly [RoleKey, string]> }> = [
+  {
+    title: 'Interface',
+    roles: [
+      ['page', 'Fond de la page'],
+      ['panels', 'Panneaux et boutons'],
+      ['legend', 'Légende et titre'],
+      ['text', 'Écriture'],
+      ['details', 'Détails (titres, bouton actif)'],
+      ['borders', 'Bords'],
+    ],
+  },
+  {
+    title: 'Cellules et fond',
+    roles: [
+      ['newborn', 'Cellule qui vient de naître'],
+      ['alive', 'Cellule vivante'],
+      ['stars', 'Étoiles du fond'],
+      ['tile', 'Fond des pastilles et miniatures'],
+    ],
+  },
+];
+
 const GRID_CHOICES: ReadonlyArray<readonly [GridStyle, string]> = [
   ['lines', 'Lignes'],
   ['crosses', 'Croix'],
@@ -110,12 +138,29 @@ export function setupDaConfig(app: App): DaConfig {
   /** Fonctions qui remettent chaque contrôle à jour (changement de thème, de réglage…). */
   const refreshers: Array<() => void> = [];
 
-  // Les couleurs de la palette de la DA : proposées par les sélecteurs de couleur (là où le navigateur le permet).
-  const datalist = el('datalist', { id: 'da-palette' }, design.design.pack.palette.map((color) => el('option', { value: color })));
+  const palette = design.design.pack.palette;
+
+  /**
+   * Une ligne « rôle » : son nom, puis une pastille par couleur de la palette de la DA. La pastille
+   * choisie est entourée ; un clic choisit cette couleur pour le rôle (le site déduit le reste).
+   */
+  const roleRow = (role: RoleKey, label: string): HTMLElement => {
+    const chips = palette.map(({ name, color }) => {
+      const chip = el('button', { class: 'da-chip', type: 'button', title: name, 'aria-label': `${label} : ${name}` });
+      chip.style.background = color;
+      chip.addEventListener('click', () => design.setRole(theme.name, role, color));
+      return { color, chip };
+    });
+    refreshers.push(() => {
+      const current = design.roleColor(theme.name, role).toLowerCase();
+      for (const { color, chip } of chips) chip.setAttribute('aria-pressed', String(color.toLowerCase() === current));
+    });
+    return el('div', { class: 'da-role' }, [el('span', {}, [label]), el('div', { class: 'da-chips' }, chips.map((c) => c.chip))]);
+  };
 
   /** Une ligne « nom + sélecteur de couleur ». */
   const colorRow = (spec: ColorSpec): HTMLElement => {
-    const input = el('input', { type: 'color', list: 'da-palette', 'aria-label': spec.label });
+    const input = el('input', { type: 'color', 'aria-label': spec.label });
     const read = () => design.effective(theme.name)[spec.block][spec.key as never] as string;
     input.addEventListener('input', () => {
       const value = spec.keepAlpha ? recolor(read(), input.value) : input.value;
@@ -173,34 +218,41 @@ export function setupDaConfig(app: App): DaConfig {
     el('details', open ? { class: 'da-section', open: '' } : { class: 'da-section' }, [el('summary', {}, [title]), ...rows]);
 
   body.append(
-    datalist,
-    section(
-      'Quadrillage',
-      [
-        choiceRow('Style', GRID_CHOICES, () => design.gridStyleOf(theme.name), (style) => design.setGridStyle(theme.name, style)),
-        colorRow({ block: 'cells', key: 'grid', label: 'Lignes fines', keepAlpha: true }),
-        colorRow({ block: 'cells', key: 'gridMajor', label: 'Lignes principales et croix', keepAlpha: true }),
-      ],
-      true,
+    ...ROLE_ROWS.map((group) =>
+      section(group.title, group.roles.map(([role, label]) => roleRow(role, label)), true),
     ),
     section(
-      'Fond',
+      'Quadrillage et fond',
       [
+        choiceRow('Quadrillage', GRID_CHOICES, () => design.gridStyleOf(theme.name), (style) => design.setGridStyle(theme.name, style)),
         choiceRow(
-          'Style',
+          'Fond',
           BACKGROUND_CHOICES,
           () => design.backgroundStyleOf(theme.name),
           (style) => design.setBackgroundStyle(theme.name, style),
           (style) => style !== 'image' || design.hasBackgroundImage(theme.name),
         ),
-        colorRow({ block: 'cells', key: 'background', label: 'Couleur du fond' }),
-        colorRow({ block: 'cells', key: 'stars', label: 'Couleur des étoiles' }),
-        colorRow({ block: 'cells', key: 'glass', label: 'Teinte de la vitre', keepAlpha: true }),
         glassOpacity(),
       ],
       true,
     ),
-    ...SECTIONS.map((s) => section(s.title, s.colors.map(colorRow), s.title === 'Cellules')),
+    // Réglages détaillés : un sélecteur de couleur libre par élément (cas particuliers).
+    el('details', { class: 'da-section da-expert' }, [
+      el('summary', {}, ['Réglages détaillés (couleurs libres)']),
+      ...[
+        {
+          title: 'Quadrillage et fond',
+          colors: [
+            { block: 'cells', key: 'grid', label: 'Lignes fines', keepAlpha: true },
+            { block: 'cells', key: 'gridMajor', label: 'Lignes principales et croix', keepAlpha: true },
+            { block: 'cells', key: 'background', label: 'Couleur du fond de la grille' },
+            { block: 'cells', key: 'stars', label: 'Couleur des étoiles' },
+            { block: 'cells', key: 'glass', label: 'Teinte de la vitre', keepAlpha: true },
+          ] as const satisfies readonly ColorSpec[],
+        },
+        ...SECTIONS,
+      ].flatMap((group) => [el('h3', {}, [group.title]), ...group.colors.map(colorRow)]),
+    ]),
   );
 
   // ── Onglets nuit / jour : ils changent aussi le thème affiché, pour voir tout de suite l'effet. ──

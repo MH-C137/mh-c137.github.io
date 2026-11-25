@@ -33,7 +33,7 @@ export type UiColors = Record<UiColorKey, string>;
 /** Couleurs des cellules et de la grille : le nom des champs de `da.json` (→ `Palette` du rendu). */
 export const CELL_COLOR_KEYS = [
   'background', 'grid', 'gridMajor', 'newborn', 'alive', 'pulse', 'trace', 'selection', 'erase',
-  'glass', 'stars',
+  'glass', 'stars', 'tile',
 ] as const;
 export type CellColorKey = (typeof CELL_COLOR_KEYS)[number];
 export type CellColors = Record<CellColorKey, string>;
@@ -50,6 +50,22 @@ export interface DesignTheme {
   readonly gridStyle: GridStyle | null;
   /** Style du fond propre à ce thème ; null = celui de la DA (`background.style`). */
   readonly backgroundStyle: BackgroundStyle | null;
+}
+
+/**
+ * Les rôles qu'on peut choisir dans l'outil « Config DA » : chacun reçoit UNE couleur de la palette,
+ * et les nuances qui en dépendent sont déduites (voir derive.ts).
+ */
+export const ROLE_KEYS = [
+  'page', 'panels', 'legend', 'text', 'details', 'borders', 'newborn', 'alive', 'stars', 'tile',
+] as const;
+export type RoleKey = (typeof ROLE_KEYS)[number];
+export type Roles = Partial<Record<RoleKey, string>>;
+
+/** Une couleur de la palette de la DA, avec son nom (ex. « Bleu nuit »). */
+export interface PaletteColor {
+  readonly name: string;
+  readonly color: string;
 }
 
 export type GridStyle = 'lines' | 'crosses';
@@ -72,8 +88,8 @@ export interface DesignPack {
   /** Thème montré à la première visite. */
   readonly defaultTheme: ThemeName;
   readonly fonts: readonly DesignFont[];
-  /** Les couleurs de la palette de la DA, proposées par l'outil « Config DA ». */
-  readonly palette: readonly string[];
+  /** Les couleurs de la palette de la DA (nom + couleur) : les seules proposées par l'outil « Config DA ». */
+  readonly palette: readonly PaletteColor[];
   readonly ui: {
     /** Valeur CSS de `font-family` pour toute l'interface. */
     readonly fontFamily: string;
@@ -215,12 +231,19 @@ export function parseDesign(raw: unknown, fallback: DesignPack): ParsedDesign {
     }
   }
 
-  // — Palette (couleurs proposées dans l'outil « Config DA ») —
-  let palette: readonly string[] = [];
+  // — Palette (les couleurs proposées dans l'outil « Config DA ») : { "name": "Bleu nuit", "color": "#253165" } —
+  let palette: readonly PaletteColor[] = [];
   if (root.palette !== undefined) {
     if (Array.isArray(root.palette)) {
-      palette = root.palette.filter((c): c is string => typeof c === 'string' && COLOR.test(c.trim())).map((c) => c.trim());
-      if (palette.length !== root.palette.length) warnings.push('palette : couleurs attendues (ex. #548ebc).');
+      palette = root.palette.flatMap((entry, index): PaletteColor[] => {
+        const e = typeof entry === 'string' ? { color: entry, name: entry } : section(entry, `palette[${index}]`);
+        const color = typeof e.color === 'string' && COLOR.test(e.color.trim()) ? e.color.trim() : null;
+        if (!color) {
+          warnings.push(`palette[${index}] : « color » (ex. #548ebc) est obligatoire.`);
+          return [];
+        }
+        return [{ color, name: typeof e.name === 'string' && e.name.trim() !== '' ? e.name.trim() : color }];
+      });
     } else {
       warnings.push('palette : liste [ … ] attendue.');
     }
@@ -329,6 +352,7 @@ export function paletteOf(theme: DesignTheme): Palette {
     erase: c.erase,
     glass: c.glass,
     stars: c.stars,
+    tile: c.tile,
   };
 }
 

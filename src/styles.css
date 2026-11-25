@@ -465,14 +465,14 @@ body[data-title='image'] .title-text {
 /*
  * DA à cellules en icône (étoiles…) : les pastilles sont les VRAIES images des cellules (étoile
  * pleine, étoile vide…), fabriquées par le rendu aux couleurs actuelles (voir DesignRuntime
- * .publishSwatches). Chacune est posée sur une petite tuile de la couleur du fond de la grille :
- * on voit la cellule comme sur le plateau (une étoile bleu nuit reste visible, même sur un bloc
+ * .publishSwatches). Chacune est posée sur une petite tuile (couleur `tile` de la DA, réglable
+ * indépendamment du fond de la page) : on voit la cellule comme sur le plateau (une étoile bleu nuit reste visible, même sur un bloc
  * bleu nuit). Une case morte n'a rien à montrer : un tout petit point.
  */
 body[data-cell-shape='icon'] .swatch {
   width: 24px;
   height: 24px;
-  background: center / 78% no-repeat, var(--cell-dead);
+  background: center / 78% no-repeat, var(--tile);
   outline: none;
 }
 
@@ -493,9 +493,9 @@ body[data-cell-shape='icon'] .swatch-dead {
   background-size: auto;
 }
 
-/* Miniatures des structures : même tuile (couleur du fond de la grille), pour que les cellules y soient lisibles. */
+/* Miniatures des structures : même tuile, pour que les cellules y soient lisibles. */
 body[data-cell-shape='icon'] .pattern-thumb {
-  background: var(--cell-dead);
+  background: var(--tile);
 }
 
 /* ── À gauche : barre d'outils ─────────────────────────────────────────── */
@@ -778,6 +778,46 @@ input[type='color']::-moz-color-swatch {
 .da-choice .text-btn {
   height: 32px;
   padding: 0 10px;
+}
+
+/* Les rôles : le nom, puis une pastille par couleur de la palette de la DA. */
+.da-role {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 5px 0;
+}
+
+.da-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.da-chip {
+  width: 34px;
+  height: 34px;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  box-shadow: var(--notch-soft);
+  cursor: pointer;
+}
+
+.da-chip:hover {
+  box-shadow: var(--notch-accent);
+}
+
+/* La couleur choisie : contour d'accent et petite marque en dessous. */
+.da-chip[aria-pressed='true'] {
+  box-shadow: var(--notch-accent), 0 calc(var(--px) * 3) 0 0 var(--accent);
+}
+
+.da-expert h3 {
+  margin: 10px 0 2px;
+  font-size: calc(22px * var(--text-scale));
+  font-weight: 400;
+  color: var(--muted);
 }
 
 .da-slider {
