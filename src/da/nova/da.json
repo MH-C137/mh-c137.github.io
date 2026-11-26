@@ -96,7 +96,8 @@
         "titleBg": "#1a2350",
         "titleFg": "#ffffff",
         "titleLine": "#6f5ca4",
-        "titleInk": "#cbc737"
+        "titleInk": "#cbc737",
+        "thumbInk": "#cbc737"
       },
       "titleImage": "assets/titre-nuit.png",
       "backgroundImage": "assets/fond.png"
@@ -134,7 +135,8 @@
         "titleBg": "#253165",
         "titleFg": "#ffffff",
         "titleLine": "#6f5ca4",
-        "titleInk": "#548ebc"
+        "titleInk": "#548ebc",
+        "thumbInk": "#6f5ca4"
       },
       "titleImage": "assets/titre-jour.png",
       "backgroundImage": "assets/fond.png"
