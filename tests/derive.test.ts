@@ -90,7 +90,8 @@ describe('Rôles → nuances', () => {
   it('« page » : les lignes de la grille et la vitre s\'adaptent, en gardant leur transparence', () => {
     const { cells } = deriveFromRoles(night, { page: BLEU_CLAIR }, palette);
     expect(cells.glass).toMatch(/^rgba\(84, 142, 188, 0\.62\)$/);
-    expect(cells.grid).toMatch(/^rgba\(\d+, \d+, \d+, 0\.2\)$/);
+    // La grille garde SA transparence (celle de la DA), seule sa teinte change.
+    expect(alphaOf(cells.grid ?? '')).toBe(alphaOf(night.cells.grid));
   });
 
   it('le choix actuel d\'un rôle sans réglage est la couleur de la DA', () => {
