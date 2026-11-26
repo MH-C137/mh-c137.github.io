@@ -316,6 +316,8 @@ export class DesignRuntime extends Emitter<{ change: void }> {
   }
 
   private icon: HTMLImageElement | null = null;
+  /** Images du titre déjà recolorées (clé : chemin + couleur → adresse « data: »). */
+  private readonly tintedTitles = new Map<string, string>();
 
   /**
    * Met à jour les pastilles de la légende et du didacticiel (variables CSS `--sprite-…`) avec les
@@ -385,16 +387,24 @@ export class DesignRuntime extends Emitter<{ change: void }> {
     const titleUrl = current.titleImage ? this.design.url(current.titleImage) : undefined;
     if (image) {
       image.hidden = !titleUrl;
-      if (titleUrl) image.src = titleUrl;
-      // Couleur du titre changée (Config DA) : l'image, d'une seule couleur, est recolorée par le site.
-      if (current.titleImage && current.interface.titleInk !== this.design.pack.themes[theme].interface.titleInk) {
+      if (current.titleImage && titleUrl) {
+        // L'image du titre est d'UNE seule couleur : on la recolore toujours avec `titleInk` (celle de la DA ou celle
+        // choisie dans la Config DA). Les résultats sont gardés en mémoire (chemin + couleur) pour ne pas refaire le dessin.
         const path = current.titleImage;
         const ink = current.interface.titleInk;
-        void this.loadImage(path).then((loaded) => {
-          // Le thème ou la couleur a pu changer entre-temps : on ne pose que le résultat à jour.
-          const still = this.currentTheme === theme && this.effective(theme).interface.titleInk === ink;
-          if (loaded && still) image.src = tint(loaded, ink).toDataURL();
-        });
+        const cached = this.tintedTitles.get(`${path}|${ink}`);
+        if (cached) image.src = cached;
+        else {
+          image.hidden = true; // on n'affiche pas l'image d'origine (mauvaise couleur) le temps du recolorage
+          void this.loadImage(path).then((loaded) => {
+            // Le thème ou la couleur a pu changer entre-temps : on ne pose que le résultat à jour.
+            if (!loaded || this.currentTheme !== theme || this.effective(theme).interface.titleInk !== ink) return;
+            const url = tint(loaded, ink).toDataURL();
+            this.tintedTitles.set(`${path}|${ink}`, url);
+            image.src = url;
+            image.hidden = false;
+          });
+        }
       }
     }
     body.dataset.title = titleUrl ? 'image' : 'text';

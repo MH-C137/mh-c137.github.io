@@ -243,7 +243,7 @@ Côté réglages : le choix « Grille activée / masquée » est mémorisé sous
 
 Les **croix** du quadrillage ont les proportions mesurées sur la ressource des artistes (`Quadrillage.png`, cases de 54 px) : bras de 0,18 case de chaque côté, épaisseur 0,055 case (au moins 1,5 px), lignes fines de 1 px. Elles sont donc proportionnelles au zoom. Le curseur « Opacité du quadrillage » (Config DA) règle l'opacité des lignes principales et des croix ; les lignes fines gardent la proportion de la DA par rapport à elles.
 
-L'image du **titre** est une silhouette d'une seule couleur : changer le rôle « Titre » (`interface.titleInk`) la recolore comme le fond (`tint()` : on redessine l'image puis `source-in` la remplit de la nouvelle couleur, qui devient l'adresse de l'image). Quand on change le fond de la légende sans choisir le titre, sa couleur est éclaircie ou assombrie (`readableOn`, contraste ≥ 3) pour rester lisible.
+L'image du **titre** est une silhouette d'une seule couleur : elle est TOUJOURS recolorée avec `interface.titleInk` (valeur de la DA, ou rôle « Titre » de la Config DA), comme le fond (`tint()` : on redessine l'image puis `source-in` la remplit de la nouvelle couleur, qui devient l'adresse de l'image). Quand on change le fond de la légende sans choisir le titre, sa couleur est éclaircie ou assombrie (`readableOn`, contraste ≥ 3) pour rester lisible.
 
 Chaque rôle a une pastille « Défaut » (`DesignRuntime.clearRole`) : elle retire le rôle choisi ET les réglages détaillés qu'il avait déduits, pour que la valeur de la DA réapparaisse ; les autres rôles restent.
 

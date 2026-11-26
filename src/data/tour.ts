@@ -50,7 +50,7 @@ export const TOUR_STEPS: readonly TourStep[] = [
     intro: 'Ici, tu dessines des cellules et tu regardes ce qu\'elles deviennent. Il n\'y a que 3 règles :',
     items: [
       { text: 'Une cellule qui a 2 ou 3 voisines survit.' },
-      { text: 'Une case vide qui a exactement 3 voisines : une cellule naît à la prochaine génération.' },
+      { text: 'Une case vide qui a exactement 3 voisines fait naître une cellule à la prochaine génération.' },
       { text: 'Sinon, la cellule meurt.' },
     ],
     target: null,
