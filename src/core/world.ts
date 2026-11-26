@@ -38,6 +38,7 @@ import {
   toKey,
   type CellRect,
 } from './coords';
+import { NeighbourTable } from './neighbourtable';
 import { createPattern, type Pattern } from './pattern';
 import { CONWAY, type Rule } from './rules';
 
@@ -83,6 +84,8 @@ export class World {
   /** Cellules mortes lors du dernier passage de génération. */
   private trace: number[] = [];
   private _generation = 0;
+  /** Table de comptage des voisines, réutilisée à chaque génération (aucune réallocation). */
+  private readonly table = new NeighbourTable();
 
   /** Règle d'évolution utilisée (patron Stratégie, voir rules.ts). */
   rule: Rule = CONWAY;
@@ -266,50 +269,64 @@ export class World {
    * touche 9 cases). Indépendant de la taille du monde.
    */
   step(): void {
-    // PASSE 1 : compter les voisines.
-    const counts = new Map<number, number>();
+    const table = this.table;
+    // PASSE 1 : chaque vivante prévient ses 8 voisines (table typée, voir neighbourtable.ts).
+    table.reset(this.ages.size);
     for (const key of this.ages.keys()) {
-      counts.set(key, (counts.get(key) ?? 0) | 1); // marque « je suis vivante »
-      for (const delta of NEIGHBOR_DELTAS) {
-        const neighbour = key + delta;
-        counts.set(neighbour, (counts.get(neighbour) ?? 0) + 2); // +1 voisine (×2)
-      }
+      for (const delta of NEIGHBOR_DELTAS) table.addNeighbour(key + delta);
     }
 
-    // PASSE 2 : appliquer la règle.
+    // PASSE 2a : les cellules vivantes survivent ou meurent. Une cellule qui meurt entre dans la trace.
     const nextAges = new Map<number, number>();
     const nextSkins = new Map<number, number>();
+    const trace: number[] = [];
     const hasSkins = this.skins.size > 0;
     const { birth, survival } = this.rule;
-    for (const [key, value] of counts) {
-      const neighbours = value >> 1;
-      if (value & 1) {
-        if (survival[neighbours]) {
-          nextAges.set(key, (this.ages.get(key) ?? 0) + 1);
-          if (hasSkins) {
-            const skin = this.skins.get(key);
-            if (skin !== undefined) nextSkins.set(key, skin);
-          }
-        }
-      } else if (birth[neighbours] && isKeyInsideWorld(key)) {
-        nextAges.set(key, 0);
-        if (hasSkins) {
-          const skin = this.inheritedSkin(key);
-          if (skin !== 0) nextSkins.set(key, skin);
-        }
+    for (const [key, age] of this.ages) {
+      const slot = table.find(key);
+      if (slot === -1) {
+        // Aucune voisine vivante : elle survit seulement si la règle le permet (S0).
+        if (survival[0]) this.keepAlive(nextAges, nextSkins, key, age, hasSkins);
+        else trace.push(key);
+        continue;
       }
+      table.markAlive(slot); // elle est vivante : elle ne pourra pas « naître » dans la passe 2b
+      if (survival[table.neighboursAt(slot)]) this.keepAlive(nextAges, nextSkins, key, age, hasSkins);
+      else trace.push(key);
     }
 
-    // PASSE 3 : la trace des cellules qui viennent de mourir.
-    const trace: number[] = [];
-    for (const key of this.ages.keys()) {
-      if (!nextAges.has(key)) trace.push(key);
+    // PASSE 2b : les cases mortes qui touchent des vivantes naissent si la règle le veut.
+    for (let slot = 0; slot < table.size; slot++) {
+      if (!table.isUsed(slot) || table.isAliveAt(slot)) continue;
+      if (!birth[table.neighboursAt(slot)]) continue;
+      const key = table.keyAt(slot);
+      if (!isKeyInsideWorld(key)) continue;
+      nextAges.set(key, 0);
+      if (hasSkins) {
+        const skin = this.inheritedSkin(key);
+        if (skin !== 0) nextSkins.set(key, skin);
+      }
     }
 
     this.ages = nextAges;
     this.skins = nextSkins;
     this.trace = trace;
     this._generation++;
+  }
+
+  /** Une cellule survit : elle vieillit d'une génération et garde son image. */
+  private keepAlive(
+    nextAges: Map<number, number>,
+    nextSkins: Map<number, number>,
+    key: number,
+    age: number,
+    hasSkins: boolean,
+  ): void {
+    nextAges.set(key, age + 1);
+    if (hasSkins) {
+      const skin = this.skins.get(key);
+      if (skin !== undefined) nextSkins.set(key, skin);
+    }
   }
 
   /**

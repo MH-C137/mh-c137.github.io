@@ -60,26 +60,37 @@ Seule une case **vivante**, ou **voisine d'une vivante**, peut changer d'état. 
 
 ```
 PASSE 1 — compter les voisines
-  compteurs ← table vide
+  table ← table de voisines vide (voir « La table de voisines » plus bas)
   pour chaque cellule vivante c :
-      compteurs[c] ← compteurs[c] OU 1            (bit 0 = « je suis vivante »)
       pour chacune des 8 voisines v de c :
-          compteurs[v] ← compteurs[v] + 2         (+1 voisine, compté ×2)
+          table[v] ← table[v] + 2                 (+1 voisine, compté ×2)
 
-PASSE 2 — appliquer la règle
-  pour chaque case k de compteurs :
-      vivante  ← compteurs[k] ET 1                (bit de poids faible)
-      voisines ← compteurs[k] ≫ 1                 (division entière par 2)
-      si vivante et survival[voisines] : elle survit, âge + 1
-      si morte   et birth[voisines]    : elle naît, âge = 0
+PASSE 2a — les cellules vivantes survivent ou meurent
+  pour chaque cellule vivante c (avec son âge) :
+      voisines ← table[c] ≫ 1                     (0 si c n'est pas dans la table)
+      table[c] ← table[c] OU 1                    (bit 0 = « je suis vivante »)
+      si survival[voisines] : elle survit, âge + 1
+      sinon                 : elle entre dans la trace (« vient de mourir »)
 
-PASSE 3 — la trace
-  toute cellule vivante avant et absente après « vient de mourir »
+PASSE 2b — les cases mortes qui touchent des vivantes naissent si la règle le veut
+  pour chaque case k de la table dont le bit 0 vaut 0 :
+      si birth[table[k] ≫ 1] et k est dans le monde : elle naît, âge = 0
 ```
 
 ### Deux informations dans un seul nombre
 
-Chaque compteur vaut `2 × (nombre de voisines) + (1 si la case est vivante)`. Le bit de poids faible dit si la case est vivante, le reste donne le nombre de voisines. Une seule table suffit, et elle contient exactement les cases à examiner, y compris une cellule vivante isolée (grâce à son bit 0).
+Chaque entrée de la table vaut `2 × (nombre de voisines) + (1 si la case est vivante)`. Le bit de poids faible dit si la case est vivante (il est posé en passe 2a), le reste donne le nombre de voisines. Une cellule vivante sans aucune voisine n'est pas dans la table : on lit alors « 0 voisine ».
+
+### La table de voisines — `src/core/neighbourtable.ts`
+
+Une `Map` JavaScript « emballe » chaque clé (un grand nombre à virgule) dans un petit objet : pour 100 000 cellules, près d'un million d'objets créés à CHAQUE génération. On utilise donc une **table de hachage à adressage ouvert** rangée dans deux tableaux typés (`Float64Array` pour les clés, `Uint8Array` pour les valeurs) :
+
+- on calcule un emplacement de départ en **mélangeant les deux moitiés** de la clé (partie haute et basse de 32 bits) ;
+- si l'emplacement contient une AUTRE case, on essaie le suivant (*sondage linéaire*) ;
+- la table fait toujours plus de deux fois le nombre de cases possibles (18 × la population) : elle n'est jamais pleine, les recherches restent très courtes ;
+- les tableaux sont réutilisés d'une génération à l'autre.
+
+Mesure (même résultat, vérifié) : le « Remplisseur » (96 000 cellules) passe de **37 ms à 15 ms par génération**, une soupe de 11 000 cellules de 19 ms à 7 ms. Deux tests protègent ce code : `tests/step.test.ts` compare, génération par génération, à un calcul **naïf** écrit autrement (4 règles, avec images, 40 générations), et une rangée de 5 000 cellules vérifie que la fonction de hachage n'entasse pas les clés.
 
 ### Le double tampon
 
@@ -87,7 +98,7 @@ La nouvelle génération est construite dans de **nouvelles** tables, sans modif
 
 ### Complexité
 
-**O(P)** en temps et en mémoire, avec P la population. C'est indépendant de la taille du monde. Mesure indicative : environ 20 ms par génération pour une soupe aléatoire de 30 000 cellules, historique compris.
+**O(P)** en temps et en mémoire, avec P la population. C'est indépendant de la taille du monde.
 
 ---
 
@@ -261,6 +272,32 @@ Trois techniques sur la silhouette de l'icône. **Teinter** : `source-in` ne col
 
 L'outil « Config DA » ne demande pas 25 couleurs : on choisit des **rôles** parmi les couleurs de la palette, et `deriveFromRoles` **déduit** le reste. Trois outils. **Mélanger** (`mix`) : `a × (1 − t) + b × t`, canal par canal. **Éclaircir ou assombrir** (`nudge`) : on mélange vers la couleur la plus claire de la palette si la couleur de départ est sombre, vers la plus sombre si elle est claire : un bouton se distingue de son panneau dans les deux cas. **Lisibilité** : le **contraste** entre deux couleurs suit la formule officielle WCAG, `(L1 + 0,05) / (L2 + 0,05)` avec `L` la luminance relative (le vert pèse 71 %, le rouge 21 %, le bleu 7 % : l'œil voit le vert bien plus clair) après correction « gamma » de chaque canal. `bestOn` choisit, parmi la palette, la couleur la plus contrastée sur un fond (texte du bouton actif, écriture de la légende) ; `readableOn` rapproche une couleur du blanc (fond sombre) ou du noir (fond clair) par pas de 10 % jusqu'à atteindre un contraste de 3,5 (titres lisibles sur les panneaux). Quand on choisit la couleur de la page, les étoiles du fond prennent une teinte intermédiaire entre la page et les lignes (`mix(page, lignes, 0,55)`) : jamais invisibles, jamais confondues avec la page. Sans carré derrière la légende et les miniatures, leurs couleurs sont rendues lisibles sur leur fond avec `readableOn` (contraste 3). Seuls les rôles **choisis** changent des couleurs, et une couleur qui dépend de plusieurs rôles (les titres : détails ET panneaux) est recalculée dès que l'un d'eux change. Tests : valeurs connues (noir sur blanc = 21), indépendance des rôles, lisibilité atteinte.
 
+## 10 decies. Reprendre là où on s'était arrêté — `src/core/session.ts`, `src/ui/persistence.ts`
+
+**Où on garde.** Dans le `localStorage` du navigateur, pas dans des cookies : un cookie est renvoyé au serveur à chaque requête et limité à 4 Ko. Rien ne quitte l'ordinateur.
+
+**Quoi.** La grille (cellules vivantes et numéro de génération), la vue, la vitesse et « Mes structures ». Au rechargement tout revient, la grille **toujours en pause**. L'âge des cellules n'est pas gardé : elles reprennent « vivantes ».
+
+**Format compact : des plages.** Une plage est une colonne de cellules vivantes consécutives, notée `x, y, longueur`. On trie les clés des cellules (la clé range x puis y), et tant que la clé suivante vaut la précédente + 1 dans la même colonne, la plage s'allonge. Un planeur tient en quelques nombres, une colonne de 1 000 cellules en 3. Coût : O(n log n) (le tri).
+
+**Quand sauvegarder.** Pas à chaque génération : 0,6 s après un changement à l'arrêt, 3 s pendant la lecture, et **tout de suite** quand la page se cache ou se ferme (`visibilitychange`, `pagehide`, fiables aussi sur téléphone).
+
+**On ne fait jamais confiance au texte relu.** `parseSession` vérifie la version, les types, que les nombres sont des entiers finis, que chaque cellule est dans le monde, le nombre de cellules (≤ 1 million), la taille des noms et des textes RLE. Au moindre doute : `null`, et on repart d'une grille vide. Les structures gardées sont relues par `parseRle`, qui a ses propres limites.
+
+**Protection contre la boucle de plantage.** Une grille qui fait planter la page, rechargée à chaque ouverture, planterait en boucle. Avant de remettre la grille, on écrit un drapeau « restauration en cours », effacé quand les deux premières images ont été dessinées. S'il est encore là à l'ouverture suivante, la page s'est fermée pendant la restauration : on abandonne la grille (« Mes structures » est gardée) et on prévient.
+
+**Grille trop grande.** Si le texte dépasse 3 millions de caractères, on garde « Mes structures » et la vue, sans la grille, et on le dit une fois.
+
+Tests : `tests/session.test.ts` (aller-retour exact, 20 textes abîmés ou piégés refusés, dont `__proto__`).
+
+---
+
+## 10 undecies. Sécurité de la page — `vite.config.ts` (CSP), `docs/SECURITE.md`
+
+La page porte une **politique de sécurité du contenu** (CSP) : le navigateur refuse tout script, style, image ou connexion qui ne vient pas du site lui-même (voir les directives dans `vite.config.ts`). Elle est ajoutée à la page DANS LE SITE CONSTRUIT. Conséquence pour le code : **ne jamais écrire de script ou de style « en ligne » dans la page, ni charger de ressource externe**. Poser une couleur par `element.style.setProperty(...)` reste autorisé.
+
+---
+
 ## 11. Le format RLE — `src/core/rle.ts`
 
 RLE (*Run Length Encoding*, codage par plages) est le format standard de la communauté (Golly, LifeWiki) :
@@ -273,7 +310,8 @@ bo$2bo$3o!                          ← b = morte, o = vivante, $ = fin de ligne
 Un nombre devant un symbole le répète : `3o` = trois vivantes d'affilée, `2$` = fin de ligne plus une ligne vide.
 
 - **Lecture.** Un automate parcourt le texte caractère par caractère. Il accumule les chiffres dans un compteur, puis applique le symbole qui suit (avancer, poser des cellules, changer de ligne).
-- **Écriture.** Pour chaque ligne, on regroupe les cases identiques consécutives en plages, on supprime les cases mortes en fin de ligne, on regroupe les lignes vides, puis on coupe le texte à 70 caractères.
+- **Écriture.** On trie les cellules (ligne par ligne, puis de gauche à droite) et on ne parcourt QUE les cellules vivantes : on regroupe celles qui se suivent en plages, on écrit les cases mortes avant une plage et les lignes vides (`3$`), puis on coupe le texte à 70 caractères. Le travail ne dépend plus de la taille du rectangle (avant, deux cellules à 50 millions de cases l'une de l'autre faisaient parcourir des milliards de cases vides).
+- **Sécurité à la lecture.** Un texte RLE vient souvent d'ailleurs. Sans limite, `99999999999o` aurait créé des milliards de cellules, et un nombre de 5 000 chiffres vaut « infini » pour JavaScript (boucle sans fin). On refuse donc : un texte de plus de 5 millions de caractères, un nombre supérieur à 2²⁶ (la largeur du monde), et plus de 2 millions de cellules. Les tests (`tests/rle.test.ts`) vérifient chaque cas.
 
 Un test vérifie que *écrire puis relire* redonne exactement chaque structure de la bibliothèque.
 

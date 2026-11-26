@@ -55,6 +55,7 @@ Patrons en place (garde-les cohérents) :
 - Couleurs : uniquement dans les `da.json` des DA (`src/da/<nom>/da.json`), dans `render/theme.ts` (palette de secours et couleurs déduites) et dans les variables CSS de `styles.css`. Ne jamais coder une couleur en dur ailleurs. **Ne jamais mettre une couleur, une police ou une image de DA directement dans le code** : elle va dans le `da.json`.
 - Interface : pas de `border-radius`. Les cadres utilisent les variables `--notch-*` et `--drop-shadow` de `styles.css`. Les icônes sont du pixel art 12 × 12 (voir `DESIGN.md`).
 - Les 4 états de cellule ont un sens fixe : née (âge 0), vivante (âge ≥ 1), vient de mourir (trace), morte. Ne change pas cette sémantique.
+- **CSP** (politique de sécurité de la page, `vite.config.ts`) : jamais de script ou de style écrit dans la page, jamais de ressource externe (pas de CDN, pas de police Google). Une couleur se pose avec `style.setProperty`. Tout texte venu de l'extérieur (RLE, fichier, stockage) est **borné et vérifié** avant usage (voir `docs/SECURITE.md`).
 - Tout accès à `localStorage` / `IndexedDB` est entouré de `try / catch` (le site peut tourner dans une iframe où le stockage est refusé).
 - Garde `base: './'` dans `vite.config.ts` (le site doit marcher dans un sous-dossier du site de l'école).
 

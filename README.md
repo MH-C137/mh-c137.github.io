@@ -64,6 +64,7 @@ La DA d'origine est en **arcade pixel** : coins carrés partout, cadres en escal
 - **Mode nuit (néon) / mode jour** (bouton en haut à droite, à gauche de l'œil) et un bouton **œil** pour masquer toute l'interface.
 - **Grille vide au départ** : on arrive sur une page vierge, en pause. La grille est bien visible et se masque dans le menu **Options** (bouton à trois barres, en haut à gauche).
 - **Intégration dans AlgoGo** : le jeu peut être servi par un site Flask plus grand (voir [`docs/INTEGRATION.md`](docs/INTEGRATION.md) et `tools/exporter_algo_go.sh`) ; dans ce cas, le menu Options propose « Retour à AlgoGo ».
+- **Reprise automatique** : au rechargement de la page, la grille, la vue, la vitesse et « Mes structures » reviennent (la grille en pause). Tout reste dans le navigateur. Si une grille faisait planter la page, elle est abandonnée à l'ouverture suivante (pas de plantage en boucle).
 - **Didacticiel** : à la première visite, un parcours en 8 bulles (Suivant / Précédent, compteur `1/8`, « Passer le didacticiel »). Pour le revoir : Options → Aide (?), ou la touche `?`.
 - **Épaisseur du crayon** (1 à 15) : survole le crayon, un slider apparaît. Le crayon pose plusieurs cellules d'un coup (il ne grossit pas les cellules).
 - **Options avancées** (menu Options, interrupteur) : ajoutent
@@ -127,6 +128,7 @@ src/
 └── styles.css           Apparence
 tests/                   Tests automatiques (Vitest)
 docs/ALGORITHMES.md      Explication détaillée de chaque algorithme
+docs/SECURITE.md         Audit de sécurité et de performance
 CLAUDE.md                Consignes pour un agent IA qui reprend le projet
 ```
 
@@ -158,7 +160,7 @@ La moindre erreur dans l'algorithme ferait échouer ces tests.
 
 Le code est préparé pour la suite :
 
-1. **Sauvegardes** : `world.snapshot()` / `restore()` et le format RLE existent déjà. Il reste à ajouter l'export / import de fichiers `.rle` / `.json` et une bibliothèque persistante dans IndexedDB (y compris les images).
+1. **Sauvegardes** : la reprise automatique existe (`core/session.ts`). Il reste à ajouter l'export / import de fichiers `.rle` / `.json` et une bibliothèque persistante dans IndexedDB (y compris les images, qui ne sont pas gardées au rechargement).
 2. **Lien de partage** : encoder le RLE compressé dans l'URL.
 3. **Choix de la règle** : `RULE_PRESETS` (HighLife, Seeds, Day & Night) est prêt dans `core/rules.ts`. Il ne manque que le menu.
 4. **Performances** : déplacer `World` dans un Web Worker, puis passer à une grille découpée en blocs (ou à HashLife) pour les très grands mondes.

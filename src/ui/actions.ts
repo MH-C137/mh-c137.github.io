@@ -66,6 +66,10 @@ export function pasteText(app: App, text: string): void {
   if (!app.editor.pasteClipboard()) app.notify('Rien à coller : copie d’abord une sélection');
 }
 
+/** Taille maximale d'un fichier importé (sécurité : un fichier géant ferait figer ou planter l'onglet). */
+export const MAX_IMAGE_FILE_BYTES = 10_000_000;
+export const MAX_TEXT_FILE_BYTES = 5_000_000;
+
 /**
  * Importe des fichiers : les images rejoignent la bibliothèque d'images, les
  * fichiers .rle / .txt sont lus comme des structures. Si on connaît l'endroit du
@@ -80,7 +84,12 @@ export async function importFiles(
   let lastImageId = 0;
   for (const file of files) {
     try {
-      if (file.type.startsWith('image/')) {
+      const isImage = file.type.startsWith('image/');
+      if (file.size > (isImage ? MAX_IMAGE_FILE_BYTES : MAX_TEXT_FILE_BYTES)) {
+        app.notify(`« ${file.name} » est trop gros (${isImage ? '10' : '5'} Mo maximum)`);
+        continue;
+      }
+      if (isImage) {
         lastImageId = (await app.images.addFile(file)).id;
         imported++;
       } else if (/\.(rle|txt)$/i.test(file.name) || file.type.startsWith('text/')) {
