@@ -347,13 +347,13 @@ export class DesignRuntime extends Emitter<{ change: void }> {
   }
 
   /**
-   * Couleur des cellules des miniatures de structures. Avec une tuile derrière, c'est celle des cellules ; sans
-   * tuile (par défaut), les miniatures sont posées directement sur leur carte : on prend la couleur de la
-   * cellule, éclaircie ou assombrie si besoin pour rester lisible sur la carte.
+   * Couleur des miniatures de structures : `interface.thumbInk`, INDÉPENDANTE des cellules du jeu. Avec une tuile
+   * derrière, c'est cette couleur ; sans tuile (par défaut), les miniatures sont posées directement sur leur
+   * carte : on l'éclaircit ou l'assombrit si besoin pour rester lisible sur la carte.
    */
   thumbnailColor(theme: ThemeName): string {
     const t = this.effective(theme);
-    return alphaOf(t.cells.tile) > 0 ? t.cells.newborn : readableOn(t.cells.newborn, t.interface.surface2, this.extremes(), 3);
+    return alphaOf(t.cells.tile) > 0 ? t.interface.thumbInk : readableOn(t.interface.thumbInk, t.interface.surface2, this.extremes(), 3);
   }
 
   /**

@@ -181,6 +181,7 @@ export function deriveFromRoles(base: DesignTheme, roles: Roles, palette: readon
     if (!roles.title) ui.titleInk = readableOn(b.titleInk, legend, extremes, 3);
   }
   if (roles.title) ui.titleInk = roles.title;
+  if (roles.thumbnails) ui.thumbInk = roles.thumbnails; // miniatures de structures : indépendantes des cellules du jeu
 
   if (roles.newborn) cells.newborn = roles.newborn;
   if (roles.alive) {
@@ -201,6 +202,7 @@ export function roleBaseColor(base: DesignTheme, role: RoleKey): string {
     case 'panels': return base.interface.surface;
     case 'legend': return base.interface.titleBg;
     case 'title': return base.interface.titleInk;
+    case 'thumbnails': return base.interface.thumbInk;
     case 'text': return base.interface.fg;
     case 'details': return base.interface.accentFill;
     case 'borders': return base.interface.line;

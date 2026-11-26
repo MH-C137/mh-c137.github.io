@@ -91,7 +91,8 @@
         "titleBg": "#0e0d20",
         "titleFg": "#a3a0d0",
         "titleLine": "#5b46b8",
-        "titleInk": "#a3a0d0"
+        "titleInk": "#a3a0d0",
+        "thumbInk": "#3cf2ff"
       },
       "titleImage": null,
       "backgroundImage": null
@@ -129,7 +130,8 @@
         "titleBg": "#fffdf6",
         "titleFg": "#5a5580",
         "titleLine": "#2a1f5c",
-        "titleInk": "#5a5580"
+        "titleInk": "#5a5580",
+        "thumbInk": "#008ca6"
       },
       "titleImage": null,
       "backgroundImage": null

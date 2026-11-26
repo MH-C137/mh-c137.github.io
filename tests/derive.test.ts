@@ -106,6 +106,14 @@ describe('Rôles → nuances', () => {
     expect(Object.keys(cells)).toHaveLength(0);
   });
 
+  it('« thumbnails » ne change que les miniatures ; la cellule née ne change pas les miniatures', () => {
+    const thumbs = deriveFromRoles(night, { thumbnails: BLEU_CLAIR }, palette);
+    expect(Object.keys(thumbs.interface)).toEqual(['thumbInk']);
+    expect(Object.keys(thumbs.cells)).toHaveLength(0);
+    const born = deriveFromRoles(night, { newborn: BLEU_CLAIR }, palette);
+    expect(born.interface.thumbInk).toBeUndefined();
+  });
+
   it('une nouvelle légende garde le titre lisible dessus (contraste d\'au moins 3)', () => {
     for (const legend of palette) {
       const { interface: ui } = deriveFromRoles(night, { legend }, palette);

@@ -247,6 +247,8 @@ L'image du **titre** est une silhouette d'une seule couleur : changer le rôle �
 
 Chaque rôle a une pastille « Défaut » (`DesignRuntime.clearRole`) : elle retire le rôle choisi ET les réglages détaillés qu'il avait déduits, pour que la valeur de la DA réapparaisse ; les autres rôles restent.
 
+L'interface est **dissociée du jeu** pour les miniatures de structures : leur couleur est `interface.thumbInk` (rôle « Miniatures des structures »), et non plus celle de la cellule née. Changer la couleur des cellules ne touche donc pas les miniatures, et inversement. Par défaut, `thumbInk` vaut la couleur de la cellule née de la DA (l'apparence ne change pas).
+
 ## 10 octies. La vitre — `Renderer.drawGlass()`
 
 Pour qu'on ne confonde jamais le fond avec la grille ou les cellules : après le fond et AVANT la grille, on pose une teinte translucide (`colors.glass`, ex. bleu nuit à 62 %) et un très léger reflet en diagonale (dégradé blanc presque transparent). Le fond est estompé et paraît loin ; la grille et les cellules, nettes et opaques, paraissent au premier plan, « derrière la vitre » le ciel. Ordre de dessin : fond → vitre → grille → cellules.
