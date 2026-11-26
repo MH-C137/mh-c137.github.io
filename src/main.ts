@@ -37,6 +37,7 @@ import { ThemeManager } from './ui/theme';
 import { setupDaConfig } from './ui/daconfig';
 import { listenForErrors } from './ui/diagnostic';
 import { setupOptions } from './ui/options';
+import { setupPersistence } from './ui/persistence';
 import { setupMenu, setupToolbar, setupToolOptions } from './ui/toolbar';
 import { setupTooltips } from './ui/tooltips';
 import { setupTutorial } from './ui/tutorial';
@@ -104,6 +105,7 @@ window.addEventListener('resize', () => {
 // (on arrive sur une page vierge : c'est à toi de dessiner, puis de lancer la vie)
 simulation.speed = 10;
 editor.centerView(measureUiInsets());
+setupPersistence(app); // remet la grille et « Mes structures » d'avant le rechargement (en pause), puis sauvegarde au fil de l'eau
 
 // ── 4. La boucle principale ────────────────────────────────────────────────
 let previousTime = performance.now();

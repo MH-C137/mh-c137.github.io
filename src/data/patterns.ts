@@ -140,6 +140,11 @@ export class PatternLibrary extends Emitter<{ change: void }> {
     return [...this.custom, ...BUILTIN_PATTERNS];
   }
 
+  /** Les structures de l'utilisateur (« Mes structures »), la plus récente en premier : pour la sauvegarde. */
+  customEntries(): readonly PatternEntry[] {
+    return this.custom;
+  }
+
   /** Ajoute une structure créée par l'utilisateur (depuis une sélection ou un fichier). */
   addCustom(pattern: Pattern, name?: string): PatternEntry {
     const number = this.custom.length + 1;
