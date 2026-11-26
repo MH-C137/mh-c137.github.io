@@ -6,6 +6,8 @@
  * Contenu pour l'instant :
  *   - « Grille » : affiche ou masque les lignes de la grille ;
  *   - « Aide » (?) : relance le didacticiel ;
+ *   - « Retour » : seulement si le jeu est intégré à un site plus grand, qui ajoute dans la page une balise
+ *     <meta name="retour-url" content="/" data-label="Retour à AlgoGo"> (adresse et texte du lien) ;
  *   - « Options avancées » : affiche en plus « Config DA » (voir daconfig.ts) ici, et ailleurs
  *     Annuler / Rétablir, les types de trait et les images.
  *
@@ -28,6 +30,15 @@ export function setupOptions(app: App, tutorial: Tutorial, daConfig: DaConfig): 
   const daItem = byId<HTMLButtonElement>('opt-da');
   const advancedItem = byId<HTMLButtonElement>('opt-advanced');
   const advancedState = byId('opt-advanced-state');
+
+  // Lien de retour : affiché seulement si le site qui héberge le jeu l'a demandé avec la balise <meta name="retour-url">.
+  const backMeta = document.querySelector<HTMLMetaElement>('meta[name="retour-url"]');
+  if (backMeta?.content) {
+    const back = byId<HTMLAnchorElement>('opt-back');
+    back.href = backMeta.content;
+    byId('opt-back-label').textContent = backMeta.dataset.label ?? 'Retour au site';
+    back.hidden = false;
+  }
 
   const setOpen = (open: boolean) => {
     menu.hidden = !open;
