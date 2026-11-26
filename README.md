@@ -63,6 +63,7 @@ La DA d'origine est en **arcade pixel** : coins carrés partout, cadres en escal
 - **4 couleurs** : née (cyan), vivante (violet), vient de mourir (trace sombre), morte (fond).
 - **Mode nuit (néon) / mode jour** (bouton en haut à droite, à gauche de l'œil) et un bouton **œil** pour masquer toute l'interface.
 - **Grille vide au départ** : on arrive sur une page vierge, en pause. La grille est bien visible et se masque dans le menu **Options** (bouton à trois barres, en haut à gauche).
+- **Intégration dans AlgoGo** : le jeu peut être servi par un site Flask plus grand (voir [`docs/INTEGRATION.md`](docs/INTEGRATION.md) et `tools/exporter_algo_go.sh`) ; dans ce cas, le menu Options propose « Retour à AlgoGo ».
 - **Didacticiel** : à la première visite, un parcours en 8 bulles (Suivant / Précédent, compteur `1/8`, « Passer le didacticiel »). Pour le revoir : Options → Aide (?), ou la touche `?`.
 - **Épaisseur du crayon** (1 à 15) : survole le crayon, un slider apparaît. Le crayon pose plusieurs cellules d'un coup (il ne grossit pas les cellules).
 - **Options avancées** (menu Options, interrupteur) : ajoutent

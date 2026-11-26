@@ -681,6 +681,12 @@ input[type='color']::-moz-color-swatch {
   cursor: pointer;
 }
 
+/* Le lien « Retour » du menu (balise <a>) ressemble aux autres entrées. */
+a.menu-item {
+  color: inherit;
+  text-decoration: none;
+}
+
 .menu-item:hover {
   background: var(--hover);
   box-shadow: var(--notch-accent);
