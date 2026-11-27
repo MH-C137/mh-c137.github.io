@@ -371,7 +371,7 @@ export class Editor extends Emitter<EditorEvents> {
     this.dropHeld();
   }
 
-  /** Tourne d'un quart de tour la structure en main (touche R). */
+  /** Tourne d'un quart de tour la structure en main (touche T). */
   rotateHeld(): void {
     if (this.held) this.setHeld(rotateClockwise(this.held), true);
   }

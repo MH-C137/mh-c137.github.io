@@ -7,6 +7,8 @@
  * - `npm run build`        → dossier dist/        (site classique : HTML + JS + CSS)
  * - `npm run build:single` → dossier dist-single/ (UN SEUL fichier index.html autonome,
  *   pratique à envoyer par mail ou à déposer sur un portail)
+ * - `npm run build:algogo` → dossier dist-algogo/ (version intégrée au projet Flask AlgoGo :
+ *   sans le panneau « Config DA », voir `withoutConfigDa` plus bas)
  */
 import { defineConfig, type Plugin } from 'vitest/config';
 import { viteSingleFile } from 'vite-plugin-singlefile';
@@ -43,14 +45,30 @@ const contentSecurityPolicy: Plugin = {
   ],
 };
 
+/**
+ * Version AlgoGo (`--mode algogo`) : retire de la page tout ce qui appartient au panneau « Config DA »
+ * (les parties entre les repères CONFIG-DA:début et CONFIG-DA:fin de index.html).
+ */
+const withoutConfigDa: Plugin = {
+  name: 'sans-config-da',
+  apply: 'build',
+  enforce: 'pre',
+  // Le style du panneau (src/ui/daconfig.css) est remplacé par un fichier vide : il n'est pas livré.
+  transform: (_code, id) => (id.split('?')[0]!.endsWith('/daconfig.css') ? { code: '', map: null } : null),
+  transformIndexHtml: (html) => html.replace(/[ \t]*<!-- CONFIG-DA:début[^>]*-->[\s\S]*?<!-- CONFIG-DA:fin -->\n?/g, ''),
+};
+
 export default defineConfig(({ mode }) => ({
   base: './',
-  plugins: mode === 'single' ? [viteSingleFile()] : [contentSecurityPolicy],
+  // Drapeau lu par le code (voir src/build-flags.d.ts) : faux = le code du panneau « Config DA » disparaît du site livré.
+  define: { __CONFIG_DA__: JSON.stringify(mode !== 'algogo') },
+  plugins:
+    mode === 'single' ? [viteSingleFile()] : mode === 'algogo' ? [contentSecurityPolicy, withoutConfigDa] : [contentSecurityPolicy],
   build: {
     // Le code final reste lisible par les Safari un peu anciens (Safari 14 et +) :
     // sans cette ligne, un Safari plus vieux que la valeur par défaut de Vite affiche une page blanche.
     target: ['es2020', 'safari14'],
-    outDir: mode === 'single' ? 'dist-single' : 'dist',
+    outDir: mode === 'single' ? 'dist-single' : mode === 'algogo' ? 'dist-algogo' : 'dist',
     emptyOutDir: true,
   },
   test: {

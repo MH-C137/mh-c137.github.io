@@ -46,7 +46,7 @@ import { chooseDesign } from './da/registry';
 import { DesignRuntime } from './da/runtime';
 import { setupTransport, setupZoom } from './ui/transport';
 
-listenForErrors(); // garde les erreurs du navigateur pour le « diagnostic » (Config DA)
+if (__CONFIG_DA__) listenForErrors(); // garde les erreurs du navigateur pour le « diagnostic » (Config DA)
 
 // ── 1. Les objets du programme ─────────────────────────────────────────────
 const canvas = byId<HTMLCanvasElement>('world');
@@ -82,7 +82,8 @@ setupLibrary(app);
 setupActionBars(app);
 const menu = setupMenu(app);
 const tutorial = setupTutorial(app, menu);
-const daConfig = setupDaConfig(app);
+// Le panneau « Config DA » n'existe pas dans la version AlgoGo (drapeau de fabrication, voir src/build-flags.d.ts).
+const daConfig = __CONFIG_DA__ ? setupDaConfig(app) : null;
 setupOptions(app, tutorial, daConfig);
 setupShortcuts(app, menu, tutorial);
 setupTooltips();

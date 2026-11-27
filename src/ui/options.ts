@@ -21,13 +21,14 @@ import { byId } from './dom';
 import type { DaConfig } from './daconfig';
 import type { Tutorial } from './tutorial';
 
-export function setupOptions(app: App, tutorial: Tutorial, daConfig: DaConfig): void {
+export function setupOptions(app: App, tutorial: Tutorial, daConfig: DaConfig | null): void {
   const button = byId<HTMLButtonElement>('menu-toggle');
   const menu = byId('options-menu');
   const gridItem = byId<HTMLButtonElement>('opt-grid');
   const gridState = byId('opt-grid-state');
   const helpItem = byId<HTMLButtonElement>('opt-help');
-  const daItem = byId<HTMLButtonElement>('opt-da');
+  // « Config DA » : absent de la version AlgoGo (le panneau et son bouton ne sont pas livrés : null).
+  const daItem = daConfig ? byId<HTMLButtonElement>('opt-da') : null;
   const advancedItem = byId<HTMLButtonElement>('opt-advanced');
   const advancedState = byId('opt-advanced-state');
 
@@ -48,9 +49,9 @@ export function setupOptions(app: App, tutorial: Tutorial, daConfig: DaConfig): 
   button.addEventListener('click', () => setOpen(menu.hidden === true));
   gridItem.addEventListener('click', () => app.viewSettings.toggleGrid());
   advancedItem.addEventListener('click', () => app.viewSettings.toggleAdvanced());
-  daItem.addEventListener('click', () => {
+  daItem?.addEventListener('click', () => {
     setOpen(false);
-    daConfig.toggle();
+    daConfig?.toggle();
   });
   helpItem.addEventListener('click', () => {
     setOpen(false);
@@ -85,7 +86,7 @@ export function setupOptions(app: App, tutorial: Tutorial, daConfig: DaConfig): 
     const visible = app.viewSettings.advancedVisible;
     advancedItem.setAttribute('aria-checked', String(visible));
     advancedState.textContent = visible ? 'affichées' : 'masquées';
-    daItem.hidden = !visible;
+    if (daItem) daItem.hidden = !visible;
   };
   app.viewSettings.on('change', renderAdvanced);
   renderAdvanced();

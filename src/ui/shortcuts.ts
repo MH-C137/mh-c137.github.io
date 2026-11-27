@@ -5,7 +5,7 @@
  *
  *   Espace        lecture / pause              S  sélection     D  main (déplacer)
  *   →  /  ←       une génération avant/arrière  P  pinceau       G  gomme
- *   Maj + → / ←   lecture avant / arrière      R  tourner la structure en main
+ *   Maj + → / ←   lecture avant / arrière      T  tourner la structure en main
  *   + / − / 0     zoomer / dézoomer / recentrer F  retourner la structure en main
  *   M             afficher / masquer l'interface (œil)   N  mode nuit / jour
  *   ?             revoir le didacticiel
@@ -108,7 +108,7 @@ function handleLetter(app: App, key: string, menu: { toggleMenu: () => void }): 
     case 'd': app.editor.setTool('hand'); return true;
     case 'p': app.editor.setTool('brush'); return true;
     case 'g': app.editor.setTool('eraser'); return true;
-    case 'r': app.editor.rotateHeld(); return true;
+    case 't': app.editor.rotateHeld(); return true;
     case 'f': app.editor.flipHeld(); return true;
     case 'm': menu.toggleMenu(); return true;
     case 'n': app.theme.toggle(); return true;
