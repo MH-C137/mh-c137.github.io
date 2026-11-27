@@ -5,7 +5,7 @@
 #  Usage :  tools/exporter_algo_go.sh /chemin/vers/algo_go
 #
 #  Ce que ça fait :
-#    1. construit le site (npm run build → dist/) ;
+#    1. construit la version AlgoGo, sans le panneau « Config DA » (npm run build:algogo → dist-algogo/) ;
 #    2. vide l'ancien dossier  app/jeu_vie/static/jeu_vie/  du projet AlgoGo (les noms de fichiers changent à
 #       chaque construction : sans ce nettoyage, de vieux fichiers s'accumuleraient) ;
 #    3. y copie le nouveau site.
@@ -17,8 +17,8 @@ dossier="$cible/app/jeu_vie/static/jeu_vie"
 [ -d "$cible/app/jeu_vie" ] || { echo "Je ne trouve pas $cible/app/jeu_vie : est-ce bien le projet AlgoGo ?" >&2; exit 1; }
 
 cd "$(dirname "$0")/.."
-npm run build
+npm run build:algogo
 rm -rf "$dossier"
 mkdir -p "$dossier"
-cp -r dist/. "$dossier/"
+cp -r dist-algogo/. "$dossier/"
 echo "Jeu copié dans $dossier ($(find "$dossier" -type f | wc -l) fichiers)."

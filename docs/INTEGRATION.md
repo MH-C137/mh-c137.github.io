@@ -1,15 +1,21 @@
 # Intégrer le jeu dans le projet AlgoGo (Flask)
 
 Le projet AlgoGo (`Abacuc0/algo_go`) est une application **Flask** : chaque algorithme est un « module » dans `app/`. Le jeu
-n'a pas besoin d'être recompilé chez eux : on y dépose le **site déjà construit** (`dist/`, une dizaine de fichiers).
+n'a pas besoin d'être recompilé chez eux : on y dépose le **site déjà construit** (`npm run build:algogo` → `dist-algogo/`, une dizaine de fichiers, sans le panneau « Config DA », réservé au site complet).
 
 ## Comment ça marche
 
-- Le module `app/jeu_vie/` sert le dossier `static/jeu_vie/` (le contenu de `dist/`) à l'adresse `/jeu-vie/`.
+- Le module `app/jeu_vie/` sert le dossier `static/jeu_vie/` (le contenu de `dist-algogo/`) à l'adresse `/jeu-vie/`.
 - Les chemins du jeu sont **relatifs** (`base: './'` dans `vite.config.ts`) : le jeu marche donc dans n'importe quel dossier.
 - La route ajoute dans la page une balise `<meta name="retour-url" content="/" data-label="Retour à AlgoGo">` : le jeu affiche
   alors « Retour à AlgoGo » dans son menu Options (sans cette balise, le lien est caché : le site sur GitHub Pages n'a pas de retour).
 - Les données du navigateur du jeu commencent toutes par `jeu-de-la-vie:` : pas de collision avec les autres modules.
+
+## Deux versions du même code
+
+- **Site complet** (`npm run build`, GitHub Pages) : avec le panneau « Config DA » (personnalisation des couleurs).
+- **Version AlgoGo** (`npm run build:algogo`) : sans ce panneau. Un drapeau de fabrication (`__CONFIG_DA__`, voir `src/build-flags.d.ts`)
+  fait disparaître son code, son style et ses boutons : environ 9 Ko de JavaScript et 2 Ko de CSS en moins. Le code du jeu est le même.
 
 ## Mettre le jeu à jour chez AlgoGo
 

@@ -26,6 +26,7 @@ Ouvre ensuite l'adresse affichée dans le terminal (en général http://localhos
 | `npm run typecheck` | Vérifie les types TypeScript |
 | `npm run build` | Construit la version en ligne dans `dist/` |
 | `npm run build:single` | Construit **un seul fichier** autonome : `dist-single/index.html` |
+| `npm run build:algogo` | Version intégrée au projet Flask AlgoGo : sans le panneau « Config DA » (`dist-algogo/`), voir [`docs/INTEGRATION.md`](docs/INTEGRATION.md) |
 | `npm run preview` | Affiche en local la version construite |
 
 ## Mettre en ligne / brancher sur le site des projets
@@ -56,7 +57,7 @@ La DA d'origine est en **arcade pixel** : coins carrés partout, cadres en escal
 - **Lecture** : `<<` lecture arrière · `<` une génération en arrière · `||` pause · `>` une génération en avant · `>>` lecture.
 - **Vitesse** réglable de 1 à 120 générations par seconde.
 - **Modifier pendant la pause** : on ajoute des cellules ou des structures sans tout recommencer.
-- **Bibliothèque de structures** (stables, oscillateurs, vaisseaux, canon, mathusalems) : on les glisse sur la grille ou on clique dessus pour les poser comme un tampon. `R` pour les tourner, `F` pour les retourner.
+- **Bibliothèque de structures** (stables, oscillateurs, vaisseaux, canon, mathusalems) : on les glisse sur la grille ou on clique dessus pour les poser comme un tampon. `T` pour les tourner, `F` pour les retourner.
 - **Sélection** : copier, couper, supprimer, ou « garder comme structure » (elle s'ajoute alors à la bibliothèque).
 - **Format RLE** : on peut coller (Ctrl+V) une structure copiée sur [LifeWiki](https://conwaylife.com/wiki), ou déposer un fichier `.rle` sur la page.
 - **Images** : on importe des images (bouton ou glisser-déposer). Le pinceau et les structures posent alors des cellules qui portent cette image. Une cellule qui naît prend l'image la plus présente parmi ses parents, donc les images se propagent et se disputent le terrain.
@@ -85,7 +86,7 @@ La DA d'origine est en **arcade pixel** : coins carrés partout, cadres en escal
 | `→` / `←` | une génération avant / arrière | `D` | main (déplacer) |
 | `Maj` + `→` / `←` | lecture avant / arrière | `P` | pinceau |
 | `+` / `-` | zoomer / dézoomer | `G` | gomme |
-| `0` | recentrer sur les cellules | `R` / `F` | tourner / retourner la structure en main |
+| `0` | recentrer sur les cellules | `T` / `F` | tourner / retourner la structure en main |
 | `Ctrl+C` / `X` / `V` | copier / couper / coller | `M` | afficher / masquer l'interface (œil) |
 | `Suppr` | supprimer la sélection | `N` | mode nuit / jour |
 | `Échap` | annuler (sélection, structure en main) | clic du milieu | déplacer la vue |

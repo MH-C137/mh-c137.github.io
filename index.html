@@ -53,12 +53,15 @@
           <span>Options avancées</span>
           <output id="opt-advanced-state">masquées</output>
         </button>
+        <!-- CONFIG-DA:début (retiré de la version AlgoGo : npm run build:algogo) -->
         <!-- Visible seulement quand « Options avancées » est activé : ouvre le panneau de personnalisation (src/ui/daconfig.ts) -->
         <button id="opt-da" class="menu-item" type="button" aria-controls="da-config" hidden>
           <svg viewBox="0 0 12 12" aria-hidden="true"><path d="M1 1h4v4h-4zM7 1h4v4h-4zM1 7h4v4h-4zM7 7h4v4h-4z" /></svg>
           <span>Config DA : couleurs et styles</span>
         </button>
+        <!-- CONFIG-DA:fin -->
       </div>
+      <!-- CONFIG-DA:début -->
       <!-- Panneau « Config DA » : personnaliser couleurs et styles (nuit / jour séparés), voir src/ui/daconfig.ts -->
       <section id="da-config" class="panel da-config" aria-label="Config DA" hidden>
         <div class="da-header">
@@ -79,6 +82,7 @@
           <button id="da-reset-all" class="text-btn" type="button" title="Efface les réglages du mode nuit ET du mode jour">Tout remettre</button>
         </div>
       </section>
+      <!-- CONFIG-DA:fin -->
 
       <!-- En haut : titre et légende des 4 couleurs -->
       <header id="title-bar" class="panel title-bar">
@@ -209,7 +213,7 @@
           </button>
         </div>
         <div id="library-body" class="library-body">
-          <p class="hint">Glisse une structure sur la grille, ou clique dessus puis clique sur la grille. <kbd>R</kbd> pour tourner.</p>
+          <p class="hint">Glisse une structure sur la grille, ou clique dessus puis clique sur la grille. <kbd>T</kbd> pour tourner.</p>
           <div id="pattern-list"></div>
 
           <!-- Options avancées : tout ce qui concerne les images (voir src/ui/library.ts) -->
@@ -246,7 +250,7 @@
 
       <div id="stamp-bar" class="panel action-bar" role="toolbar" aria-label="Structure en main" hidden>
         <span class="label">Clique sur la grille pour poser</span>
-        <button class="text-btn" type="button" data-action="rotate" title="Tourner d'un quart de tour (R)">Tourner</button>
+        <button class="text-btn" type="button" data-action="rotate" title="Tourner d'un quart de tour (T)">Tourner</button>
         <button class="text-btn" type="button" data-action="flip" title="Retourner en miroir (F)">Retourner</button>
         <button class="text-btn" type="button" data-action="done" title="Ranger la structure (Échap)">Terminé</button>
       </div>

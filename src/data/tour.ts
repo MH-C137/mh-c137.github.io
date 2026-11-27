@@ -95,7 +95,7 @@ export const TOUR_STEPS: readonly TourStep[] = [
     intro: 'Des formes toutes prêtes à poser :',
     items: [
       { label: 'Glisse', text: 'une structure sur la grille.' },
-      { label: 'Touche R', text: 'pour la tourner.' },
+      { label: 'Touche T', text: 'pour la tourner.' },
     ],
     target: '#library',
     sides: ['left', 'bottom'],

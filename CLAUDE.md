@@ -18,6 +18,7 @@ npm test             # tests Vitest (doivent TOUS passer)
 npm run typecheck    # vérification TypeScript stricte
 npm run build        # version en ligne → dist/
 npm run build:single # fichier unique autonome → dist-single/index.html
+npm run build:algogo # version AlgoGo (sans le panneau « Config DA ») → dist-algogo/
 ```
 
 ## Architecture (à respecter)

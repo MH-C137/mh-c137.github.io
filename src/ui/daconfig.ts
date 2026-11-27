@@ -22,6 +22,7 @@
  * ÉCOUTANT les événements (changement de thème, changement de réglage).
  */
 
+import './daconfig.css';
 import type { App } from '../app';
 import { bestOn } from '../da/derive';
 import { alphaOf, colorWithAlpha, hexOf, recolor } from '../da/overrides';
